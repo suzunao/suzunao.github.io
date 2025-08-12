@@ -1,7 +1,10 @@
 _site
+_posts
 .sass-cache
 .jekyll-cache
 .jekyll-metadata
 vendor
-
 Gemfile.lock  
+.md
+
+
