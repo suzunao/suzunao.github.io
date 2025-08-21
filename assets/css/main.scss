@@ -1,0 +1,21 @@
+---
+---
+@use "base";
+@use "home";
+@use "posts";
+@use "search";
+
+
+@media (min-width: 1200px) {
+  .terminal-window {
+    max-width: 1200px; 
+    width: 80%;          
+  }
+}
+
+@media (min-width: 1600px) {
+  .terminal-window {
+    max-width: 1400px;
+    width: 60%;
+  }
+}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% seo %}
+  <link rel="icon" href="{{ 'assets/img/icon/P4r4$it3.png' | relative_url }}" type="image/png">
+  <link rel="stylesheet" href="{{ 'assets/css/main.css' | relative_url }}">
+</head>
+<body>
+  <div class="terminal-window">
+    <header class="terminal-header">
+      <div class="terminal-left">
+        <img src="{{ 'assets/img/eyes.gif' | relative_url }}" alt="Logo animado">
+      </div>
+
+      <div class="terminal-center">
+        root@p4r4$it3:~ 
+      </div>
+
+      <div class="terminal-right">
+        <span class="btn search" id="search-btn">🔍</span>
+        <span class="btn menu" id="menu-btn">☰</span>
+      </div>
+
+      <!-- Menú desplegable -->
+      <nav class="terminal-nav" id="menu">
+        <a href="{{ '/' | relative_url }}">Inicio</a>
+        <a href="{{ '/about/' | relative_url }}">Acerca de</a>
+      </nav>
+
+      <!-- Buscador desplegable -->
+      <div class="terminal-search" id="search">
+        {% include search-form.html %}
+      </div>
+    </header>
+    <div class="terminal-content">
+      <main>
+        {{ content }} 
+      </main>
+  </div>
+  <script src="{{ '/assets/js/main.js' | relative_url }}" defer></script>
+</body>
+</html>

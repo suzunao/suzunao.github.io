@@ -1,10 +1,26 @@
-_site
-_posts
-.sass-cache
-.jekyll-cache
+###########
+_site/
+.sass-cache/
+.jekyll-cache/
 .jekyll-metadata
-vendor
-Gemfile.lock  
-.md
 
+###########
+vendor/
+Gemfile.lock
 
+###########
+.env
+
+###########
+.obsidian/
+
+###########
+_posts/
+
+###########
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project

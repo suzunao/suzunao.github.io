@@ -1,0 +1,80 @@
+.terminal-output{
+  background: transparent;
+  color: #00ffcc;
+  padding: 1rem;
+  border-radius: 5px;
+  overflow-x: auto; 
+}
+
+.terminal-banner span.tool {
+  color: #f0d080; 
+  font-weight: bold;
+}
+
+/* Resaltar opciones  */
+.terminal-banner span.option {
+  color: #66ccff;
+  font-weight: bold;
+}
+
+.terminal-output p {
+  margin: 0 0 0.5rem 0;
+  color: #66ff66;
+}
+
+.terminal-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; 
+}
+
+.terminal-table thead {
+  color: #f5f7f7;
+  border-bottom: 1px solid #00ffffe7;
+}
+
+.terminal-table th,
+.terminal-table td {
+  padding: 0.3rem;
+  text-align: left;
+  white-space: nowrap;       
+  overflow: hidden;          
+  text-overflow: ellipsis;   
+}
+
+.terminal-table tr {
+  transition: background 0.2s;
+}
+
+.terminal-table tr:hover {
+  background: rgba(0, 255, 200, 0.1);
+  cursor: pointer;
+}
+
+.terminal-table td:nth-child(1) { width: 10%; } 
+.terminal-table td:nth-child(2) { width: 20%; }  
+.terminal-table td:nth-child(3) { width: 30%; }  
+.terminal-table td:nth-child(4) { width: 40%; }  
+
+.status-message {
+  margin: 0.5rem 0;
+}
+
+.tag-pill {
+  display: inline-block;
+  background: rgba(0, 255, 200, 0.1);
+  border: 1px solid #00ffcc;
+  color: #00ffcc;
+  padding: 2px 8px;
+  margin: 0 3px 3px 0;
+  border-radius: 999px;  
+  font-size: 0.85rem;
+  font-family: "Fira Code", monospace;
+  transition: all 0.2s ease;
+}
+
+.tag-pill:hover {
+  background: #00ffcc;
+  color: #000;
+  cursor: pointer;
+}
