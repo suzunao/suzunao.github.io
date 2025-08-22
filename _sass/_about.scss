@@ -1,0 +1,105 @@
+.ticket-border {
+    margin: 0 auto;
+    font-size: 0.9rem;
+    text-align: center;
+    width: 100%;
+    max-width: 650px;
+    margin-bottom: 1.5rem;
+}
+
+.about-card {
+    max-width: 600px;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 1.5rem;
+    border-radius: 6px;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.15);
+    margin: 0 auto;
+}
+
+.about-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.about-logo img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #0f0;
+    box-shadow: 0 0 15px #0f0;
+    transition: transform 0.3s;
+}
+
+.about-logo img:hover {
+    transform: scale(1.05);
+}
+
+.about-name {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #6eff6e;
+    margin-bottom: 0.8rem;
+    text-shadow: 0 0 10px rgba(110, 255, 110, 0.5);
+    text-align: center;
+}
+
+.about-title {
+    font-size: 1.1rem;
+    color: #aaa;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-weight: normal;
+}
+
+.about-socials {
+    margin: 1.5rem 0;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.about-socials a {
+    color: #0f0;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border: 1px solid #0f0;
+    border-radius: 4px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.about-socials a:hover {
+    color: #000;
+    background: #0f0;
+    box-shadow: 0 0 15px #0f0;
+}
+
+.about-desc {
+    margin-top: 1.5rem;
+    color: #e5e5e5;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.about-warning {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 0, 0, 0.08);
+    border: 1px solid #f00;
+    color: #ff5555;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+    text-align: left;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}

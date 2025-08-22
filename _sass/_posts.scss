@@ -1,5 +1,7 @@
 /* Artículo / Posts */
 .single-post {
+  position: relative; 
+  top: -3rem;
   background: transparent;
   color: #ffffff;
   line-height: 1.5;
@@ -7,7 +9,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem 1rem;
+  padding: 1rem 1rem 2rem 1rem;
   max-width: 900px;
 }
 
@@ -71,14 +73,13 @@
 
  /* Código inline */
 .post-content code {
-  background: rgba(255, 255, 255, 0.05); 
+  background: rgba(255, 255, 255, 0.099); 
   color: #c0c0c0; 
   padding: 0.2rem 0.4rem; 
   border-radius: 6px; 
   font-size: 0.95rem;
   font-family: "Fira Code", monospace;
   line-height: 1.4;
-  border: 1px solid rgba(255, 255, 255, 0.08); 
 }
 
 .post-content pre {
@@ -140,7 +141,6 @@ pre:hover .copy-button {
   max-width: 720px; 
   width: 100%;  
   height: auto;
-  border: 1px solid #c0c0c0;
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
   border-radius: 6px;
 }
@@ -159,7 +159,8 @@ pre:hover .copy-button {
 }
 
 .post-tags {
-  margin: 1.5rem 0;
+  margin: 1rem 0;
+  left: 0.5rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
@@ -215,8 +216,8 @@ pre:hover .copy-button {
   font-size: 0.8rem;
 }
 
-.post-card {
-  padding: 2rem 1rem; 
+.post-card {  
+  padding: 1rem 1rem; 
   border-radius: 10px;
   background: rgba(15, 15, 35, 0.7);
   backdrop-filter: blur(6px); 
@@ -225,7 +226,6 @@ pre:hover .copy-button {
   margin: 2rem auto;
   position: relative;
   box-shadow: 0 0 12px rgba(0, 255, 0, 0.15);
-  border: 1px solid rgba(0, 255, 0, 0.25);
 }
 
 
@@ -246,16 +246,45 @@ pre:hover .copy-button {
 }
 
 .post-card h1 {
-  margin: 0 0 0.8rem 0;
+  margin: 1 0 1rem 0;
+  left: 0.5rem;
   font-size: 1.6rem;  
   color: #fff;
   line-height: 1.3;
 }
 
-.post-card .post-date {
-  font-size: 0.85rem;
+.post-card-header {
+  left: 0.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.author-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  object-fit: cover;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
+}
+
+.author-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.author-name {
+  font-weight: bold;
+  color: #6eff6e;
+  font-size: 0.95rem;
+}
+
+.post-card-header .post-date {
+  left: 0.5rem;
+  font-size: 0.8rem;
   color: #ccc;
-  margin-bottom: 0.8rem;
 }
 
 .video-container {

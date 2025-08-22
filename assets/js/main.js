@@ -25,3 +25,4 @@ document.addEventListener('click', (e) => {
   if (!search.contains(e.target) && !searchBtn.contains(e.target)) search.style.display = 'none';
 });
 
+

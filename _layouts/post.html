@@ -12,7 +12,13 @@ layout: default
   <div class="post-card"
       style="--bg-image: url('{{ page.background | default: "/assets/img/icon/wall.jpg" }}');">
     <h1>{{ page.title }}</h1>
-    <p class="post-date">{{ page.date | date: "%Y-%m-%d" }}</p>
+    <div class="post-card-header">
+      <img class="author-avatar" src="{{ page.author.avatar | relative_url }}" alt="{{ page.author.name }}">
+      <div class="author-info">
+        <span class="author-name">{{ page.author.name }}</span>
+        <span class="post-date">{{ page.date | date: "%Y-%m-%d" }}</span>
+      </div>
+    </div>
     <div class="post-tags">
       {% for tag in page.tags %}
         <a class="tag-pill">#{{ tag }}</a>{% unless forloop.last %} {% endunless %}
