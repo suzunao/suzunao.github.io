@@ -15,9 +15,6 @@ Gemfile.lock
 .obsidian/
 
 ###########
-_posts/
-
-###########
 .DS_Store
 Thumbs.db
 *.swp

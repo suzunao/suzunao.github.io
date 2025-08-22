@@ -223,7 +223,7 @@ Antes de ejecutarlo directamente, se inspeccionan los archivos presentes en el d
 
 ![Descripción](/assets/img/posts/cofeeaddicts/20250622033812.png)
 
-Aquí encontramos el  `shell`  que es un compilado del archivo `shell.ccp`, este archivo  es un programa en C++ que actúa como una shell interactiva básica esta lee  los comandos ingresados por el usuario y los ejecuta en el sistema utilizando la función `system()`. El código entra en un bucle infinito (`while(1)`), muestra un prompt (`BadByte #`), captura la entrada del usuario con `cin >> command`, la convierte a un formato compatible con C (`cstr`) y la ejecuta con `system(cstr)` 
+Aquí encontramos el  `shell`  que es un compilado del archivo `shell.ccp`, este archivo  es un programa en C++ que actúa como una shell interactiva básica esta lee los comandos ingresados por el usuario y los ejecuta en el sistema utilizando la función `system()`. El código entra en un bucle infinito (`while(1)`), muestra un prompt (`BadByte #`), captura la entrada del usuario con `cin >> command`, la convierte a un formato compatible con C (`cstr`) y la ejecuta con `system(cstr)` 
 Como el usuario `badbyte` tiene permisos para ejecutarlo como root (según `sudo -l`), cualquier comando que se pase a través de este programa se ejecutará con privilegios elevados. Con lo anterior en mente, se procede a ejecutar el binario:
 
 ``` bash
