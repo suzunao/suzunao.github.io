@@ -52,14 +52,12 @@ pagination:
 
 # Plugins (jekyll-paginate-v2 debe ser el primero)
 plugins:
-  - jekyll-paginate-v2
   - jekyll-feed
-  - jekyll-sass-converter
   - jekyll-sitemap
   - jekyll-seo-tag
   - jekyll-archives
   - jekyll-compose
-
+  
 # Búsqueda
 search_enabled: true
 
