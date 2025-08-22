@@ -25,3 +25,5 @@ end
 gem "wdm", "~> 0.1", :platforms => [:mingw, :x64_mingw, :mswin]
 gem "http_parser.rb", "~> 0.6.0", :platforms => [:jruby]
 
+# NOTA: No declaramos sassc ni jekyll-sass-converter, GitHub Pages los incluye internamente
+# No declarar autoprefixer-rails ni jekyll-paginate-v2 si quieres build automático en GitHub Pages
