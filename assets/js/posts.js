@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const session = [
     {
-      command: `necrot-log -c ${postDate}.log --hashfile hash.txt --wordlist rockyou.txt`,
+      command: `necrot -c ${postDate}.log --hashfile hash.txt --wordlist rockyou.txt`,
       output: `[*] Parsing ${postDate}.log ... done
 [*] Loading hashes from hash.txt ... done
 [*] Using wordlist rockyou.txt ... 
@@ -70,13 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
         runSession(commands);
       });
     });
-  }
-  function copyCode(btn) {
-  const code = btn.nextElementSibling.innerText;
-  navigator.clipboard.writeText(code).then(() => {
-    btn.innerText = 'Copiado!';
-    setTimeout(() => btn.innerText = 'Copiar', 1000);
-  });
   }
   runSession([...session]);
 });
