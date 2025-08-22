@@ -1,5 +1,3 @@
-# _config.yml
-
 # Configuración básica
 title: Suzuano
 description: A personal blog
@@ -54,7 +52,6 @@ pagination:
 plugins:
   - jekyll-paginate-v2
   - jekyll-feed
-  - jekyll-sass-converter
   - jekyll-sitemap
   - jekyll-seo-tag
   - jekyll-archives
