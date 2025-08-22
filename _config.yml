@@ -3,8 +3,8 @@
 # Configuración básica
 title: Suzuano
 description: A personal blog
-baseurl: ""
-url: ""
+baseurl: "/"
+url: "https://p4r4it3.github.io"
 timezone: UTC
 
 # Configuración de Markdown
