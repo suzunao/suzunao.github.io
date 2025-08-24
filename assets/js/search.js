@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
       resultsContainer.style.display = 'block'; 
     }
   };
-
-
+  
   searchInput.addEventListener('input', e => performSearch(e.target.value));
 });

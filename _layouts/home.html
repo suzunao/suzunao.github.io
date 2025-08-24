@@ -22,9 +22,11 @@ title: home
       </tr>
     </thead>
     <tbody>
-      {% for post in paginator.posts limit:4 %}
+      <!--<p>Total posts: {{ site.posts | size }}</p>-->
+      {% assign all_posts = site.posts | sort: 'date' | reverse %}
+      {% for post in all_posts %}
       <tr onclick="location.href='{{ post.url | relative_url }}'" style="cursor:pointer;">
-        <td>0{{ forloop.index }}</td>
+        <td>0{{ forloop.index | prepend: "0" | slice: -2, 2 }}</td>
         <td>{{ post.date | date: "%Y-%m-%d" }}</td>
         <td>{{ post.title }}</td>
         <td>
@@ -35,6 +37,10 @@ title: home
         <td>{{ post.excerpt | strip_html | truncate: 20 }}</td>
       </tr>
       {% endfor %}
+      <tr id="loadMoreBtnRow">
+        <td colspan="5" style="text-align:center; cursor:pointer;">More...</td>
+      </tr>
+    </tr>
     </tbody>
   </table>
 </div>

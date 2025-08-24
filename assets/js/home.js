@@ -15,14 +15,14 @@ const session = [
   output: `___________________________________________________________________________
 --     _____  ___    _______   ______    _______     ______  ___________ --
 --    (\"   \\|"  \\  /" __   ) /" _  "\\  /"      \\   /    " \\("     _   ") --
---    |.\\   \\    |(__/ _) ./(: ( \\___)|:        | // ____  \\)__/  \\\\__/ --
+--    |.\\   \\    |(__/ _) ./(: ( \\___)|:        | // ____  \\)__/  \\\\__/  --
 --    |: \\.   \\\\  |    /  //  \\/ \\     |_____/   )/  /    ) :)  \\\\_ /    --  
 --    |.  \\    \\. | __ \\_ \\\\  //  \\ _   //      /(: (____/ //   |.  |    -- 
 --    |    \\    \\ |(: \\__) :\\(:   _) \\ |:  __   \\ \\        /    \\:  |    --   
 --     \\___|\\____\\) \\_______) \\_______)|__|  \\___) \\"_____/      \\__|    --   
 ___________________________________________________________________________
 
-Usage: n3cr0t-log [options] 
+Usage: necrot [options] 
   -l, --less[file]      analyze file
   --hashfile [file]     load password hashes
   -c, --crack [file]    crack target file 
@@ -38,7 +38,7 @@ Usage: n3cr0t-log [options]
 [*] Indexing entries... done
 [*] Extracting metadata... done
 [*] Generating preview table
-[+] Preview complete: 4/${postCount} records listed`
+[+] Preview complete: ${postCount} records listed`
   }
 ];
 
@@ -105,12 +105,37 @@ function runSession(commands) {
       typeOutput(output, () => {
         // Mostrar tabla al final de la sesión
         if (!commands.length) {
-          const postsTable = document.getElementById("postsTable");
-          if (postsTable) postsTable.style.display = "table";
+          initPostsTable();
         }
         runSession(commands);
       });
     }
+  });
+}
+
+function initPostsTable() {
+  const postsTable = document.getElementById("postsTable");
+  const loadMoreBtnRow = document.getElementById("loadMoreBtnRow");
+
+  if (!postsTable || !loadMoreBtnRow) return;
+
+  const rows = postsTable.querySelectorAll("tbody tr:not(#loadMoreBtnRow)");
+  let visibleCount = 4;
+
+  // Mostrar primeros 4
+  rows.forEach((row, index) => {
+    row.style.display = index < visibleCount ? "" : "none";
+  });
+
+  postsTable.style.display = "table";
+
+  // Mostrar fila "Ver más" si hay posts ocultos
+  loadMoreBtnRow.style.display = rows.length > visibleCount ? "" : "none";
+
+  // Evento click
+  loadMoreBtnRow.addEventListener("click", () => {
+    rows.forEach(row => row.style.display = "");   
+    loadMoreBtnRow.style.display = "none";        
   });
 }
 

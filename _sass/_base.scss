@@ -111,14 +111,14 @@ body::before {
 }
 
 .terminal-left img {
-  width: 55px;
-  height: 30px;
+  width: 75px;
+  height: 25px;
   object-fit: cover;
   border-radius: 4px;
 }
 
 .terminal-center {
-  flex-grow: 1;
+  margin: 0 auto;
   text-align: center;
   color: #ff5555;
   font-weight: bold;
