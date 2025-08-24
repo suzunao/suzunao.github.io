@@ -130,7 +130,8 @@ function initPostsTable() {
   postsTable.style.display = "table";
 
   // Mostrar fila "Ver más" si hay posts ocultos
-  loadMoreBtnRow.style.display = rows.length > visibleCount ? "" : "none";
+  const totalVisible = rows.length;
+  loadMoreBtnRow.style.display = totalVisible > visibleCount ? "" : "none";
 
   // Evento click
   loadMoreBtnRow.addEventListener("click", () => {
