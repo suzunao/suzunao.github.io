@@ -6,8 +6,30 @@ title: home
 <!-- Contenedor principal de la terminal -->
 <div class="terminal-content" id="terminalContent"></div>
 
-<!-- Contenedor oculto con el número de posts  -->
-<div id="postCount" data-count="{{ paginator.posts | size }}" style="display:none;"></div>
+<!-- Comando necrot -h -->
+  <p class="prompt">
+    <span class="user">root@p4r4$it3</span>:~<span class="prompt-symbol">#</span> 
+    <span class="tool">./necrot Data.7z</span>
+  </p>
+  <pre class="status-message">
+___________________________________________________________________________
+--     _____  ___    _______   ______    _______     ______  ___________ --
+--    ("   \|"  \  /" __   ) /" _  "\  /"      \   /    " \("     _   ") --
+--    |.\   \    |(__/ _) ./(: ( \___)|:        | // ____  \)__/  \\__/  --
+--    |: \.   \\  |    /  //  \/ \     |_____/   )/  /    ) :)  \\_ /    --  
+--    |.  \    \. | __ \_ \\  //  \ _   //      /(: (____/ //   |.  |    -- 
+--    |    \    \ |(: \__) :\(:   _) \ |:  __   \ \        /    \:  |    --   
+--     \___|\____\) \_______) \_______)|__|  \___) \"_____/      \__|    --   
+___________________________________________________________________________
+
+Open: Data.7z
+[*] preview from Data.7z ...
+[*] Indexing entries... done
+[*] Extracting metadata... done
+[*] Generating preview table
+[+] Preview complete: {{ paginator.posts | size }} records listed
+  </pre>
+</div>
 
 <!-- Tabla de posts -->
 <div class="posts-grid">
