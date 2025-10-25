@@ -1,9 +1,9 @@
 ---
 layout: post
-title: CoffeeAddicts - Writeup
+title: "sCoffeeAddicts - Writeup"
 date: 2025-08-18
 author:
-  name: Suzunao
+  name: "Suzunao"
   avatar: /assets/img/icon/Suzunao.png
 tags:
   - Linux
@@ -45,9 +45,9 @@ sudo nmap -sSVC -T4 -vvv 142.160.0.7 -oN Portscan.txt
 ```
 
 - `-sSCV`: Este conjunto combina tres funcionalidades clave:
-	`-sS`: SYN scan → Escaneo furtivo de puertos TCP.    
-	`-sV`: Version detection → Detección de versiones de servicios.    
-	`-sC`: Default scripts → Ejecución de los scripts NSE por defecto (los más comunes para enumeración básica).
+		`-sS`: SYN scan → Escaneo furtivo de puertos TCP.    
+		`-sV`: Version detection → Detección de versiones de servicios.    
+		`-sC`: Default scripts → Ejecución de los scripts NSE por defecto (los más comunes para enumeración básica).
 - `-T4`: Establece la velocidad del escaneo. 
 - `-vvv`: Aumenta el nivel de verbosidad, mostrando detalles en tiempo real durante el escaneo y más información en la salida final.
 - `-oN Portscan.txt`: Guarda la salida en formato normal (`-oN`) en el archivo `Portscan.txt`.
@@ -246,7 +246,6 @@ find / -name "index.html" 2>/dev/null
 
 como vemos el archivo debemos modificar se encuentra en `/var/www/coffeeaddicts.thm/public_html/` . Se accede al directorio donde reside el archivo para su edición:
 
-![[Pasted image 20250622041149.png]]
 ![Descripción](/assets/img/posts/cofeeaddicts/20250622041149.png)
 
 Antes de modificar el archivo, transfiere al servidor una imagen personalizada (`badbyte.png`) que se utilizará como logo en el index.html.
