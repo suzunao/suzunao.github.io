@@ -1,11 +1,10 @@
-# Configuración básica
+
 title: Suzuano
-description: Personal blog
+description: Personal blog about hacking & cybersecurity
 baseurl: ""
 url: "https://suzunao.github.io"
 timezone: UTC
 
-# Configuración de Markdown
 markdown: kramdown
 highlighter: rouge
 kramdown:
@@ -13,59 +12,53 @@ kramdown:
   auto_ids: true
   toc_levels: 1..6
 
-# Sass
 sass:
   sass_dir: _sass
   style: compressed
   sourcemap: never
 
-# URLs y Permalinks
-permalink: /:categories/:title/
-permalink_layout: none
-pretty_urls:
-  trailing_slash: true
 
-# Archivos por tags
+permalink: /post/:title/
+
+
+plugins:
+  - jekyll-paginate-v2
+  - jekyll-archives
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+  - jekyll-compose
+
+
+pagination:
+  enabled: true
+  per_page: 10
+  sort_field: 'date'
+  sort_reverse: true
+  permalink: '/page/:num/'
+  title: ':title - page :num'
+  limit: 0
+  debug: false
+  collection: 'posts'
+
+
 jekyll-archives:
-  enabled: ["tags"]
+  enabled:
+    - tags
   layouts:
     tag: default
   permalinks:
     tag: '/tag/:name/'
 
-# Paginación con jekyll-paginate-v2
-pagination:
-  enabled: true
-  per_page: 0
-  permalink: '/page/:num/'
-  title: ':title - página :num'
-  sort_field: 'date'
-  sort_reverse: true
-  trail:
-    before: 1
-    after: 1
-  limit: 0
-  debug: false
-  collection: 'posts'
 
-# Plugins (jekyll-paginate-v2 debe ser el primero)
-plugins:
-  - jekyll-paginate-v2
-  - jekyll-feed
-  - jekyll-sitemap
-  - jekyll-seo-tag
-  - jekyll-archives
-  - jekyll-compose
-
-# Búsqueda
 search_enabled: true
 
-# Excluir archivos
+
 exclude:
   - README.md
-  - Gemfile.lock
   - Gemfile
+  - Gemfile.lock
   - Rakefile
   - vendor
   - .vscode
-  - .idea 
+  - .idea

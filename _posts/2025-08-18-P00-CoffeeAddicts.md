@@ -1,9 +1,9 @@
 ---
 layout: post
-title: "sCoffeeAddicts - Writeup"
+title: CoffeeAddicts - Writeup
 date: 2025-08-18
 author:
-  name: "Suzunao"
+  name: Suzunao
   avatar: /assets/img/icon/Suzunao.png
 tags:
   - Linux

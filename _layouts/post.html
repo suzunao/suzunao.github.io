@@ -10,7 +10,7 @@ layout: default
 <!-- Contenido del post -->
 <article class="single-post" id="postContent" style="display:none;">
   <div class="post-card"
-      style="--bg-image: url('{{ page.background | default: "/assets/img/icon/wall.jpg" }}');">
+      style="--bg-image: url('{{ page.background | default: "/assets/img/icon/wall.jpg" | relative_url }}');">
     <h1>{{ page.title }}</h1>
     <div class="post-card-header">
       <img class="author-avatar" src="{{ page.author.avatar | relative_url }}" alt="{{ page.author.name }}">

@@ -56,7 +56,7 @@ Open: Data.7z
             <span class="tag-pill">#{{ tag }}{% unless forloop.last %}, {% endunless %}</span>
           {% endfor %}
         </td>
-        <td>{{ post.excerpt | strip_html | truncate: 20 }}</td>
+        <td>{{ post.excerpt | strip_html | truncate: 60 }}</td>
       </tr>
       {% endfor %}
       <tr id="loadMoreBtnRow">
