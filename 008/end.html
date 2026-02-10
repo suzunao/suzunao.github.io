@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Transmisión</title>
+  <link rel="stylesheet" href="close.css">
+</head>
+<body>
+<div id="systemNotification">
+  <div class="notification-box">
+    <div class="notification-header">
+      <div class="notification-icon">⚡</div>
+      <div class="notification-title">ORDEN DIRECTA<div class="notification-subtitle"></div></div>
+    </div>
+    
+    <div class="notification-message">
+      <div class="message-line"><span class="emphasis">Gaby,</span></div>
+      
+      <div class="message-line">Your master ha diseñado una prueba de sumisión. Esta no es una solicitud ni una sugerencia. Es una evaluación de tu obediencia.</div>
+      <div class="message-line">Tu tarea es descifrar el código que contiene tu instrucción. Cada palabra que descubras correctamente te mostrará mi aprobación temporal. El mensaje final es una orden.</div>
+      
+      <div class="command-instruction">
+        EL MENSAJE DECODIFICADO ES TU ORDEN INMEDIATA
+      </div>
+      
+      <div class="deadline">
+        <strong>PLAZO:</strong> Debes completar esto y llamarme a las <strong>9:00 PM</strong> en punto para confirmar que has entendido <strong>Y</strong> obedecido.
+      </div>
+      <div class="message-line">Demuestra que comprendes tu lugar. Demuestra que lo mereces.</div>
+    </div>
+    
+    <button id="startGameBtn">ACEPTO LA PRUEBA</button>
+    
+    <div class="notification-footer">
+      Sistema de Comunicación del Amo • Cifrado: ALPHA-9 • Prioridad: MÁXIMA
+    </div>
+  </div>
+</div>
+
+<!-- CONTENEDOR DEL JUEGO (oculto inicialmente) -->
+<div id="gameContainer" class="hidden">
+  <h1 class="game-title">Decode Your Master's</h1>
+  
+  <div id="board"></div>
+  
+  <div class="feedback">
+    <img id="catImg"/>
+    <img id="errorImg"/>
+  </div>
+  <div id="status"></div>
+</div>
+
+<script src="gmae.js"></script>
+</body>
+</html>
