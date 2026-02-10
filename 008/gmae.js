@@ -28,7 +28,7 @@ const cats = [
 const errorGif = "https://media1.tenor.com/m/vmwklMDAJ9YAAAAC/loving-yamada-at-lv999-akane-kinoshita.gif";
 
 // VARIABLES GLOBALES DEL JUEGO
-let board, catImg, errorImg, status;
+let board, catImg, errorImg, status, hiddenInput;
 let cells = [];
 let cursor = 0;
 let completedWords = new Set();
@@ -73,6 +73,9 @@ function initGame() {
   errorImg = document.getElementById('errorImg');
   status = document.getElementById('status');
   
+  // Crear input oculto para teclado móvil
+  createHiddenInput();
+  
   // Limpiar contenido previo
   board.innerHTML = '';
   cells = [];
@@ -114,13 +117,12 @@ function initGame() {
 
     cell.append(letterElement, numberElement);
     
-    // Evento para hacer clic/tocar en celdas
+    // Evento para activar teclado móvil
     cell.addEventListener('click', () => {
       if (!cell.classList.contains("locked")) {
         cursor = cells.indexOf(cell);
         setActive();
-        // Enfocar el body para que el teclado pueda recibir entrada
-        document.body.focus();
+        activateMobileKeyboard();
       }
     });
     
@@ -137,6 +139,10 @@ function initGame() {
     cell.addEventListener('touchend', (e) => {
       e.preventDefault();
       cell.style.transform = '';
+      // Activar teclado después del toque
+      if (!cell.classList.contains("locked")) {
+        activateMobileKeyboard();
+      }
     });
 
     board.appendChild(cell);
@@ -150,10 +156,87 @@ function initGame() {
 
   // Configurar teclado físico
   setupKeyboardControls();
+}
+
+// CREAR INPUT OCULTO PARA TECLADO MÓVIL
+function createHiddenInput() {
+  // Eliminar input anterior si existe
+  if (hiddenInput) {
+    hiddenInput.remove();
+  }
   
-  // Hacer que el body sea enfocable para teclado
-  document.body.setAttribute('tabindex', '0');
-  document.body.focus();
+  // Crear nuevo input
+  hiddenInput = document.createElement('input');
+  hiddenInput.id = 'hiddenKeyboardInput';
+  hiddenInput.type = 'text';
+  hiddenInput.inputmode = 'text'; // Para teclado normal de letras
+  hiddenInput.maxLength = 1;
+  hiddenInput.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    border: none;
+    background: transparent;
+    color: transparent;
+    pointer-events: none;
+    transform: translate(-100%, -100%);
+  `;
+  
+  // Configurar eventos del input
+  hiddenInput.addEventListener('input', function(e) {
+    const inputValue = this.value.toUpperCase();
+    if (/^[A-Z]$/.test(inputValue)) {
+      writeLetter(inputValue);
+      this.value = ''; // Limpiar después de usar
+    }
+  });
+  
+  hiddenInput.addEventListener('blur', function() {
+    // Cuando pierde el foco, limpiar
+    setTimeout(() => {
+      this.value = '';
+    }, 100);
+  });
+  
+  hiddenInput.addEventListener('keydown', function(e) {
+    // Permitir backspace para borrar
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      e.preventDefault();
+      clearCurrentCell();
+    }
+    // Evitar que se escriban números o caracteres especiales
+    if (!/^[A-Za-z]$/.test(e.key) && e.key.length === 1) {
+      e.preventDefault();
+    }
+  });
+  
+  // Añadir al body
+  document.body.appendChild(hiddenInput);
+}
+
+// ACTIVAR TECLADO MÓVIL
+function activateMobileKeyboard() {
+  if (!hiddenInput) return;
+  
+  // Solo activar en dispositivos móviles
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  if (isMobile) {
+    // Enfocar el input para abrir teclado
+    setTimeout(() => {
+      hiddenInput.focus();
+      // Forzar el enfoque en móviles
+      hiddenInput.click();
+      
+      // Algunos navegadores necesitan esto
+      setTimeout(() => {
+        hiddenInput.focus({preventScroll: true});
+      }, 50);
+    }, 100);
+  }
 }
 
 // CONFIGURAR TECLADO FÍSICO
@@ -238,6 +321,14 @@ function writeLetter(letter) {
 
   checkWords();
   moveCursor(1);
+  
+  // Volver a activar el teclado para siguiente letra (solo en móvil)
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  if (isMobile && hiddenInput) {
+    setTimeout(() => {
+      activateMobileKeyboard();
+    }, 150);
+  }
 }
 
 // VERIFICAR PALABRAS COMPLETADAS
@@ -321,6 +412,11 @@ function checkAllCompleted() {
         </div>
       </div>
     `;
+    
+    // Ocultar teclado en móvil cuando se completa
+    if (hiddenInput) {
+      hiddenInput.blur();
+    }
     
     // Añadir estilos para el mensaje de completado
     const style = document.createElement('style');
