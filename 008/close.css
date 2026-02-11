@@ -192,9 +192,12 @@
 #gameContainer {
   opacity: 0;
   transition: opacity 0.8s ease-in;
-  padding: 15px;
+  padding: 15px 15px 0 15px;
   max-width: 800px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 /* ESTILO MINIMALISTA PARA EL JUEGO */
@@ -202,16 +205,57 @@ body {
   font-family: system-ui, sans-serif;
   background: #0a0a0a;
   text-align: center;
-  padding: 16px;
   color: white;
-  min-height: 100vh;
   margin: 0;
+  overflow-x: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 h2 {
-  margin-bottom: 12px;
+  margin: 12px 0;
   color: #ff2255;
   font-size: 24px;
+  text-shadow: 0 0 10px rgba(255, 34, 85, 0.3);
+}
+
+/* CONTROLES DE NAVEGACIÓN */
+.navigation-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin: 10px 0 20px;
+}
+
+.nav-btn {
+  width: 50px;
+  height: 40px;
+  background: #333;
+  border: 2px solid #ff2255;
+  border-radius: 8px;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover {
+  background: #ff2255;
+  transform: scale(1.05);
+}
+
+.nav-btn:active {
+  transform: scale(0.95);
+}
+
+#cursorPosition {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff6699;
+  min-width: 40px;
 }
 
 #board {
@@ -221,6 +265,7 @@ h2 {
   gap: 8px;
   margin-bottom: 20px;
   padding: 10px;
+  flex: 1;
 }
 
 .cell {
@@ -235,6 +280,7 @@ h2 {
   padding: 4px;
   cursor: pointer;
   transition: all 0.2s;
+  position: relative;
 }
 
 .cell:hover {
@@ -242,9 +288,27 @@ h2 {
 }
 
 .cell.active {
-  border: 2px solid #ff2255;
+  border: 3px solid #ff2255;
   background: #333;
   transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(255, 34, 85, 0.5);
+}
+
+.cell.active::after {
+  content: '↓';
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ff2255;
+  font-size: 16px;
+  font-weight: bold;
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-5px); }
 }
 
 .cell.correct {
@@ -263,6 +327,11 @@ h2 {
   cursor: default;
 }
 
+.cell.fixed {
+  background: #1a1a2a;
+  border-color: #4488ff;
+}
+
 .letter {
   font-size: 18px;
   font-weight: bold;
@@ -279,19 +348,21 @@ h2 {
   width: 18px;
 }
 
+/* FEEDBACK */
 .feedback {
   display: flex;
   justify-content: center;
   margin: 10px 0;
-  min-height: 100px;
+  min-height: 120px;
 }
 
 .feedback img {
-  max-width: 120px;
-  max-height: 120px;
-  border-radius: 8px;
+  max-width: 140px;
+  max-height: 140px;
+  border-radius: 12px;
   display: none;
-  border: 2px solid #333;
+  border: 3px solid #333;
+  box-shadow: 0 0 20px rgba(255, 34, 85, 0.3);
 }
 
 .feedback img.show {
@@ -304,13 +375,40 @@ h2 {
   100% { transform: scale(1); opacity: 1; }
 }
 
+/* LETRA SELECCIONADA */
+.selected-letter {
+  background: rgba(255, 34, 85, 0.1);
+  padding: 10px 20px;
+  border-radius: 10px;
+  margin: 10px auto;
+  font-size: 16px;
+  color: #ff6699;
+  border: 2px solid rgba(255, 34, 85, 0.3);
+  min-width: 200px;
+}
+
+#currentLetter {
+  color: #ff2255;
+  font-weight: bold;
+  font-size: 20px;
+  text-shadow: 0 0 8px rgba(255, 34, 85, 0.5);
+}
+
+/* TECLADO */
 #keyboard {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
   gap: 6px;
-  max-width: 400px;
-  margin: 20px auto;
-  padding: 10px;
+  margin: 20px auto 0;
+  padding: 15px;
+  background: rgba(20, 20, 20, 0.95);
+  border-top: 3px solid #ff2255;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 500px;
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
 }
 
 .key {
@@ -335,47 +433,57 @@ h2 {
   background: #444;
 }
 
+.key.active {
+  background: #ff2255 !important;
+  border-color: #ff2255 !important;
+  color: white !important;
+  box-shadow: 0 0 10px rgba(255, 34, 85, 0.7);
+}
+
 #status {
-  margin-top: 10px;
+  margin: 15px 0;
   font-size: 16px;
   color: #ff6699;
   min-height: 40px;
+  padding: 0 10px;
 }
 
 .completion-message {
   background: linear-gradient(135deg, rgba(34, 34, 34, 0.9), rgba(20, 20, 20, 0.95));
   color: #fff;
-  padding: 15px;
-  border-radius: 10px;
-  margin-top: 15px;
+  padding: 20px;
+  border-radius: 15px;
+  margin: 20px 10px;
   text-align: center;
   font-size: 14px;
   line-height: 1.5;
-  border: 2px solid #ff2255;
-  box-shadow: 0 0 20px rgba(255, 34, 85, 0.4);
+  border: 3px solid #ff2255;
+  box-shadow: 0 0 30px rgba(255, 34, 85, 0.5);
 }
 
 .decoded-text {
   font-family: 'Courier New', monospace;
   letter-spacing: 1px;
-  margin: 10px 0;
-  padding: 10px;
+  margin: 15px 0;
+  padding: 15px;
   background: rgba(255, 34, 85, 0.1);
-  border-radius: 6px;
-  font-size: 13px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .instructions {
-  margin-top: 10px;
+  margin-top: 15px;
   color: #ff6699;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   #keyboard {
     grid-template-columns: repeat(7, 1fr);
-    max-width: 360px;
+    padding: 12px;
+    gap: 5px;
   }
   
   .key {
@@ -384,32 +492,54 @@ h2 {
   }
   
   .cell {
-    width: 34px;
-    height: 48px;
+    width: 36px;
+    height: 50px;
   }
   
   .letter {
-    font-size: 16px;
+    font-size: 17px;
   }
   
   h2 {
-    font-size: 20px;
+    font-size: 22px;
+  }
+  
+  .nav-btn {
+    width: 45px;
+    height: 38px;
+  }
+  
+  .feedback img {
+    max-width: 120px;
+    max-height: 120px;
   }
 }
 
 @media (max-width: 480px) {
   #keyboard {
     grid-template-columns: repeat(6, 1fr);
-    max-width: 300px;
+    padding: 10px;
+    gap: 4px;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 15px 15px 0 0;
+    max-width: 100%;
+  }
+  
+  .key {
+    padding: 8px 0;
+    font-size: 14px;
   }
   
   .cell {
-    width: 30px;
-    height: 44px;
+    width: 32px;
+    height: 46px;
   }
   
   .letter {
-    font-size: 15px;
+    font-size: 16px;
   }
   
   .number {
@@ -417,7 +547,36 @@ h2 {
   }
   
   h2 {
+    font-size: 20px;
+  }
+  
+  #gameContainer {
+    padding-bottom: 180px; /* Espacio para teclado fijo */
+  }
+  
+  .nav-btn {
+    width: 40px;
+    height: 35px;
     font-size: 18px;
+  }
+  
+  .cell.active::after {
+    font-size: 14px;
+    bottom: -18px;
+  }
+  
+  .feedback img {
+    max-width: 100px;
+    max-height: 100px;
+  }
+}
+
+@media (min-width: 769px) {
+  #keyboard {
+    position: relative;
+    border-radius: 15px;
+    border: 2px solid #ff2255;
+    margin-bottom: 20px;
   }
 }
 

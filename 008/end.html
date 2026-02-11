@@ -42,6 +42,12 @@
 <div id="gameContainer" class="hidden">
   <h2>Decode Your Master's</h2>
 
+  <div class="navigation-controls">
+    <button id="prevBtn" class="nav-btn">←</button>
+    <span id="cursorPosition">1</span>
+    <button id="nextBtn" class="nav-btn">→</button>
+  </div>
+
   <div id="board"></div>
 
   <div class="feedback">
@@ -49,9 +55,13 @@
     <img id="errorImg"/>
   </div>
 
+  <div class="selected-letter">
+    Letra seleccionada: <span id="currentLetter">-</span>
+  </div>
+
   <div id="keyboard"></div>
 
-  <p id="status"></p>
+  <div id="status"></div>
 </div>
 
 <script src="gmae.js"></script>
