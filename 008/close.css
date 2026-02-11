@@ -195,6 +195,9 @@
   padding: 15px;
   max-width: 800px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .game-title {
@@ -230,6 +233,7 @@ body {
   gap: 5px;
   margin-bottom: 15px;
   padding: 10px;
+  flex: 1;
 }
 
 .cell {
@@ -328,27 +332,57 @@ body {
   100% { opacity: 0; visibility: hidden; }
 }
 
-/* Animación para celda activa */
+/* CONTADOR DE ERRORES */
+.mistakes-counter {
+  background: rgba(255, 34, 85, 0.1);
+  border-radius: 12px;
+  padding: 10px 20px;
+  margin: 15px auto;
+  display: inline-flex;
+  align-items: center;
+  border: 2px solid rgba(255, 34, 85, 0.3);
+}
+
+.mistakes-title {
+  color: #ff6699;
+  font-size: 14px;
+  font-weight: bold;
+  margin-right: 15px;
+}
+
+.mistakes-dots {
+  display: flex;
+  gap: 10px;
+}
+
+.mistake-dot {
+  width: 16px;
+  height: 16px;
+  background: #ff2255;
+  border-radius: 50%;
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+
+.mistake-dot.used {
+  opacity: 0.3;
+}
+
+/* Animación para celda activa en PC */
 .cell.active::after {
-  content: 'TOCA PARA ESCRIBIR';
+  content: '↴';
   position: absolute;
-  bottom: -22px;
+  bottom: -18px;
   left: 50%;
   transform: translateX(-50%);
   color: #ff2255;
-  font-size: 10px;
-  white-space: nowrap;
-  background: rgba(0, 0, 0, 0.9);
-  padding: 3px 8px;
-  border-radius: 4px;
-  border: 1px solid #ff2255;
-  z-index: 100;
-  animation: pulse 1.5s infinite;
+  font-size: 14px;
+  animation: bounce 1s infinite;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 1; }
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-4px); }
 }
 
 /* Responsive */
@@ -383,11 +417,21 @@ body {
     max-height: 90px;
   }
   
+  /* Indicador para móvil */
   .cell.active::after {
-    content: 'ESCRIBIR';
-    font-size: 9px;
-    padding: 2px 6px;
-    bottom: -20px;
+    content: 'TOCAR';
+    font-size: 10px;
+    background: rgba(0, 0, 0, 0.9);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid #ff2255;
+    bottom: -22px;
+    animation: pulse 1.5s infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
   }
 }
 
@@ -415,36 +459,112 @@ body {
   }
   
   .cell.active::after {
-    font-size: 8px;
-    bottom: -18px;
+    font-size: 9px;
+    bottom: -20px;
   }
 }
 
-/* Input oculto para teclado móvil */
-#hiddenInput {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 1px !important;
-  height: 1px !important;
-  opacity: 0 !important;
-  border: none !important;
-  background: transparent !important;
-  color: transparent !important;
-  pointer-events: none !important;
-  transform: translate(-100%, -100%) !important;
+/* TECLADO VIRTUAL (creado dinámicamente) */
+#virtualKeyboard {
+  display: none;
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(30, 30, 30, 0.95);
+  border-radius: 15px;
+  border: 2px solid #ff2255;
+  box-shadow: 0 0 30px rgba(255, 34, 85, 0.3);
+  width: 100%;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* Mejorar feedback para móvil */
-.cell {
+.virtual-keyboard.show {
+  display: block;
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+  gap: 4px;
+}
+
+.key {
+  flex: 1;
+  min-width: 30px;
+  height: 45px;
+  background: #333;
+  border: 2px solid #444;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
-  -webkit-tap-highlight-color: rgba(255, 34, 85, 0.3);
-  tap-highlight-color: rgba(255, 34, 85, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.cell:active:not(.locked) {
+.key:active {
+  background: #ff2255;
   transform: scale(0.95);
-  transition: transform 0.1s;
+}
+
+.key:hover:not(:active) {
+  background: #444;
+}
+
+.special-key {
+  background: #444;
+  font-size: 14px;
+  flex: 1.5;
+}
+
+.navigation-row {
+  margin-top: 15px;
+  justify-content: center;
+  gap: 10px;
+}
+
+.nav-key {
+  flex: 1;
+  max-width: 100px;
+  height: 40px;
+  background: #444;
+  border: 2px solid #ff2255;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s;
+}
+
+.nav-key:active {
+  background: #ff2255;
+  transform: scale(0.95);
+}
+
+.keyboard-spacer {
+  flex: 0.5;
+}
+
+.keyboard-spacer.half {
+  flex: 0.5;
+}
+
+/* Solo mostrar teclado en móviles */
+@media (min-width: 769px) {
+  #virtualKeyboard {
+    display: none !important;
+  }
 }
 
 /* Estilos para mensaje de completado */
@@ -475,109 +595,4 @@ body {
   margin-top: 10px;
   color: #ff6699;
   font-size: 12px;
-}
-
-/* Para PC, ocultar el indicador "TOCA PARA ESCRIBIR" */
-@media (min-width: 769px) {
-  .cell.active::after {
-    content: '↴' !important;
-    font-size: 14px !important;
-    background: transparent !important;
-    border: none !important;
-    padding: 0 !important;
-    bottom: -18px !important;
-    animation: bounce 1s infinite !important;
-  }
-  
-  @keyframes bounce {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50% { transform: translateX(-50%) translateY(-4px); }
-  }
-}
-
-
-/* Input para teclado virtual */
-#virtualKeyboardInput {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  width: 1px !important;
-  height: 1px !important;
-  opacity: 0 !important;
-  border: none !important;
-  background: transparent !important;
-  color: transparent !important;
-  pointer-events: none !important;
-  transform: translate(-50%, -50%) !important;
-  z-index: -1 !important;
-}
-
-/* Indicador mejorado para móvil */
-@media (max-width: 768px) {
-  .cell.active::after {
-    content: 'TOCA PARA ESCRIBIR';
-    position: absolute;
-    bottom: -25px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #ff2255;
-    font-size: 11px;
-    white-space: nowrap;
-    background: rgba(0, 0, 0, 0.95);
-    padding: 4px 10px;
-    border-radius: 6px;
-    border: 2px solid #ff2255;
-    z-index: 100;
-    animation: pulseMobile 1.5s infinite;
-    font-weight: bold;
-    box-shadow: 0 0 10px rgba(255, 34, 85, 0.7);
-  }
-  
-  @keyframes pulseMobile {
-    0%, 100% { 
-      opacity: 0.9;
-      box-shadow: 0 0 10px rgba(255, 34, 85, 0.7);
-    }
-    50% { 
-      opacity: 1;
-      box-shadow: 0 0 15px rgba(255, 34, 85, 1);
-    }
-  }
-  
-  /* Mejorar visibilidad de celdas activas en móvil */
-  .cell.active {
-    box-shadow: 0 0 0 4px #ff2255, 0 0 25px rgba(255, 34, 85, 0.8) !important;
-    z-index: 50;
-    transform: scale(1.08);
-  }
-  
-  /* Hacer celdas más grandes en móvil para mejor toque */
-  .cell {
-    width: 36px !important;
-    height: 50px !important;
-    min-width: 36px !important;
-    min-height: 50px !important;
-  }
-  
-  .letter {
-    font-size: 18px !important;
-  }
-}
-
-/* Para pantallas muy pequeñas */
-@media (max-width: 360px) {
-  .cell {
-    width: 32px !important;
-    height: 46px !important;
-  }
-  
-  .letter {
-    font-size: 16px !important;
-  }
-  
-  .cell.active::after {
-    font-size: 10px;
-    padding: 3px 8px;
-    bottom: -22px;
-  }
 }

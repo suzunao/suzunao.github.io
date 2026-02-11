@@ -44,19 +44,25 @@
 
   <div id="board"></div>
   
-  <!-- Input oculto pero funcional para teclado móvil -->
-  <input 
-    type="text" 
-    id="virtualKeyboardInput"
-    maxlength="1"
-    style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;"
-  >
-  
   <div class="feedback">
     <img id="catImg"/>
     <img id="errorImg"/>
   </div>
+  
+  <!-- CONTADOR DE ERRORES -->
+  <div class="mistakes-counter">
+    <div class="mistakes-title">Mistakes</div>
+    <div class="mistakes-dots">
+      <div class="mistake-dot"></div>
+      <div class="mistake-dot"></div>
+      <div class="mistake-dot"></div>
+    </div>
+  </div>
+  
   <div id="status"></div>
+  
+  <!-- EL TECLADO SE CREARÁ DINÁMICAMENTE CON JS -->
+  <div id="virtualKeyboard"></div>
 </div>
 
 <script src="gmae.js"></script>
