@@ -42,24 +42,13 @@
 <div id="gameContainer" class="hidden">
   <h1 class="game-title">Decode Your Master's</h1>
   
-  <!-- INPUT PARA TECLADO MÓVIL (visible solo en móviles) -->
-  <div id="mobileInputContainer" class="mobile-input-container">
-    <input 
-      type="text" 
-      id="mobileLetterInput"
-      maxlength="1"
-      placeholder="Toca para escribir letra"
-      autocapitalize="characters"
-    >
-    <div class="mobile-controls">
-      <button id="mobileBackspace" class="mobile-btn">⌫</button>
-      <button id="mobileNext" class="mobile-btn">→</button>
-      <button id="mobilePrev" class="mobile-btn">←</button>
-    </div>
-  </div>
-  
-  <div class="mobile-instruction">
-  </div>
+  <!-- Input oculto para teclado móvil -->
+  <input 
+    type="text" 
+    id="hiddenInput"
+    maxlength="1"
+    style="position: absolute; opacity: 0; pointer-events: none;"
+  >
 
   <div id="board"></div>
   
