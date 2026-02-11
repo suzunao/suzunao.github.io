@@ -195,62 +195,46 @@
   padding: 15px;
   max-width: 800px;
   margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
 }
 
-.game-title {
-  color: #ff2255;
-  margin: 15px 0 20px;
-  font-size: 24px;
-  text-align: center;
-  font-weight: 700;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
-  letter-spacing: 1px;
-}
-
-/* Estilos del juego */
-* {
-  box-sizing: border-box;
-  font-family: system-ui, Arial, sans-serif;
-}
-
+/* ESTILO MINIMALISTA PARA EL JUEGO */
 body {
-  margin: 0;
-  padding: 10px;
+  font-family: system-ui, sans-serif;
+  background: #0a0a0a;
   text-align: center;
-  background-color: #0a0a0a;
-  touch-action: manipulation;
-  color: #fff;
+  padding: 16px;
+  color: white;
   min-height: 100vh;
+  margin: 0;
+}
+
+h2 {
+  margin-bottom: 12px;
+  color: #ff2255;
+  font-size: 24px;
 }
 
 #board {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 5px;
-  margin-bottom: 15px;
+  gap: 8px;
+  margin-bottom: 20px;
   padding: 10px;
-  flex: 1;
 }
 
 .cell {
   width: 38px;
   height: 52px;
   background: #222;
-  color: #fff;
+  border: 1px solid #333;
   border-radius: 6px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: 4px;
-  border: 1px solid #333;
-  transition: all 0.2s;
-  position: relative;
   cursor: pointer;
-  flex-shrink: 0;
+  transition: all 0.2s;
 }
 
 .cell:hover {
@@ -258,11 +242,9 @@ body {
 }
 
 .cell.active {
-  outline: 3px solid #ff2255;
+  border: 2px solid #ff2255;
   background: #333;
   transform: scale(1.05);
-  z-index: 10;
-  box-shadow: 0 0 15px rgba(255, 34, 85, 0.5);
 }
 
 .cell.correct {
@@ -288,14 +270,13 @@ body {
 }
 
 .number {
-  font-size: 9px;
-  opacity: 0.7;
+  font-size: 10px;
+  color: #aaa;
   line-height: 1;
 }
 
 .space {
-  width: 12px;
-  flex-shrink: 0;
+  width: 18px;
 }
 
 .feedback {
@@ -306,8 +287,8 @@ body {
 }
 
 .feedback img {
-  max-width: 100px;
-  max-height: 100px;
+  max-width: 120px;
+  max-height: 120px;
   border-radius: 8px;
   display: none;
   border: 2px solid #333;
@@ -323,190 +304,26 @@ body {
   100% { transform: scale(1); opacity: 1; }
 }
 
-#status {
-  margin: 15px 0;
-}
-
-@keyframes fadeOut {
-  0% { opacity: 1; }
-  100% { opacity: 0; visibility: hidden; }
-}
-
-/* CONTADOR DE ERRORES */
-.mistakes-counter {
-  background: rgba(255, 34, 85, 0.1);
-  border-radius: 12px;
-  padding: 10px 20px;
-  margin: 15px auto;
-  display: inline-flex;
-  align-items: center;
-  border: 2px solid rgba(255, 34, 85, 0.3);
-}
-
-.mistakes-title {
-  color: #ff6699;
-  font-size: 14px;
-  font-weight: bold;
-  margin-right: 15px;
-}
-
-.mistakes-dots {
-  display: flex;
-  gap: 10px;
-}
-
-.mistake-dot {
-  width: 16px;
-  height: 16px;
-  background: #ff2255;
-  border-radius: 50%;
-  opacity: 1;
-  transition: opacity 0.3s;
-}
-
-.mistake-dot.used {
-  opacity: 0.3;
-}
-
-/* Animación para celda activa en PC */
-.cell.active::after {
-  content: '↴';
-  position: absolute;
-  bottom: -18px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #ff2255;
-  font-size: 14px;
-  animation: bounce 1s infinite;
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-4px); }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .notification-box {
-    padding: 20px;
-  }
-  
-  .notification-title {
-    font-size: 20px;
-  }
-  
-  .notification-message {
-    font-size: 15px;
-  }
-  
-  .cell {
-    width: 34px;
-    height: 48px;
-  }
-  
-  .letter {
-    font-size: 16px;
-  }
-  
-  .game-title {
-    font-size: 20px;
-  }
-  
-  .feedback img {
-    max-width: 90px;
-    max-height: 90px;
-  }
-  
-  /* Indicador para móvil */
-  .cell.active::after {
-    content: 'TOCAR';
-    font-size: 10px;
-    background: rgba(0, 0, 0, 0.9);
-    padding: 3px 8px;
-    border-radius: 4px;
-    border: 1px solid #ff2255;
-    bottom: -22px;
-    animation: pulse 1.5s infinite;
-  }
-  
-  @keyframes pulse {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; }
-  }
-}
-
-@media (max-width: 480px) {
-  .cell {
-    width: 30px;
-    height: 44px;
-  }
-  
-  .letter {
-    font-size: 15px;
-  }
-  
-  .number {
-    font-size: 8px;
-  }
-  
-  .game-title {
-    font-size: 18px;
-  }
-  
-  .feedback img {
-    max-width: 80px;
-    max-height: 80px;
-  }
-  
-  .cell.active::after {
-    font-size: 9px;
-    bottom: -20px;
-  }
-}
-
-/* TECLADO VIRTUAL (creado dinámicamente) */
-#virtualKeyboard {
-  display: none;
-  margin-top: 20px;
-  padding: 15px;
-  background: rgba(30, 30, 30, 0.95);
-  border-radius: 15px;
-  border: 2px solid #ff2255;
-  box-shadow: 0 0 30px rgba(255, 34, 85, 0.3);
-  width: 100%;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.virtual-keyboard.show {
-  display: block;
-}
-
-.keyboard-row {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 8px;
-  gap: 4px;
+#keyboard {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 6px;
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 10px;
 }
 
 .key {
-  flex: 1;
-  min-width: 30px;
-  height: 45px;
-  background: #333;
-  border: 2px solid #444;
-  border-radius: 8px;
-  color: white;
+  padding: 12px 0;
   font-size: 16px;
   font-weight: bold;
+  background: #333;
+  border-radius: 8px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.1s;
   user-select: none;
-  -webkit-tap-highlight-color: transparent;
+  transition: all 0.1s;
+  color: white;
+  border: 2px solid #444;
 }
 
 .key:active {
@@ -514,60 +331,17 @@ body {
   transform: scale(0.95);
 }
 
-.key:hover:not(:active) {
+.key:hover {
   background: #444;
 }
 
-.special-key {
-  background: #444;
-  font-size: 14px;
-  flex: 1.5;
+#status {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #ff6699;
+  min-height: 40px;
 }
 
-.navigation-row {
-  margin-top: 15px;
-  justify-content: center;
-  gap: 10px;
-}
-
-.nav-key {
-  flex: 1;
-  max-width: 100px;
-  height: 40px;
-  background: #444;
-  border: 2px solid #ff2255;
-  border-radius: 8px;
-  color: white;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.1s;
-}
-
-.nav-key:active {
-  background: #ff2255;
-  transform: scale(0.95);
-}
-
-.keyboard-spacer {
-  flex: 0.5;
-}
-
-.keyboard-spacer.half {
-  flex: 0.5;
-}
-
-/* Solo mostrar teclado en móviles */
-@media (min-width: 769px) {
-  #virtualKeyboard {
-    display: none !important;
-  }
-}
-
-/* Estilos para mensaje de completado */
 .completion-message {
   background: linear-gradient(135deg, rgba(34, 34, 34, 0.9), rgba(20, 20, 20, 0.95));
   color: #fff;
@@ -595,4 +369,59 @@ body {
   margin-top: 10px;
   color: #ff6699;
   font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  #keyboard {
+    grid-template-columns: repeat(7, 1fr);
+    max-width: 360px;
+  }
+  
+  .key {
+    padding: 10px 0;
+    font-size: 15px;
+  }
+  
+  .cell {
+    width: 34px;
+    height: 48px;
+  }
+  
+  .letter {
+    font-size: 16px;
+  }
+  
+  h2 {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  #keyboard {
+    grid-template-columns: repeat(6, 1fr);
+    max-width: 300px;
+  }
+  
+  .cell {
+    width: 30px;
+    height: 44px;
+  }
+  
+  .letter {
+    font-size: 15px;
+  }
+  
+  .number {
+    font-size: 9px;
+  }
+  
+  h2 {
+    font-size: 18px;
+  }
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
 }
