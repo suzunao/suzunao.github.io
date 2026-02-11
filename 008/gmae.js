@@ -28,7 +28,7 @@ const cats = [
 const errorGif = "https://media1.tenor.com/m/vmwklMDAJ9YAAAAC/loving-yamada-at-lv999-akane-kinoshita.gif";
 
 // VARIABLES GLOBALES DEL JUEGO
-let board, catImg, errorImg, status, mobileInput;
+let board, catImg, errorImg, status, hiddenInput;
 let cells = [];
 let cursor = 0;
 let completedWords = new Set();
@@ -72,12 +72,7 @@ function initGame() {
   catImg = document.getElementById('catImg');
   errorImg = document.getElementById('errorImg');
   status = document.getElementById('status');
-  
-  // Elementos del input móvil
-  mobileInput = document.getElementById('mobileLetterInput');
-  const mobileBackspace = document.getElementById('mobileBackspace');
-  const mobileNext = document.getElementById('mobileNext');
-  const mobilePrev = document.getElementById('mobilePrev');
+  hiddenInput = document.getElementById('hiddenInput');
   
   // Limpiar contenido previo
   board.innerHTML = '';
@@ -120,19 +115,12 @@ function initGame() {
 
     cell.append(letterElement, numberElement);
     
-    // Evento para seleccionar celda y activar input móvil
+    // Evento para activar teclado móvil
     cell.addEventListener('click', () => {
       if (!cell.classList.contains("locked")) {
         cursor = cells.indexOf(cell);
         setActive();
-        
-        // Enfocar el input móvil si existe
-        if (mobileInput && isMobileDevice()) {
-          setTimeout(() => {
-            mobileInput.focus();
-            mobileInput.select();
-          }, 100);
-        }
+        focusHiddenInput();
       }
     });
     
@@ -150,12 +138,9 @@ function initGame() {
       e.preventDefault();
       cell.style.transform = '';
       
-      // Enfocar input después del toque
-      if (!cell.classList.contains("locked") && mobileInput && isMobileDevice()) {
-        setTimeout(() => {
-          mobileInput.focus();
-          mobileInput.select();
-        }, 100);
+      // Activar teclado después del toque
+      if (!cell.classList.contains("locked")) {
+        focusHiddenInput();
       }
     });
 
@@ -163,57 +148,8 @@ function initGame() {
     cells.push(cell);
   });
 
-  // Configurar eventos del input móvil (solo en móviles)
-  if (mobileInput && isMobileDevice()) {
-    // Configurar input
-    mobileInput.addEventListener('input', function(e) {
-      const inputValue = this.value.toUpperCase();
-      if (/^[A-Z]$/.test(inputValue)) {
-        writeLetter(inputValue);
-        this.value = ''; // Limpiar después de escribir
-        
-        // Mover al siguiente automáticamente
-        setTimeout(() => moveCursor(1), 100);
-        
-        // Volver a enfocar para siguiente letra
-        setTimeout(() => {
-          mobileInput.focus();
-        }, 150);
-      }
-    });
-    
-    // Botón de borrar
-    mobileBackspace.addEventListener('click', function() {
-      clearCurrentCell();
-      if (mobileInput) {
-        mobileInput.focus();
-      }
-    });
-    
-    // Botón de siguiente
-    mobileNext.addEventListener('click', function() {
-      moveCursor(1);
-      if (mobileInput) {
-        mobileInput.focus();
-      }
-    });
-    
-    // Botón de anterior
-    mobilePrev.addEventListener('click', function() {
-      moveCursor(-1);
-      if (mobileInput) {
-        mobileInput.focus();
-      }
-    });
-    
-    // Prevenir entrada no deseada
-    mobileInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        moveCursor(1);
-      }
-    });
-  }
+  // Configurar el input oculto
+  setupHiddenInput();
   
   // Encontrar primera celda no bloqueada
   cursor = cells.findIndex(cell => !cell.classList.contains("locked"));
@@ -222,13 +158,79 @@ function initGame() {
 
   // Configurar teclado físico
   setupKeyboardControls();
-  
-  // Enfocar automáticamente el input en móviles al iniciar
-  if (mobileInput && isMobileDevice()) {
-    setTimeout(() => {
-      mobileInput.focus();
-    }, 500);
+}
+
+// CONFIGURAR INPUT OCULTO PARA MÓVILES
+function setupHiddenInput() {
+  if (!hiddenInput) {
+    hiddenInput = document.createElement('input');
+    hiddenInput.id = 'hiddenInput';
+    hiddenInput.type = 'text';
+    hiddenInput.maxlength = 1;
+    hiddenInput.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      border: none;
+      background: transparent;
+      color: transparent;
+      pointer-events: none;
+      transform: translate(-100%, -100%);
+    `;
+    document.body.appendChild(hiddenInput);
   }
+  
+  hiddenInput.addEventListener('input', function(e) {
+    const inputValue = this.value.toUpperCase();
+    if (/^[A-Z]$/.test(inputValue)) {
+      writeLetter(inputValue);
+      this.value = ''; // Limpiar después de usar
+      
+      // Mover al siguiente automáticamente
+      setTimeout(() => {
+        moveCursor(1);
+        focusHiddenInput();
+      }, 100);
+    }
+  });
+  
+  hiddenInput.addEventListener('keydown', function(e) {
+    // Permitir backspace para borrar
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      e.preventDefault();
+      clearCurrentCell();
+    }
+    // Evitar que se escriban números o caracteres especiales
+    if (!/^[A-Za-z]$/.test(e.key) && e.key.length === 1) {
+      e.preventDefault();
+    }
+  });
+  
+  hiddenInput.addEventListener('blur', function() {
+    // Cuando pierde el foco, limpiar
+    setTimeout(() => {
+      this.value = '';
+    }, 100);
+  });
+}
+
+// ENFOCAR INPUT OCULTO
+function focusHiddenInput() {
+  if (!hiddenInput || !isMobileDevice()) return;
+  
+  // Enfocar el input para abrir teclado
+  setTimeout(() => {
+    hiddenInput.focus();
+    
+    // Forzar el enfoque en algunos navegadores
+    setTimeout(() => {
+      hiddenInput.click();
+      hiddenInput.focus({preventScroll: true});
+    }, 50);
+  }, 100);
 }
 
 // DETECTAR DISPOSITIVO MÓVIL
@@ -245,11 +247,6 @@ function setupKeyboardControls() {
     if (/^[A-Z]$/.test(key)) {
       event.preventDefault();
       writeLetter(key);
-      
-      // Limpiar input móvil si existe
-      if (mobileInput) {
-        mobileInput.value = '';
-      }
     }
     // Flechas
     else if (event.key === 'ArrowLeft') {
@@ -322,18 +319,6 @@ function writeLetter(letter) {
   cell.classList.toggle("wrong", !isCorrect);
 
   checkWords();
-  
-  // Mover al siguiente automáticamente
-  setTimeout(() => {
-    moveCursor(1);
-  }, 50);
-  
-  // Volver a enfocar el input en móviles
-  if (mobileInput && isMobileDevice()) {
-    setTimeout(() => {
-      mobileInput.focus();
-    }, 100);
-  }
 }
 
 // VERIFICAR PALABRAS COMPLETADAS
@@ -419,26 +404,9 @@ function checkAllCompleted() {
     `;
     
     // Ocultar teclado en móvil cuando se completa
-    if (mobileInput) {
-      mobileInput.blur();
-      mobileInput.disabled = true;
+    if (hiddenInput) {
+      hiddenInput.blur();
     }
-    
-    // Deshabilitar controles móviles
-    const mobileBtns = document.querySelectorAll('.mobile-btn');
-    mobileBtns.forEach(btn => {
-      btn.disabled = true;
-      btn.style.opacity = '0.5';
-      btn.style.cursor = 'default';
-    });
-    
-    // Deshabilitar clics en celdas
-    cells.forEach(cell => {
-      cell.style.cursor = 'default';
-      cell.onclick = null;
-      cell.ontouchstart = null;
-      cell.ontouchend = null;
-    });
   }
 }
 
