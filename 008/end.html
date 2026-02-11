@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="close.css">
 </head>
 <body>
-
 <div id="systemNotification">
   <div class="notification-box">
     <div class="notification-header">
@@ -39,26 +38,20 @@
   </div>
 </div>
 
+<!-- CONTENEDOR DEL JUEGO (oculto inicialmente) -->
 <div id="gameContainer" class="hidden">
-  <h2>Decode Your Master's</h2>
-
-  <div class="navigation-controls">
-    <button id="prevBtn" class="nav-btn">←</button>
-    <span id="cursorPosition">1</span>
-    <button id="nextBtn" class="nav-btn">→</button>
-  </div>
-
+  <h1 class="game-title">Decode Your Master's</h1>
   <div id="board"></div>
 
+  <div class="controls">
+    <button onclick="moveCursor(-1)">←</button>
+    <button onclick="moveCursor(1)">→</button>
+  </div>
+  
   <div class="feedback">
     <img id="catImg"/>
     <img id="errorImg"/>
   </div>
-
-  <div class="selected-letter">
-    Letra seleccionada: <span id="currentLetter">-</span>
-  </div>
-
   <div id="keyboard"></div>
 
   <div id="status"></div>

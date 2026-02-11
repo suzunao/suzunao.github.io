@@ -1,20 +1,20 @@
-// CONSTANTES DEL JUEGO
+// CONSTANTES DEL JUEGO - FRASE ACTUALIZADA
 const MESSAGE = "WEAR STOCKINGS AND A SKIRT TO PLEASE YOUR MASTER AND BEHAVE YOURSELF";
 
-// LETRAS FIJAS (pistas)
+// LETRAS FIJAS
 const FIXED = {
-  0: "W",    // W de WEAR
-  5: "S",    // S de STOCKINGS
-  15: "A",   // A de AND
-  25: "T",   // T de TO
-  30: "P",   // P de PLEASE
-  36: "E",   // E de PLEASE
-  42: "M",   // M de MASTER
-  48: "R",   // R de MASTER
-  53: "B",   // B de BEHAVE
-  55: "H",   // H de BEHAVE
-  60: "Y",   // Y de YOURSELF
-  67: "F"    // F de YOURSELF
+  0: "W",    
+  5: "S",        
+  15: "A",   
+  25: "T",  
+  30: "P", 
+  36: "E",   
+  42: "M",   
+  48: "R",   
+  53: "B",   
+  55: "H",
+  60: "Y",   
+  67: "F"    
 };
 
 const cats = [
@@ -27,12 +27,10 @@ const cats = [
 
 const errorGif = "https://media1.tenor.com/m/vmwklMDAJ9YAAAAC/loving-yamada-at-lv999-akane-kinoshita.gif";
 
-// VARIABLES GLOBALES
-let board, catImg, errorImg, status, keyboard;
-let currentLetter, cursorPosition;
+// VARIABLES GLOBALES DEL JUEGO
+let board, catImg, errorImg, status;
 let cells = [];
-let selectedLetter = null;
-let activeCellIndex = 0;
+let cursor = 0;
 let completedWords = new Set();
 let map = {};
 
@@ -41,8 +39,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const notification = document.getElementById('systemNotification');
   const gameContainer = document.getElementById('gameContainer');
   const startBtn = document.getElementById('startGameBtn');
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
   
   // Mostrar notificación primero
   setTimeout(() => {
@@ -68,10 +64,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }, 700);
     }, 200);
   });
-  
-  // Configurar botones de navegación
-  prevBtn.addEventListener('click', () => moveCursor(-1));
-  nextBtn.addEventListener('click', () => moveCursor(1));
 });
 
 // FUNCIÓN PARA INICIALIZAR EL JUEGO
@@ -80,16 +72,11 @@ function initGame() {
   catImg = document.getElementById('catImg');
   errorImg = document.getElementById('errorImg');
   status = document.getElementById('status');
-  keyboard = document.getElementById('keyboard');
-  currentLetter = document.getElementById('currentLetter');
-  cursorPosition = document.getElementById('cursorPosition');
   
   // Limpiar contenido previo
   board.innerHTML = '';
-  keyboard.innerHTML = '';
   cells = [];
-  selectedLetter = null;
-  activeCellIndex = 0;
+  cursor = 0;
   completedWords.clear();
   map = {};
   
@@ -99,7 +86,6 @@ function initGame() {
   });
 
   // Crear celdas del tablero
-  let cellCount = 0;
   MESSAGE.split("").forEach((character, index) => {
     if (character === " ") {
       const space = document.createElement("div");
@@ -112,7 +98,6 @@ function initGame() {
     cell.className = "cell";
     cell.dataset.correct = character;
     cell.dataset.index = index;
-    cell.dataset.cellIndex = cellCount;
 
     const letterElement = document.createElement("div");
     letterElement.className = "letter";
@@ -121,31 +106,30 @@ function initGame() {
     numberElement.className = "number";
     numberElement.innerText = map[character];
 
-    // Si esta posición está fija en FIXED, marcarla como pista
-    if (FIXED[index] !== undefined) {
+    // Si esta posición está fija en FIXED, bloquearla
+    if (FIXED[index]) {
       letterElement.innerText = FIXED[index];
-      cell.classList.add("locked", "correct", "fixed");
-      cell.title = "Pista fija";
+      cell.classList.add("locked", "correct");
     }
 
     cell.append(letterElement, numberElement);
     
-    // Evento para hacer clic en celda
+    // Evento para hacer clic/tocar en celdas
     cell.addEventListener('click', () => {
-      if (!cell.classList.contains("locked") && selectedLetter) {
-        // Mover cursor a esta celda
-        activeCellIndex = parseInt(cell.dataset.cellIndex);
-        setActiveCell();
-        
-        // Escribir la letra seleccionada
-        writeSelectedLetter();
+      if (!cell.classList.contains("locked")) {
+        cursor = cells.indexOf(cell);
+        setActive();
+        // Enfocar el body para que el teclado pueda recibir entrada
+        document.body.focus();
       }
     });
     
-    // Evento táctil para móvil
+    // Eventos táctiles para móvil
     cell.addEventListener('touchstart', (e) => {
       e.preventDefault();
       if (!cell.classList.contains("locked")) {
+        cursor = cells.indexOf(cell);
+        setActive();
         cell.style.transform = 'scale(0.95)';
       }
     });
@@ -157,172 +141,63 @@ function initGame() {
 
     board.appendChild(cell);
     cells.push(cell);
-    cellCount++;
   });
 
-  // Crear teclado
-  createKeyboard();
-  
-  // Encontrar primera celda no bloqueada para cursor
-  activeCellIndex = cells.findIndex(cell => !cell.classList.contains("locked"));
-  if (activeCellIndex === -1) activeCellIndex = 0;
-  
-  setActiveCell();
-  updateCursorPosition();
-  
+  // Encontrar primera celda no bloqueada
+  cursor = cells.findIndex(cell => !cell.classList.contains("locked"));
+  if (cursor === -1) cursor = 0;
+  setActive();
+
   // Configurar teclado físico
   setupKeyboardControls();
+  
+  // Hacer que el body sea enfocable para teclado
+  document.body.setAttribute('tabindex', '0');
+  document.body.focus();
 }
 
-// CREAR TECLADO VISUAL
-function createKeyboard() {
-  keyboard.innerHTML = '';
-  
-  // Filas del teclado QWERTY
-  const keyboardRows = [
-    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-    ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
-  ];
-  
-  keyboardRows.forEach((row, rowIndex) => {
-    const rowDiv = document.createElement('div');
-    rowDiv.style.display = 'flex';
-    rowDiv.style.justifyContent = 'center';
-    rowDiv.style.gap = '6px';
-    rowDiv.style.marginBottom = '6px';
-    
-    // Añadir margen izquierdo para centrar segunda fila
-    if (rowIndex === 1) {
-      rowDiv.style.marginLeft = '15px';
-      rowDiv.style.marginRight = '15px';
-    }
-    
-    row.forEach(letter => {
-      const key = document.createElement("div");
-      key.className = "key";
-      key.textContent = letter;
-      key.dataset.letter = letter;
-      
-      key.addEventListener('click', () => {
-        selectLetter(letter);
-      });
-      
-      // Eventos táctiles para móvil
-      key.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        key.style.transform = 'scale(0.95)';
-      });
-      
-      key.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        key.style.transform = '';
-      });
-      
-      rowDiv.appendChild(key);
-    });
-    
-    keyboard.appendChild(rowDiv);
-  });
-}
 
-// SELECCIONAR LETRA DEL TECLADO
-function selectLetter(letter) {
-  // Remover selección anterior
-  document.querySelectorAll('.key').forEach(k => {
-    k.classList.remove('active');
-  });
-  
-  // Seleccionar nueva letra
-  const key = document.querySelector(`.key[data-letter="${letter}"]`);
-  if (key) {
-    key.classList.add('active');
-  }
-  
-  selectedLetter = letter;
-  currentLetter.textContent = letter;
-  
-  // Escribir automáticamente en celda activa
-  if (cells[activeCellIndex] && !cells[activeCellIndex].classList.contains("locked")) {
-    writeSelectedLetter();
-  }
-}
+/* Teclado */
+"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(l => {
+  const key = document.createElement("div");
+  key.className = "key";
+  key.innerText = l;
+  key.onclick = () => writeLetter(l);
+  keyboard.appendChild(key);
+});
 
-// ESCRIBIR LETRA SELECCIONADA EN CELDA ACTIVA
-function writeSelectedLetter() {
-  const cell = cells[activeCellIndex];
-  if (!cell || cell.classList.contains("locked") || !selectedLetter) return;
-
-  const letterElement = cell.querySelector(".letter");
-  letterElement.innerText = selectedLetter;
-  
-  const isCorrect = selectedLetter === cell.dataset.correct;
-  
-  if (isCorrect) {
-    cell.classList.add("correct");
-    cell.classList.remove("wrong");
-  } else {
-    cell.classList.add("wrong");
-    cell.classList.remove("correct");
-    showError();
-  }
-  
-  checkWords();
-  
-  // Mover al siguiente automáticamente
-  setTimeout(() => {
-    moveCursor(1);
-  }, 100);
-}
-
-// MOVER CURSOR
-function moveCursor(direction) {
-  const startIndex = activeCellIndex;
-  let found = false;
-  
-  do {
-    activeCellIndex += direction;
-    
-    // Limitar rango
-    if (activeCellIndex < 0) activeCellIndex = cells.length - 1;
-    if (activeCellIndex >= cells.length) activeCellIndex = 0;
-    
-    // Si damos una vuelta completa, detenerse
-    if (activeCellIndex === startIndex) {
-      break;
-    }
-    
-    // Buscar celda no bloqueada
-    if (!cells[activeCellIndex].classList.contains("locked")) {
-      found = true;
-      break;
-    }
-  } while (!found);
-  
-  setActiveCell();
-  updateCursorPosition();
-}
-
-// ESTABLECER CELDA ACTIVA
-function setActiveCell() {
-  cells.forEach(cell => cell.classList.remove("active"));
-  
-  if (cells[activeCellIndex]) {
-    cells[activeCellIndex].classList.add("active");
-    
-    // Scroll suave a la celda activa
-    cells[activeCellIndex].scrollIntoView({
+function setActive() {
+  cells.forEach(c => c.classList.remove("active"));
+  if (cells[cursor]) {
+    cells[cursor].scrollIntoView({
       behavior: 'smooth',
-      block: 'nearest',
+      block: 'center', // Cambiado a center para mejor visibilidad
       inline: 'center'
     });
   }
 }
 
-// ACTUALIZAR POSICIÓN DEL CURSOR
-function updateCursorPosition() {
-  cursorPosition.textContent = (activeCellIndex + 1);
+function moveCursor(step) {
+  do {
+    cursor += step;
+  } while (cells[cursor] && cells[cursor].classList.contains("locked"));
+
+  cursor = Math.max(0, Math.min(cursor, cells.length - 1));
+  setActive();
 }
+
+function writeLetter(letter) {
+  const cell = cells[cursor];
+  if (!cell || cell.classList.contains("locked")) return;
+
+  cell.querySelector(".letter").innerText = letter;
+  cell.classList.toggle("correct", letter === cell.dataset.correct);
+  cell.classList.toggle("wrong", letter !== cell.dataset.correct);
+
+  checkWords();
+  moveCursor(1);
+}
+
 
 // CONFIGURAR TECLADO FÍSICO
 function setupKeyboardControls() {
@@ -332,14 +207,19 @@ function setupKeyboardControls() {
     // Letras A-Z
     if (/^[A-Z]$/.test(key)) {
       event.preventDefault();
-      selectLetter(key);
+      writeLetter(key);
     }
-    // Flechas izquierda/derecha
+    // Flechas
     else if (event.key === 'ArrowLeft') {
       event.preventDefault();
       moveCursor(-1);
     }
     else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      moveCursor(1);
+    }
+    // Enter o Espacio para siguiente
+    else if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       moveCursor(1);
     }
@@ -353,11 +233,54 @@ function setupKeyboardControls() {
 
 // BORRAR CELDA ACTUAL
 function clearCurrentCell() {
-  const cell = cells[activeCellIndex];
+  const cell = cells[cursor];
   if (cell && !cell.classList.contains("locked")) {
     cell.querySelector(".letter").innerText = "";
     cell.classList.remove("correct", "wrong");
   }
+}
+
+// ESTABLECER CELDA ACTIVA
+function setActive() {
+  cells.forEach(cell => cell.classList.remove("active"));
+  if (cells[cursor]) {
+    cells[cursor].classList.add("active");
+    
+    // Scroll suave a la celda activa
+    cells[cursor].scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center'
+    });
+  }
+}
+
+// MOVER CURSOR
+function moveCursor(step) {
+  do {
+    cursor += step;
+  } while (
+    cells[cursor] &&
+    cells[cursor].classList.contains("locked")
+  );
+
+  cursor = Math.max(0, Math.min(cursor, cells.length - 1));
+  setActive();
+}
+
+// ESCRIBIR UNA LETRA
+function writeLetter(letter) {
+  const cell = cells[cursor];
+  if (!cell || cell.classList.contains("locked")) return;
+
+  cell.querySelector(".letter").innerText = letter;
+  
+  const isCorrect = letter === cell.dataset.correct;
+  cell.classList.toggle("correct", isCorrect);
+  cell.classList.toggle("wrong", !isCorrect);
+
+  checkWords();
+  moveCursor(1);
 }
 
 // VERIFICAR PALABRAS COMPLETADAS
@@ -384,14 +307,11 @@ function checkWords() {
     );
 
     if (correct) {
-      // Bloquear todas las celdas de la palabra
-      wordCells.forEach(cell => {
-        cell.classList.add("locked", "correct");
-        cell.title = "Palabra completada";
-      });
-      
+      wordCells.forEach(cell => cell.classList.add("locked", "correct"));
       completedWords.add(wordIndex);
       showCat();
+    } else {
+      showError();
     }
 
     cellIndex += word.length;
@@ -400,7 +320,7 @@ function checkWords() {
   checkAllCompleted();
 }
 
-// MOSTRAR GIF DE GATO (éxito)
+// MOSTRAR GIF DE GATO
 function showCat() {
   errorImg.classList.remove("show");
   const randomCat = cats[Math.floor(Math.random() * cats.length)];
@@ -432,24 +352,75 @@ function hideImages() {
 // VERIFICAR SI SE COMPLETÓ TODO
 function checkAllCompleted() {
   if (completedWords.size === MESSAGE.split(" ").length) {
+    // Insertamos el mensaje dentro del contenedor de status, 
+    // que debe estar ubicado después del div #keyboard en tu HTML
     status.innerHTML = `
       <div class="completion-message">
-        <strong>⚡ ORDEN DECODIFICADA ⚡</strong><br><br>
-        <div class="decoded-text">
-          "${MESSAGE}"
-        </div>
+        <div class="completion-header">⚡ ORDEN DECODIFICADA ⚡</div>
+        <div class="decoded-text">"${MESSAGE}"</div>
         <div class="instructions">
-          <strong>Instrucción recibida. Procede a obedecer inmediatamente.</strong><br>
-          Llama a las 9:00 PM para confirmar cumplimiento.
+          <strong>PROCEDE A OBEDECER INMEDIATAMENTE.</strong><br>
+          Confirma cumplimiento vía llamada 9:00 PM.
         </div>
       </div>
     `;
     
-    // Ocultar teclado en móvil
-    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-      setTimeout(() => {
-        keyboard.style.display = 'none';
-      }, 1000);
-    }
+    const style = document.createElement('style');
+    style.textContent = `
+      .completion-message {
+        background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+        color: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        margin: 10px auto 100px; /* Margen inferior para no pegar al borde físico */
+        width: 95%;
+        max-width: 480px;
+        text-align: center;
+        border: 2px solid #ff2255;
+        box-shadow: 0 0 25px rgba(255, 34, 85, 0.4);
+        animation: fadeIn 0.6s ease-in-out;
+      }
+
+      .completion-header {
+        color: #ff2255;
+        font-weight: 800;
+        font-size: 18px;
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+      }
+      
+      .decoded-text {
+        font-family: 'Courier New', monospace;
+        margin: 10px 0;
+        padding: 12px;
+        background: rgba(255, 34, 85, 0.1);
+        border-radius: 6px;
+        font-size: 14px;
+        color: #ffccdd;
+        border: 1px solid rgba(255, 34, 85, 0.2);
+        word-wrap: break-word;
+      }
+      
+      .instructions {
+        color: #ff6699;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      /* Ajuste dinámico para el scroll */
+      #board {
+        padding-bottom: 50px; /* Espacio extra para que el scroll permita ver todo */
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Auto-scroll hacia el mensaje para que el usuario lo vea al aparecer
+    setTimeout(() => {
+      status.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 100);
   }
 }
+
+// Hacer funciones disponibles globalmente
+window.moveCursor = moveCursor;
+window.writeLetter = writeLetter;
