@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Transmisión</title>
-  <link rel="icon" href="{{ 'assets/img/icon/Suzunao.png' | relative_url }}" type="image/png">
   <link rel="stylesheet" href="close.css">
 </head>
 <body>
@@ -42,16 +41,16 @@
 <!-- CONTENEDOR DEL JUEGO (oculto inicialmente) -->
 <div id="gameContainer" class="hidden">
   <h1 class="game-title">Decode Your Master's</h1>
-  
-  <!-- Input oculto para teclado móvil -->
-  <input 
-    type="text" 
-    id="hiddenInput"
-    maxlength="1"
-    style="position: absolute; opacity: 0; pointer-events: none;"
-  >
 
   <div id="board"></div>
+  
+  <!-- Input oculto pero funcional para teclado móvil -->
+  <input 
+    type="text" 
+    id="virtualKeyboardInput"
+    maxlength="1"
+    style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;"
+  >
   
   <div class="feedback">
     <img id="catImg"/>

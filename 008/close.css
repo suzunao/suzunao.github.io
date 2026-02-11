@@ -494,3 +494,90 @@ body {
     50% { transform: translateX(-50%) translateY(-4px); }
   }
 }
+
+
+/* Input para teclado virtual */
+#virtualKeyboardInput {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  color: transparent !important;
+  pointer-events: none !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: -1 !important;
+}
+
+/* Indicador mejorado para móvil */
+@media (max-width: 768px) {
+  .cell.active::after {
+    content: 'TOCA PARA ESCRIBIR';
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ff2255;
+    font-size: 11px;
+    white-space: nowrap;
+    background: rgba(0, 0, 0, 0.95);
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 2px solid #ff2255;
+    z-index: 100;
+    animation: pulseMobile 1.5s infinite;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(255, 34, 85, 0.7);
+  }
+  
+  @keyframes pulseMobile {
+    0%, 100% { 
+      opacity: 0.9;
+      box-shadow: 0 0 10px rgba(255, 34, 85, 0.7);
+    }
+    50% { 
+      opacity: 1;
+      box-shadow: 0 0 15px rgba(255, 34, 85, 1);
+    }
+  }
+  
+  /* Mejorar visibilidad de celdas activas en móvil */
+  .cell.active {
+    box-shadow: 0 0 0 4px #ff2255, 0 0 25px rgba(255, 34, 85, 0.8) !important;
+    z-index: 50;
+    transform: scale(1.08);
+  }
+  
+  /* Hacer celdas más grandes en móvil para mejor toque */
+  .cell {
+    width: 36px !important;
+    height: 50px !important;
+    min-width: 36px !important;
+    min-height: 50px !important;
+  }
+  
+  .letter {
+    font-size: 18px !important;
+  }
+}
+
+/* Para pantallas muy pequeñas */
+@media (max-width: 360px) {
+  .cell {
+    width: 32px !important;
+    height: 46px !important;
+  }
+  
+  .letter {
+    font-size: 16px !important;
+  }
+  
+  .cell.active::after {
+    font-size: 10px;
+    padding: 3px 8px;
+    bottom: -22px;
+  }
+}
