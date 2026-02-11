@@ -28,10 +28,11 @@ const cats = [
 const errorGif = "https://media1.tenor.com/m/vmwklMDAJ9YAAAAC/loving-yamada-at-lv999-akane-kinoshita.gif";
 
 // VARIABLES GLOBALES DEL JUEGO
-let board, catImg, errorImg, status, virtualInput;
+let board, catImg, errorImg, status, virtualKeyboard;
 let cells = [];
 let cursor = 0;
 let completedWords = new Set();
+let mistakes = 0;
 let map = {};
 let isMobile = false;
 
@@ -76,42 +77,18 @@ function initGame() {
   catImg = document.getElementById('catImg');
   errorImg = document.getElementById('errorImg');
   status = document.getElementById('status');
-  
-  // Obtener o crear input virtual
-  virtualInput = document.getElementById('virtualKeyboardInput');
-  if (!virtualInput) {
-    virtualInput = document.createElement('input');
-    virtualInput.id = 'virtualKeyboardInput';
-    virtualInput.type = 'text';
-    virtualInput.maxlength = 1;
-    virtualInput.style.cssText = `
-      position: fixed !important;
-      top: 50% !important;
-      left: 50% !important;
-      width: 1px !important;
-      height: 1px !important;
-      opacity: 0 !important;
-      border: none !important;
-      background: transparent !important;
-      color: transparent !important;
-      pointer-events: none !important;
-      transform: translate(-50%, -50%) !important;
-      z-index: -1 !important;
-    `;
-    document.body.appendChild(virtualInput);
-  }
-  
-  // Configurar el input virtual SOLO para móviles
-  if (isMobile) {
-    setupVirtualInput();
-  }
+  virtualKeyboard = document.getElementById('virtualKeyboard');
   
   // Limpiar contenido previo
   board.innerHTML = '';
   cells = [];
   cursor = 0;
   completedWords.clear();
+  mistakes = 0;
   map = {};
+  
+  // Actualizar contador de errores
+  updateMistakesCounter();
   
   // Crear mapa de letras a números
   "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach((letter, index) => {
@@ -147,21 +124,20 @@ function initGame() {
 
     cell.append(letterElement, numberElement);
     
-    // Evento para CLIC en celda (funciona en PC y móvil)
-    cell.addEventListener('click', handleCellClick);
+    // Evento para seleccionar celda
+    cell.addEventListener('click', () => handleCellClick(cell));
     
-    // Eventos táctiles específicos para móvil
-    cell.addEventListener('touchstart', function(e) {
+    // Eventos táctiles para móvil
+    cell.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      if (!this.classList.contains("locked")) {
-        this.style.transform = 'scale(0.95)';
+      if (!cell.classList.contains("locked")) {
+        cell.style.transform = 'scale(0.95)';
       }
     });
     
-    cell.addEventListener('touchend', function(e) {
+    cell.addEventListener('touchend', (e) => {
       e.preventDefault();
-      this.style.transform = '';
-      // Solo manejar el clic, no activar teclado aquí
+      cell.style.transform = '';
     });
 
     board.appendChild(cell);
@@ -173,129 +149,130 @@ function initGame() {
   if (cursor === -1) cursor = 0;
   setActive();
 
-  // Configurar teclado físico (solo para PC)
+  // Crear teclado virtual solo si es móvil
+  if (isMobile) {
+    createVirtualKeyboard();
+    virtualKeyboard.classList.add('show');
+  }
+  
+  // Configurar teclado físico solo para PC
   if (!isMobile) {
     setupKeyboardControls();
   }
 }
 
 // MANEJAR CLIC EN CELDA
-function handleCellClick() {
-  if (!this.classList.contains("locked")) {
-    cursor = cells.indexOf(this);
+function handleCellClick(cell) {
+  if (!cell.classList.contains("locked")) {
+    cursor = cells.indexOf(cell);
     setActive();
-    
-    // Si es móvil, activar el teclado virtual
-    if (isMobile) {
-      activateVirtualKeyboard();
-    }
   }
 }
 
-// CONFIGURAR INPUT VIRTUAL PARA MÓVILES
-function setupVirtualInput() {
-  virtualInput.value = '';
-  virtualInput.addEventListener('input', function(e) {
-    const inputValue = this.value.toUpperCase();
+// CREAR TECLADO VIRTUAL DINÁMICAMENTE
+function createVirtualKeyboard() {
+  virtualKeyboard.innerHTML = '';
+  virtualKeyboard.className = 'virtual-keyboard';
+  
+  // Definir distribución del teclado (como la imagen)
+  const keyboardLayout = [
+    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+    ['BACKSPACE', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'ENTER']
+  ];
+  
+  // Crear filas del teclado
+  keyboardLayout.forEach((rowKeys, rowIndex) => {
+    const row = document.createElement('div');
+    row.className = 'keyboard-row';
     
-    // Aceptar solo letras de la A a la Z
-    if (/^[A-Z]$/.test(inputValue)) {
-      writeLetter(inputValue);
-      this.value = ''; // Limpiar después de escribir
+    // Añadir espacios para centrar la segunda fila
+    if (rowIndex === 1) {
+      const spacerLeft = document.createElement('div');
+      spacerLeft.className = 'keyboard-spacer half';
+      row.appendChild(spacerLeft);
+    }
+    
+    // Crear teclas
+    rowKeys.forEach(keyText => {
+      const key = document.createElement('button');
+      key.className = 'key';
       
-      // Automáticamente mover al siguiente cuadrito
-      setTimeout(() => {
-        moveToNextEmptyCell();
-        // Volver a activar el teclado para la siguiente celda
-        if (isMobile) {
-          setTimeout(activateVirtualKeyboard, 100);
-        }
-      }, 50);
+      if (keyText === 'BACKSPACE' || keyText === 'ENTER') {
+        key.className += ' special-key';
+        key.id = keyText.toLowerCase();
+        key.textContent = keyText === 'BACKSPACE' ? '⌫' : 'ENTER';
+        
+        key.addEventListener('click', () => {
+          if (keyText === 'BACKSPACE') {
+            clearCurrentCell();
+          } else if (keyText === 'ENTER') {
+            moveCursor(1);
+          }
+        });
+      } else {
+        key.dataset.key = keyText;
+        key.textContent = keyText;
+        
+        key.addEventListener('click', () => {
+          writeLetter(keyText);
+        });
+      }
+      
+      row.appendChild(key);
+    });
+    
+    // Añadir espacio final para segunda fila
+    if (rowIndex === 1) {
+      const spacerRight = document.createElement('div');
+      spacerRight.className = 'keyboard-spacer half';
+      row.appendChild(spacerRight);
+    }
+    
+    virtualKeyboard.appendChild(row);
+  });
+  
+  // Crear fila de navegación
+  const navRow = document.createElement('div');
+  navRow.className = 'keyboard-row navigation-row';
+  
+  const leftBtn = document.createElement('button');
+  leftBtn.className = 'nav-key';
+  leftBtn.id = 'moveLeft';
+  leftBtn.textContent = '←';
+  leftBtn.addEventListener('click', () => moveCursor(-1));
+  
+  const rightBtn = document.createElement('button');
+  rightBtn.className = 'nav-key';
+  rightBtn.id = 'moveRight';
+  rightBtn.textContent = '→';
+  rightBtn.addEventListener('click', () => moveCursor(1));
+  
+  const clearBtn = document.createElement('button');
+  clearBtn.className = 'nav-key';
+  clearBtn.id = 'clearCell';
+  clearBtn.textContent = 'CLEAR';
+  clearBtn.addEventListener('click', clearCurrentCell);
+  
+  navRow.appendChild(leftBtn);
+  navRow.appendChild(rightBtn);
+  navRow.appendChild(clearBtn);
+  virtualKeyboard.appendChild(navRow);
+  
+  // Hacer que el teclado sea visible
+  virtualKeyboard.style.display = 'block';
+}
+
+// ACTUALIZAR CONTADOR DE ERRORES
+function updateMistakesCounter() {
+  const mistakeDots = document.querySelectorAll('.mistake-dot');
+  mistakeDots.forEach((dot, index) => {
+    if (index < mistakes) {
+      dot.classList.add('used');
     } else {
-      this.value = ''; // Limpiar si no es una letra válida
+      dot.classList.remove('used');
     }
   });
-  
-  virtualInput.addEventListener('keydown', function(e) {
-    // Permitir Backspace para borrar
-    if (e.key === 'Backspace' || e.key === 'Delete') {
-      e.preventDefault();
-      clearCurrentCell();
-    }
-    
-    // Permitir Enter para siguiente
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      moveToNextEmptyCell();
-      activateVirtualKeyboard();
-    }
-    
-    // Permitir flechas para navegar
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      moveCursor(-1);
-      activateVirtualKeyboard();
-    }
-    if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      moveCursor(1);
-      activateVirtualKeyboard();
-    }
-    
-    // Evitar que se escriban números o caracteres especiales
-    if (!/^[A-Za-z]$/.test(e.key) && e.key.length === 1 && 
-        e.key !== 'Backspace' && e.key !== 'Delete' && 
-        e.key !== 'Enter' && !e.key.startsWith('Arrow')) {
-      e.preventDefault();
-    }
-  });
-  
-  virtualInput.addEventListener('blur', function() {
-    // Cuando pierde el foco, limpiar
-    setTimeout(() => {
-      this.value = '';
-    }, 100);
-  });
-}
-
-// ACTIVAR TECLADO VIRTUAL EN MÓVILES
-function activateVirtualKeyboard() {
-  if (!isMobile || !virtualInput) return;
-  
-  // Enfocar el input para abrir teclado
-  setTimeout(() => {
-    virtualInput.focus();
-    
-    // Algunos navegadores necesitan un click también
-    virtualInput.click();
-    
-    // Forzar el enfoque en algunos navegadores
-    setTimeout(() => {
-      virtualInput.focus({preventScroll: true});
-    }, 50);
-  }, 150);
-}
-
-// MOVER AL SIGUIENTE CUADRO VACÍO
-function moveToNextEmptyCell() {
-  let startCursor = cursor;
-  
-  do {
-    cursor++;
-    if (cursor >= cells.length) {
-      cursor = 0; // Volver al inicio
-    }
-    
-    // Si damos una vuelta completa, detenerse
-    if (cursor === startCursor) {
-      break;
-    }
-  } while (cells[cursor] && 
-           (cells[cursor].classList.contains("locked") || 
-            cells[cursor].querySelector(".letter").innerText !== ""));
-  
-  cursor = Math.max(0, Math.min(cursor, cells.length - 1));
-  setActive();
 }
 
 // CONFIGURAR TECLADO FÍSICO PARA PC
@@ -375,10 +352,26 @@ function writeLetter(letter) {
   cell.querySelector(".letter").innerText = letter;
   
   const isCorrect = letter === cell.dataset.correct;
-  cell.classList.toggle("correct", isCorrect);
-  cell.classList.toggle("wrong", !isCorrect);
+  
+  if (isCorrect) {
+    cell.classList.add("correct");
+    cell.classList.remove("wrong");
+  } else {
+    cell.classList.add("wrong");
+    cell.classList.remove("correct");
+    
+    // Incrementar contador de errores
+    mistakes++;
+    if (mistakes > 3) mistakes = 3;
+    updateMistakesCounter();
+  }
 
   checkWords();
+  
+  // Mover al siguiente automáticamente
+  setTimeout(() => {
+    moveCursor(1);
+  }, 100);
 }
 
 // VERIFICAR PALABRAS COMPLETADAS
@@ -463,10 +456,9 @@ function checkAllCompleted() {
       </div>
     `;
     
-    // Ocultar teclado en móvil cuando se completa
-    if (isMobile && virtualInput) {
-      virtualInput.blur();
-      document.activeElement.blur();
+    // Ocultar teclado virtual si existe
+    if (virtualKeyboard) {
+      virtualKeyboard.style.display = 'none';
     }
   }
 }
