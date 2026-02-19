@@ -40,24 +40,10 @@
           <span class="nav-icon">▸</span>
           <span class="nav-text">[ABOUT] Sobre mí</span>
         </a>
-        
-        <div class="nav-section-title" style="margin-top: 1.5rem;">// CATEGORIES</div>
-        <div class="nav-item nav-category" data-category="pentesting">
-          <span class="nav-icon">♦</span>
-          <span class="nav-text">Penetration Testing</span>
-        </div>
-        <div class="nav-item nav-category" data-category="ctf">
-          <span class="nav-icon">♦</span>
-          <span class="nav-text">CTF Writeups</span>
-        </div>
-        <div class="nav-item nav-category" data-category="research">
-          <span class="nav-icon">♦</span>
-          <span class="nav-text">Research</span>
-        </div>
-        <div class="nav-item nav-category" data-category="malware">
-          <span class="nav-icon">♦</span>
-          <span class="nav-text">Malware Analysis</span>
-        </div>
+        <a href="#posts" class="nav-item" id="nav-posts">
+          <span class="nav-icon">▸</span>
+          <span class="nav-text">[POSTS] Artículos</span>
+        </a>
       </nav>
 
       <!-- Estado del sistema -->
@@ -96,8 +82,9 @@
         <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
       </header>
 
-      <!-- Terminal de bienvenida -->
-      <div class="welcome-terminal">
+      <!-- Terminal de bienvenida - solo en home -->
+      {% if page.title == 'home' or page.url == '/' %}
+      <div class="welcome-terminal" id="welcomeTerminal">
         <div class="terminal-header-bar">
           <span class="terminal-buttons">
             <span class="terminal-btn red"></span>
@@ -106,21 +93,11 @@
           </span>
           <span class="terminal-title">welcome.sh</span>
         </div>
-        <div class="terminal-body">
-          <p class="command-line"><span class="prompt-symbol">$</span> <span class="command">echo "Bienvenido a mi portal de seguridad"</span></p>
-          <p class="output">"Bienvenido a mi portal de seguridad"</p>
-          <p class="command-line"><span class="prompt-symbol">$</span> <span class="command">cat /var/www/about.txt</span></p>
-          <p class="output">Personal blog about hacking & cybersecurity</p>
-          <p class="command-line"><span class="prompt-symbol">$</span> <span class="command">ls -la ~/skills/</span></p>
-          <p class="output">
-            <span class="skill-tag">Penetration Testing</span>
-            <span class="skill-tag">Reverse Engineering</span>
-            <span class="skill-tag">Malware Analysis</span>
-            <span class="skill-tag">CTF</span>
-          </p>
-          <p class="cursor-line"><span class="cursor-blink">▋</span></p>
+        <div class="terminal-body" id="terminalBody">
+          <!-- Los comandos se agregan dinámicamente con JS -->
         </div>
       </div>
+      {% endif %}
 
       <!-- Contenido -->
       <div class="content-wrapper">

@@ -125,6 +125,13 @@
   background: rgba(88, 166, 255, 0.1);
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tag:hover {
+  background: var(--accent-blue);
+  color: var(--bg-dark);
 }
 
 .read-more {
