@@ -1,15 +1,5 @@
-// Home page specific JavaScript
-// The main functionality is now in main.js
-
+// Home page - Animation for post cards
 document.addEventListener('DOMContentLoaded', () => {
-  // Add any home-specific JavaScript here if needed
-  
-  // Example: Add animation to post cards on scroll
-  const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-  };
-
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -17,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
         entry.target.style.transform = 'translateY(0)';
       }
     });
-  }, observerOptions);
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
   document.querySelectorAll('.post-card').forEach(card => {
     card.style.opacity = '0';
