@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,40 +8,150 @@
   <meta property="article:author" content="{{ page.author.name | default: site.author.name }}">
   <meta property="article:published_time" content="{{ page.date | date_to_xmlschema }}">
   <link rel="icon" href="{{ 'assets/img/icon/P4r4$it3.png' | relative_url }}" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
 </head>
 <body>
-  <div class="terminal-window">
-    <header class="terminal-header">
-      <div class="terminal-left">
-        <img src="https://i.pinimg.com/originals/6e/d5/d1/6ed5d17edc7859c15e4ba8b83186f3c6.gif" alt="Logo animado">
+  <!-- Efecto de scanline -->
+  <div class="scanlines"></div>
+  
+  <!-- Contenedor principal -->
+  <div class="hacker-container">
+    <!-- Sidebar / Panel izquierdo -->
+    <aside class="sidebar">
+      <!-- Logo -->
+      <div class="logo-section">
+        <div class="logo-box">
+          <span class="logo-bracket">[</span><span class="logo-text">P4R4</span><span class="logo-bracket">$IT3</span><span class="cursor">_</span><span class="logo-bracket">]</span>
+        </div>
+        <div class="logo-subtitle">Security Researcher</div>
       </div>
 
-      <div class="terminal-center">
-        root@p4r4$it3:~ 
-      </div>
-
-      <div class="terminal-right">
-        <span class="btn search" id="search-btn">🔍</span>
-        <span class="btn menu" id="menu-btn">☰</span>
-      </div>
-
-      <!-- Menú desplegable -->
-      <nav class="terminal-nav" id="menu">
-        <a href="{{ '/' | relative_url }}">Home</a>
-        <a href="{{ '/about/' | relative_url }}">About</a>
+      <!-- Navegación -->
+      <nav class="main-nav">
+        <div class="nav-section-title">// NAVIGATION</div>
+        <a href="{{ '/' | relative_url }}" class="nav-item">
+          <span class="nav-icon">▸</span>
+          <span class="nav-text">[HOME] Inicio</span>
+        </a>
+        <a href="{{ '/about/' | relative_url }}" class="nav-item">
+          <span class="nav-icon">▸</span>
+          <span class="nav-text">[ABOUT] Sobre mí</span>
+        </a>
+        
+        <div class="nav-section-title" style="margin-top: 1.5rem;">// CATEGORIES</div>
+        <div class="nav-item nav-category" data-category="pentesting">
+          <span class="nav-icon">♦</span>
+          <span class="nav-text">Penetration Testing</span>
+        </div>
+        <div class="nav-item nav-category" data-category="ctf">
+          <span class="nav-icon">♦</span>
+          <span class="nav-text">CTF Writeups</span>
+        </div>
+        <div class="nav-item nav-category" data-category="research">
+          <span class="nav-icon">♦</span>
+          <span class="nav-text">Research</span>
+        </div>
+        <div class="nav-item nav-category" data-category="malware">
+          <span class="nav-icon">♦</span>
+          <span class="nav-text">Malware Analysis</span>
+        </div>
       </nav>
 
-      <!-- Buscador desplegable -->
-      <div class="terminal-search" id="search">
-        {% include search-form.html %}
+      <!-- Estado del sistema -->
+      <div class="system-status">
+        <div class="status-title">// SYSTEM STATUS</div>
+        <div class="status-item">
+          <span class="status-dot online"></span>
+          <span>Server: <span class="status-ok">ONLINE</span></span>
+        </div>
+        <div class="status-item">
+          <span class="status-dot secure"></span>
+          <span>Connection: <span class="status-secure">ENCRYPTED</span></span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Uptime:</span>
+          <span class="status-value" id="uptime">00:00:00</span>
+        </div>
       </div>
-    </header>
-    <div class="terminal-content">
-      <main>
-        {{ content }} 
-      </main>
+
+      <!-- Buscador -->
+      <div class="sidebar-search">
+        <div class="search-title">// SEARCH</div>
+        <div class="search-box">
+          <span class="search-prompt">$</span>
+          <input type="text" id="search-input-sidebar" placeholder="Buscar...">
+        </div>
+        <div id="search-results-sidebar" class="search-results"></div>
+      </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+      <!-- Header móvil -->
+      <header class="mobile-header">
+        <div class="mobile-logo">[P4R4$IT3]</div>
+        <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+      </header>
+
+      <!-- Terminal de bienvenida -->
+      <div class="welcome-terminal">
+        <div class="terminal-header-bar">
+          <span class="terminal-buttons">
+            <span class="terminal-btn red"></span>
+            <span class="terminal-btn yellow"></span>
+            <span class="terminal-btn green"></span>
+          </span>
+          <span class="terminal-title">welcome.sh</span>
+        </div>
+        <div class="terminal-body">
+          <p class="command-line"><span class="prompt-symbol">$</span> <span class="command">echo "Bienvenido a mi portal de seguridad"</span></p>
+          <p class="output">"Bienvenido a mi portal de seguridad"</p>
+          <p class="command-line"><span class="prompt-symbol">$</span> <span class="command">cat /var/www/about.txt</span></p>
+          <p class="output">Personal blog about hacking & cybersecurity</p>
+          <p class="command-line"><span class="prompt-symbol">$</span> <span class="command">ls -la ~/skills/</span></p>
+          <p class="output">
+            <span class="skill-tag">Penetration Testing</span>
+            <span class="skill-tag">Reverse Engineering</span>
+            <span class="skill-tag">Malware Analysis</span>
+            <span class="skill-tag">CTF</span>
+          </p>
+          <p class="cursor-line"><span class="cursor-blink">▋</span></p>
+        </div>
+      </div>
+
+      <!-- Contenido -->
+      <div class="content-wrapper">
+        {{ content }}
+      </div>
+
+      <!-- Footer -->
+      <footer class="main-footer">
+        <div class="footer-left">
+          <span class="footer-bracket">[</span>
+          <span class="footer-text">© 2025 P4R4$IT3 - All rights reserved</span>
+          <span class="footer-bracket">]</span>
+        </div>
+        <div class="footer-right">
+          <span class="footer-status">Theme: <span class="theme-name">Hacker Dark</span></span>
+        </div>
+      </footer>
+    </main>
   </div>
+
+  <!-- Menú móvil -->
+  <nav class="mobile-nav" id="mobile-nav">
+    <a href="{{ '/' | relative_url }}">[HOME] Inicio</a>
+    <a href="{{ '/about/' | relative_url }}">[ABOUT] Sobre mí</a>
+  </nav>
+
+  <!-- Datos de posts para búsqueda -->
+  <script type="application/json" id="posts-data">
+    {% include posts.html %}
+  </script>
+
   <script src="{{ '/assets/js/main.js' | relative_url }}" defer></script>
 </body>
 </html>

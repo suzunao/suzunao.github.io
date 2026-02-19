@@ -5,26 +5,17 @@ document.addEventListener("DOMContentLoaded", () => {
     postContent.style.display = "block";
   }
 
-  // Reemplazo de enlaces de YouTube
+  // Reemplazo de enlaces de YouTube - optimizado con mejor regex
   const content = document.querySelector(".post-content");
   if (content) {
-    content.innerHTML = content.innerHTML
-      .replace(
-        /(https?:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]+))/g,
-        `<div class="video-container">
-           <iframe src="https://www.youtube.com/embed/$2"
-                   frameborder="0"
-                   allowfullscreen></iframe>
-         </div>`
-      )
-      .replace(
-        /(https?:\/\/youtu\.be\/([a-zA-Z0-9_-]+))/g,
-        `<div class="video-container">
-           <iframe src="https://www.youtube.com/embed/$2"
-                   frameborder="0"
-                   allowfullscreen></iframe>
-         </div>`
-      );
+    const youtubeRegex = /(?:https?:\/\/(?:www\.)?youtube\.com\/watch\?v=|https?:\/\/youtu\.be\/)([a-zA-Z0-9_-]+)/g;
+    let html = content.innerHTML;
+    if (youtubeRegex.test(html)) {
+      html = html.replace(youtubeRegex, (match, videoId) => {
+        return `<div class="video-container"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+      });
+      content.innerHTML = html;
+    }
   }
 
   // Botón para copiar bloques de código
@@ -42,6 +33,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!code) return;
       navigator.clipboard.writeText(code.innerText).then(() => {
         button.textContent = "[OK]";
+        setTimeout(() => (button.textContent = "📋"), 2000);
+      }).catch(() => {
+        button.textContent = "[ERR]";
         setTimeout(() => (button.textContent = "📋"), 2000);
       });
     });

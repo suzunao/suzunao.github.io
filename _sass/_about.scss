@@ -1,105 +1,158 @@
-.ticket-border {
-    margin: 0 auto;
-    font-size: 0.9rem;
-    text-align: center;
-    width: 100%;
-    max-width: 650px;
-    margin-bottom: 1.5rem;
+/* ================================================
+   ABOUT STYLES
+   ================================================ */
+
+.about-section {
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .about-card {
-    max-width: 600px;
-    width: 100%;
-    background: rgba(0, 0, 0, 0.75);
-    padding: 1.5rem;
-    border-radius: 6px;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.15);
-    margin: 0 auto;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 2rem;
 }
 
-.about-logo {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1.5rem;
+.about-profile {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.about-logo img {
-    width: 90px;
-    height: 90px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 2px solid #0f0;
-    box-shadow: 0 0 15px #0f0;
-    transition: transform 0.3s;
+.about-avatar img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid var(--accent-green);
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+  transition: transform var(--transition-normal);
 }
 
-.about-logo img:hover {
-    transform: scale(1.05);
+.about-avatar img:hover {
+  transform: scale(1.05);
+}
+
+.about-info {
+  flex: 1;
 }
 
 .about-name {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #6eff6e;
-    margin-bottom: 0.8rem;
-    text-shadow: 0 0 10px rgba(110, 255, 110, 0.5);
-    text-align: center;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent-green);
+  margin-bottom: 0.25rem;
 }
 
-.about-title {
-    font-size: 1.1rem;
-    color: #aaa;
-    margin-bottom: 1.5rem;
-    text-align: center;
-    font-weight: normal;
+.about-role {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.about-bio {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.about-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.skill-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 255, 65, 0.05);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.skill-icon {
+  color: var(--accent-green);
+}
+
+.skill-name {
+  color: var(--text-secondary);
 }
 
 .about-socials {
-    margin: 1.5rem 0;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
-.about-socials a {
-    color: #0f0;
-    text-decoration: none;
-    padding: 0.5rem 1rem;
-    border: 1px solid #0f0;
-    border-radius: 4px;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+.social-link {
+  color: var(--accent-green);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--accent-green);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  transition: all var(--transition-normal);
 }
 
-.about-socials a:hover {
-    color: #000;
-    background: #0f0;
-    box-shadow: 0 0 15px #0f0;
+.social-link:hover {
+  background: var(--accent-green);
+  color: var(--bg-dark);
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
 }
 
-.about-desc {
-    margin-top: 1.5rem;
-    color: #e5e5e5;
-    line-height: 1.6;
-    font-size: 0.95rem;
-    text-align: center;
+.social-bracket {
+  color: inherit;
 }
 
+/* Warning */
 .about-warning {
-    margin-top: 1.5rem;
-    padding: 1rem;
-    background: rgba(255, 0, 0, 0.08);
-    border: 1px solid #f00;
-    color: #ff5555;
-    font-weight: bold;
-    font-size: 0.9rem;
-    border-radius: 4px;
-    box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
-    text-align: left;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(248, 81, 73, 0.05);
+  border: 1px solid var(--accent-red);
+  border-radius: 6px;
+}
+
+.warning-icon {
+  color: var(--accent-red);
+  font-size: 1.2rem;
+}
+
+.warning-text {
+  color: var(--accent-red);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .about-profile {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .about-card {
+    padding: 1.5rem;
+  }
+
+  .about-name {
+    font-size: 1.5rem;
+  }
+
+  .about-socials {
+    justify-content: center;
+  }
 }

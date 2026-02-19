@@ -2,7 +2,7 @@
   {% for post in site.posts %}
     {
       "title": {{ post.title | jsonify }},
-      "content": {{ post.content | strip_html | truncatewords: 30 | jsonify }},
+      "excerpt": {{ post.excerpt | strip_html | truncate: 60 | jsonify }},
       "url": {{ post.url | relative_url | jsonify }},
       "date": "{{ post.date | date: "%Y-%m-%d" }}",
       "tags": {{ post.tags | jsonify }}

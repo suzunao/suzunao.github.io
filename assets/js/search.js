@@ -3,11 +3,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const resultsContainer = document.getElementById('search-results');
   const posts = JSON.parse(document.getElementById('posts-data').textContent);
 
-  const performSearch = (query) => {
+  // Debounce function para evitar búsquedas excesivas
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  const performSearch = debounce((query) => {
     resultsContainer.innerHTML = '';
     query = query.toLowerCase().trim();
 
-    if (query.length < 1) {
+    if (query.length < 2) {
       resultsContainer.style.display = 'none'; 
       return;
     }
@@ -19,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (results.length > 0) {
+      const fragment = document.createDocumentFragment();
       results.forEach(post => {
         const resultItem = document.createElement('div');
         resultItem.className = 'search-result';
@@ -28,14 +42,15 @@ document.addEventListener('DOMContentLoaded', () => {
             ${post.tags ? `<div class="tags">${post.tags.map(tag => `<span>#${tag}</span>`).join('')}</div>` : ''}
           </a>
         `;
-        resultsContainer.appendChild(resultItem);
+        fragment.appendChild(resultItem);
       });
+      resultsContainer.appendChild(fragment);
       resultsContainer.style.display = 'block'; 
     } else {
       resultsContainer.innerHTML = '<div class="no-results">No se encontraron resultados</div>';
       resultsContainer.style.display = 'block'; 
     }
-  };
+  }, 200);
   
   searchInput.addEventListener('input', e => performSearch(e.target.value));
 });
