@@ -173,10 +173,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const navPostsLink = document.getElementById('nav-posts');
   if (navPostsLink) {
     navPostsLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      // Scroll to posts section
+      const postsSection = document.getElementById('posts');
+      if (postsSection) {
+        postsSection.scrollIntoView({ behavior: 'smooth' });
+      }
       // Show all posts when clicking "Artículos"
       const postCards = document.querySelectorAll('.post-card');
       postCards.forEach(card => {
-        card.style.display = 'block';
+        card.style.display = '';
       });
     });
   }
