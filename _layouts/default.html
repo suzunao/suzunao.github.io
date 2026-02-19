@@ -12,19 +12,23 @@
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="{{ page.og_type | default: 'website' }}">
-  <meta property="og:url" content="{{ page.url | absolute_url }}">
+  <meta property="og:url" content="{{ page.url | absolute_url | default: site.url }}">
   <meta property="og:title" content="{{ page.title | default: site.title }}">
   <meta property="og:description" content="{{ page.description | default: site.description }}">
-  <meta property="og:image" content="{{ page.background | absolute_url | default: site.url }}/assets/img/icon/P4r4$it3.png">
+  <meta property="og:image" content="{{ page.background | absolute_url | default: '/assets/img/icon/P4r4$it3.png' | absolute_url }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:site_name" content="{{ site.title }}">
   <meta property="og:locale" content="es_ES">
+  <meta property="article:author" content="{{ page.author.name | default: site.author.name }}">
+  <meta property="article:published_time" content="{{ page.date | date_to_xmlschema }}">
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="{{ page.url | absolute_url }}">
+  <meta name="twitter:url" content="{{ page.url | absolute_url | default: site.url }}">
   <meta name="twitter:title" content="{{ page.title | default: site.title }}">
   <meta name="twitter:description" content="{{ page.description | default: site.description }}">
-  <meta name="twitter:image" content="{{ page.background | absolute_url | default: site.url }}/assets/img/icon/P4r4$it3.png">
+  <meta name="twitter:image" content="{{ page.background | absolute_url | default: '/assets/img/icon/P4r4$it3.png' | absolute_url }}">
   <meta name="twitter:site" content="@llSuzunaoll">
   <meta name="twitter:creator" content="@llSuzunaoll">
   
@@ -35,9 +39,6 @@
   <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ '/feed.xml' | absolute_url }}">
   
   {% seo %}
-  <meta property="og:image" content="{{ page.background | absolute_url }}">
-  <meta property="article:author" content="{{ page.author.name | default: site.author.name }}">
-  <meta property="article:published_time" content="{{ page.date | date_to_xmlschema }}">
   <link rel="icon" href="{{ 'assets/img/icon/P4r4$it3.png' | relative_url }}" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
