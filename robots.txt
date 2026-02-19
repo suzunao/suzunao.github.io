@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://suzunao.github.io/sitemap.xml
+
+# Archivos disallowed
+Disallow: /assets/css/
+Disallow: /assets/js/
+Disallow: /assets/img/
+Disallow: /_includes/
+Disallow: /_layouts/
+Disallow: /_sass/
+Disallow: /_posts/
+Disallow: /Gemfile
+Disallow: /Gemfile.lock
+
+# Crawl-delay (opcional)
+Crawl-delay: 1

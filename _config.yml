@@ -1,26 +1,49 @@
-
-title: Suzuano
-description: Personal blog about hacking & cybersecurity
+# Configuración del sitio
+title: Suzuano - Security Researcher
+description: Personal blog about hacking, cybersecurity, penetration testing, CTF writeups, malware analysis, and reverse engineering. Compartiendo conocimientos de seguridad informática.
 baseurl: ""
 url: "https://suzunao.github.io"
 timezone: UTC
 
+# Autor del sitio
+author:
+  name: Suzunao
+  email: 
+  avatar: /assets/img/icon/Suzunao.png
+  bio: Security Researcher | Pentester | CTF Player
+  github: suzunao
+  twitter: llSuzunaoll
+  linkedin: wuillian-rosales
+  tryhackme: suzunao
+  hackthebox: 1548247
+
+# Redes sociales
+social:
+  name: Suzuano
+  links:
+    - https://github.com/suzunao
+    - https://twitter.com/llSuzunaoll
+    - https://www.linkedin.com/in/wuillian-rosales/
+
+# Configuración de Markdown
 markdown: kramdown
 highlighter: rouge
 kramdown:
   input: GFM
   auto_ids: true
   toc_levels: 1..6
+  syntax_highlighter: rouge
 
+# Configuración de Sass
 sass:
   sass_dir: _sass
   style: compressed
   sourcemap: never
 
-
+# Permalinks
 permalink: /post/:title/
 
-
+# Plugins de Jekyll
 plugins:
   - jekyll-paginate-v2
   - jekyll-archives
@@ -29,7 +52,7 @@ plugins:
   - jekyll-seo-tag
   - jekyll-compose
 
-
+# Paginación
 pagination:
   enabled: true
   per_page: 10
@@ -41,7 +64,7 @@ pagination:
   debug: false
   collection: 'posts'
 
-
+# Archivos por标签
 jekyll-archives:
   enabled:
     - tags
@@ -50,17 +73,31 @@ jekyll-archives:
   permalinks:
     tag: '/tag/:name/'
 
-
+# Búsqueda
 search_enabled: true
 
+# Configuración de jekyll-seo-tag
+jekyll_seo:
+  image: /assets/img/icon/P4r4$it3.png
+  social:
+    name: Suzunao
+    links:
+      - https://github.com/suzunao
+      - https://twitter.com/llSuzunaoll
 
-# Optimizaciones de rendimiento
+# Feed RSS
+feed:
+  path: feed.xml
+
+# Sitemap
+sitemap:
+  filename: sitemap.xml
+
+# Optimizaciones
 lazy_scroll: false
+excerpt_max_length: 160
 
-# Reducir tamaño del JSON de búsqueda
-excerpt_max_length: 60
-
-
+# Archivos a excluir
 exclude:
   - README.md
   - Gemfile
@@ -72,3 +109,15 @@ exclude:
   - "*.psd"
   - "*.ai"
   - node_modules
+  - package.json
+  - package-lock.json
+
+# Categorías y etiquetas por defecto
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+      comments: false
+      share: true
