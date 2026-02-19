@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     commands.forEach((cmd, index) => {
       setTimeout(() => {
-        // Create command line
         const commandLine = document.createElement('div');
         commandLine.className = 'command-line';
         
@@ -40,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
         commandLine.appendChild(commandSpan);
         terminalBody.appendChild(commandLine);
         
-        // Typewriter effect
         let charIndex = 0;
         const typeInterval = setInterval(() => {
           if (charIndex < cmd.text.length) {
@@ -49,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             clearInterval(typeInterval);
             
-            // Add output after command is typed
             setTimeout(() => {
               const output = document.createElement('p');
               output.className = 'output';
@@ -60,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
               }
               terminalBody.appendChild(output);
               
-              // Add cursor at the end
               if (index === commands.length - 1) {
                 const cursorLine = document.createElement('p');
                 cursorLine.className = 'cursor-line';
@@ -146,34 +142,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // === TAG FILTERING IN POSTS ===
-  const postTagElements = document.querySelectorAll('.post-card .tag');
-  postTagElements.forEach(tagEl => {
-    tagEl.style.cursor = 'pointer';
-    tagEl.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const tagText = tagEl.getAttribute('data-tag');
-      filterPostsByTag(tagText);
-    });
-  });
-
-  function filterPostsByTag(tag) {
+  // === TAG FILTERING FUNCTION ===
+  window.filterByTag = function(tag) {
     const postCards = document.querySelectorAll('.post-card');
     postCards.forEach(card => {
-      const cardTags = Array.from(card.querySelectorAll('.tag')).map(t => t.getAttribute('data-tag'));
+      const cardTags = Array.from(card.querySelectorAll('.tag')).map(t => t.textContent.trim());
       if (cardTags.includes(tag)) {
         card.style.display = 'block';
       } else {
         card.style.display = 'none';
       }
     });
-  }
+  };
 
-  // Add click handlers to tag pills in the sidebar for future category filtering
+  // Add click handlers to tag pills
+  const postTagElements = document.querySelectorAll('.post-card .tag');
+  postTagElements.forEach(tagEl => {
+    tagEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tagText = tagEl.getAttribute('data-tag');
+      filterByTag(tagText);
+    });
+  });
+
+  // Nav Posts link - show all posts
   const navPostsLink = document.getElementById('nav-posts');
   if (navPostsLink) {
     navPostsLink.addEventListener('click', (e) => {
-      // Show all posts when clicking "Artículos"
       const postCards = document.querySelectorAll('.post-card');
       postCards.forEach(card => {
         card.style.display = 'block';
