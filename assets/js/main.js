@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  
   // === UPTIME COUNTER ===
   const uptimeElement = document.getElementById('uptime');
   if (uptimeElement) {
@@ -23,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let delay = 500;
 
-    commands.forEach((cmd, index) => {
+    commands.forEach((cmd) => {
       setTimeout(() => {
         const commandLine = document.createElement('div');
         commandLine.className = 'command-line';
@@ -50,19 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
               const output = document.createElement('p');
               output.className = 'output';
-              if (cmd.isHtml) {
-                output.innerHTML = cmd.output;
-              } else {
-                output.textContent = cmd.output;
-              }
+              output.innerHTML = cmd.isHtml ? cmd.output : cmd.output;
               terminalBody.appendChild(output);
-              
-              if (index === commands.length - 1) {
-                const cursorLine = document.createElement('p');
-                cursorLine.className = 'cursor-line';
-                cursorLine.innerHTML = '<span class="cursor-blink">▋</span>';
-                terminalBody.appendChild(cursorLine);
-              }
             }, 300);
           }
         }, 80);
@@ -99,13 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const debounce = (func, wait) => {
         let timeout;
-        return function executedFunction(...args) {
-          const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-          };
+        return (...args) => {
           clearTimeout(timeout);
-          timeout = setTimeout(later, wait);
+          timeout = setTimeout(() => func(...args), wait);
         };
       };
 
@@ -118,11 +104,10 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        const results = posts.filter(post => {
-          const titleMatch = post.title.toLowerCase().includes(query);
-          const tagMatch = post.tags && post.tags.some(tag => tag.toLowerCase().includes(query));
-          return titleMatch || tagMatch;
-        });
+        const results = posts.filter(post => 
+          post.title.toLowerCase().includes(query) || 
+          (post.tags && post.tags.some(tag => tag.toLowerCase().includes(query)))
+        );
 
         if (results.length > 0) {
           results.slice(0, 5).forEach(post => {
@@ -142,37 +127,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // === TAG FILTERING FUNCTION ===
-  window.filterByTag = function(tag) {
-    const postCards = document.querySelectorAll('.post-card');
-    postCards.forEach(card => {
+  // === MOSTRAR TODOS LOS POSTS AL INICIO ===
+  const postCards = document.querySelectorAll('.post-card');
+  postCards.forEach(card => card.style.display = 'block');
+
+  // === TAG FILTERING ===
+  window.filterByTag = (tag) => {
+    document.querySelectorAll('.post-card').forEach(card => {
       const cardTags = Array.from(card.querySelectorAll('.tag')).map(t => t.textContent.trim());
-      if (cardTags.includes(tag)) {
-        card.style.display = 'block';
-      } else {
-        card.style.display = 'none';
-      }
+      card.style.display = cardTags.includes(tag) ? 'block' : 'none';
     });
   };
 
-  // Add click handlers to tag pills
-  const postTagElements = document.querySelectorAll('.post-card .tag');
-  postTagElements.forEach(tagEl => {
+  window.showAllPosts = () => {
+    document.querySelectorAll('.post-card').forEach(card => {
+      card.style.display = 'block';
+    });
+  };
+
+  // Event listeners para tags
+  document.querySelectorAll('.post-card .tag').forEach(tagEl => {
     tagEl.addEventListener('click', (e) => {
       e.stopPropagation();
-      const tagText = tagEl.getAttribute('data-tag');
-      filterByTag(tagText);
+      filterByTag(tagEl.getAttribute('data-tag'));
     });
   });
 
-  // Nav Posts link - show all posts
+  // Event listener para nav posts
   const navPostsLink = document.getElementById('nav-posts');
   if (navPostsLink) {
-    navPostsLink.addEventListener('click', (e) => {
-      const postCards = document.querySelectorAll('.post-card');
-      postCards.forEach(card => {
-        card.style.display = 'block';
-      });
-    });
+    navPostsLink.addEventListener('click', showAllPosts);
   }
 });

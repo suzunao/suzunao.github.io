@@ -3,18 +3,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const resultsContainer = document.getElementById('search-results');
   const posts = JSON.parse(document.getElementById('posts-data').textContent);
 
-  // Debounce function para evitar búsquedas excesivas
-  function debounce(func, wait) {
+  const debounce = (func, wait) => {
     let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
+    return (...args) => {
       clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
+      timeout = setTimeout(() => func(...args), wait);
     };
-  }
+  };
 
   const performSearch = debounce((query) => {
     resultsContainer.innerHTML = '';
@@ -25,11 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const results = posts.filter(post => {
-      const titleMatch = post.title.toLowerCase().includes(query);
-      const tagMatch = post.tags && post.tags.some(tag => `#${tag.toLowerCase()}`.includes(query));
-      return titleMatch || tagMatch;
-    });
+    const results = posts.filter(post => 
+      post.title.toLowerCase().includes(query) || 
+      (post.tags && post.tags.some(tag => tag.toLowerCase().includes(query)))
+    );
 
     if (results.length > 0) {
       const fragment = document.createDocumentFragment();
@@ -52,5 +46,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 200);
   
-  searchInput.addEventListener('input', e => performSearch(e.target.value));
+  if (searchInput) searchInput.addEventListener('input', e => performSearch(e.target.value));
 });
