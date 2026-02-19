@@ -54,6 +54,13 @@ jekyll-archives:
 search_enabled: true
 
 
+# Optimizaciones de rendimiento
+lazy_scroll: false
+
+# Reducir tamaño del JSON de búsqueda
+excerpt_max_length: 60
+
+
 exclude:
   - README.md
   - Gemfile
@@ -62,3 +69,6 @@ exclude:
   - vendor
   - .vscode
   - .idea
+  - "*.psd"
+  - "*.ai"
+  - node_modules

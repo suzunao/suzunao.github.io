@@ -1,33 +1,44 @@
 ---
 layout: default
 ---
-<div class="terminal-content" id="terminalContent"></div>
 
-<!-- Contenedor oculto  -->
-<div id="postDate" data-date="{{ page.date | date: "%Y-%m-%d" }}" style="display:none;"></div>
-<div id="postTitle" data-title="{{ page.title }}" style="display:none;"></div>
-
-<!-- Contenido del post -->
-<article class="single-post" id="postContent" style="display:none;">
-  <div class="post-card"
-      style="--bg-image: url('{{ page.background | default: "/assets/img/icon/wall.jpg" | relative_url }}');">
-    <h1>{{ page.title }}</h1>
-    <div class="post-card-header">
-      <img class="author-avatar" src="{{ page.author.avatar | relative_url }}" alt="{{ page.author.name }}">
-      <div class="author-info">
-        <span class="author-name">{{ page.author.name }}</span>
-        <span class="post-date">{{ page.date | date: "%Y-%m-%d" }}</span>
-      </div>
+<article class="single-post">
+  <!-- Post Header -->
+  <header class="post-header">
+    <div class="post-meta">
+      <span class="post-date">{{ page.date | date: "%Y-%m-%d" }}</span>
+      <span class="post-separator">|</span>
+      <span class="post-author">{{ page.author.name | default: "P4R4$IT3" }}</span>
     </div>
+    
+    <h1 class="post-title">{{ page.title }}</h1>
+    
     <div class="post-tags">
       {% for tag in page.tags %}
-        <a class="tag-pill">#{{ tag }}</a>{% unless forloop.last %} {% endunless %}
+        <span class="tag">#{{ tag }}</span>
       {% endfor %}
     </div>
-  </div>
+  </header>
+
+  <!-- Post Content -->
   <div class="post-content">
     {{ content }}
   </div>
+
+  <!-- Post Footer -->
+  <footer class="post-footer">
+    <div class="footer-navigation">
+      <a href="{{ '/' | relative_url }}" class="back-link">
+        <span class="arrow">←</span> Back to Home
+      </a>
+    </div>
+    
+    <div class="share-section">
+      <span class="share-label">Share:</span>
+      <a href="https://twitter.com/intent/tweet?text={{ page.title }}&url={{ page.url | absolute_url }}" target="_blank" class="share-link">Twitter</a>
+      <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ page.url | absolute_url }}&title={{ page.title }}" target="_blank" class="share-link">LinkedIn</a>
+    </div>
+  </footer>
 </article>
 
 <script src="{{ '/assets/js/posts.js' | relative_url }}" defer></script>

@@ -1,31 +1,28 @@
-function initPostsTable() {
-  const postsTable = document.getElementById("postsTable");
-  const loadMoreBtnRow = document.getElementById("loadMoreBtnRow");
+// Home page specific JavaScript
+// The main functionality is now in main.js
 
-  if (!postsTable || !loadMoreBtnRow) return;
+document.addEventListener('DOMContentLoaded', () => {
+  // Add any home-specific JavaScript here if needed
+  
+  // Example: Add animation to post cards on scroll
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
 
-  const rows = postsTable.querySelectorAll("tbody tr:not(#loadMoreBtnRow)");
-  let visibleCount = 4;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, observerOptions);
 
-  // Mostrar primeros 4
-  rows.forEach((row, index) => {
-    row.style.display = index < visibleCount ? "" : "none";
+  document.querySelectorAll('.post-card').forEach(card => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(card);
   });
-
-  postsTable.style.display = "table";
-
-  // Mostrar fila "Ver más" si hay posts ocultos
-  const totalVisible = rows.length;
-  loadMoreBtnRow.style.display = totalVisible > visibleCount ? "" : "none";
-
-  // Evento click
-  loadMoreBtnRow.addEventListener("click", () => {
-    rows.forEach(row => row.style.display = "");   
-    loadMoreBtnRow.style.display = "none";        
-  });
-}
-
-// Inicializar tabla al cargar la página
-document.addEventListener("DOMContentLoaded", () => {
-  initPostsTable();
 });
