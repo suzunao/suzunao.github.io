@@ -3,6 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- SEO -->
+  <title>{{ page.title | default: site.title }}</title>
+  <meta name="description" content="{{ page.description | default: site.description }}">
+  <meta name="author" content="{{ site.author.name }}">
+  <meta name="keywords" content="cybersecurity, hacking, penetration testing, CTF, malware analysis, reverse engineering, {{ page.tags | join: ', ' }}">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="{{ page.og_type | default: 'website' }}">
+  <meta property="og:url" content="{{ page.url | absolute_url }}">
+  <meta property="og:title" content="{{ page.title | default: site.title }}">
+  <meta property="og:description" content="{{ page.description | default: site.description }}">
+  <meta property="og:image" content="{{ page.background | absolute_url | default: site.url }}/assets/img/icon/P4r4$it3.png">
+  <meta property="og:site_name" content="{{ site.title }}">
+  <meta property="og:locale" content="es_ES">
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="{{ page.url | absolute_url }}">
+  <meta name="twitter:title" content="{{ page.title | default: site.title }}">
+  <meta name="twitter:description" content="{{ page.description | default: site.description }}">
+  <meta name="twitter:image" content="{{ page.background | absolute_url | default: site.url }}/assets/img/icon/P4r4$it3.png">
+  <meta name="twitter:site" content="@llSuzunaoll">
+  <meta name="twitter:creator" content="@llSuzunaoll">
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href="{{ page.url | absolute_url }}">
+  
+  <!-- RSS Feed -->
+  <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ '/feed.xml' | absolute_url }}">
+  
   {% seo %}
   <meta property="og:image" content="{{ page.background | absolute_url }}">
   <meta property="article:author" content="{{ page.author.name | default: site.author.name }}">
@@ -36,13 +67,13 @@
           <span class="nav-icon">▸</span>
           <span class="nav-text">[HOME] Inicio</span>
         </a>
-        <a href="{{ '/about/' | relative_url }}" class="nav-item">
-          <span class="nav-icon">▸</span>
-          <span class="nav-text">[ABOUT] Sobre mí</span>
-        </a>
         <a href="{{ '/posts/' | relative_url }}" class="nav-item" id="nav-posts">
           <span class="nav-icon">▸</span>
           <span class="nav-text">[POSTS] Artículos</span>
+        </a>
+        <a href="{{ '/about/' | relative_url }}" class="nav-item">
+          <span class="nav-icon">▸</span>
+          <span class="nav-text">[ABOUT] Sobre mí</span>
         </a>
       </nav>
 
