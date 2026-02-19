@@ -13,6 +13,69 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   }
 
+  // === TYPEWRITER EFFECT FOR WELCOME TERMINAL ===
+  const terminalBody = document.getElementById('terminalBody');
+  if (terminalBody) {
+    const commands = [
+      { text: 'cat /var/www/about.txt', output: 'Bienvenido a mi portal de seguridad', isHtml: false },
+      { text: 'ls -la ~/skills/', output: '<span class="skill-tag">Penetration Testing</span><span class="skill-tag">Reverse Engineering</span><span class="skill-tag">Malware Analysis</span><span class="skill-tag">CTF</span>', isHtml: true }
+    ];
+
+    let delay = 500;
+
+    commands.forEach((cmd, index) => {
+      setTimeout(() => {
+        // Create command line
+        const commandLine = document.createElement('div');
+        commandLine.className = 'command-line';
+        
+        const prompt = document.createElement('span');
+        prompt.className = 'prompt-symbol';
+        prompt.textContent = '$ ';
+        
+        const commandSpan = document.createElement('span');
+        commandSpan.className = 'command';
+        
+        commandLine.appendChild(prompt);
+        commandLine.appendChild(commandSpan);
+        terminalBody.appendChild(commandLine);
+        
+        // Typewriter effect
+        let charIndex = 0;
+        const typeInterval = setInterval(() => {
+          if (charIndex < cmd.text.length) {
+            commandSpan.textContent += cmd.text.charAt(charIndex);
+            charIndex++;
+          } else {
+            clearInterval(typeInterval);
+            
+            // Add output after command is typed
+            setTimeout(() => {
+              const output = document.createElement('p');
+              output.className = 'output';
+              if (cmd.isHtml) {
+                output.innerHTML = cmd.output;
+              } else {
+                output.textContent = cmd.output;
+              }
+              terminalBody.appendChild(output);
+              
+              // Add cursor at the end
+              if (index === commands.length - 1) {
+                const cursorLine = document.createElement('p');
+                cursorLine.className = 'cursor-line';
+                cursorLine.innerHTML = '<span class="cursor-blink">▋</span>';
+                terminalBody.appendChild(cursorLine);
+              }
+            }, 300);
+          }
+        }, 80);
+        
+      }, delay);
+      delay += cmd.text.length * 80 + 800;
+    });
+  }
+
   // === MOBILE MENU ===
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
   const mobileNav = document.getElementById('mobile-nav');
@@ -22,7 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
       mobileNav.classList.toggle('active');
     });
 
-    // Close menu when clicking a link
     mobileNav.querySelectorAll('a').forEach(link => {
       link.addEventListener('click', () => {
         mobileNav.classList.remove('active');
@@ -35,12 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchResultsSidebar = document.getElementById('search-results-sidebar');
   
   if (searchInputSidebar && searchResultsSidebar) {
-    // Get posts data from the hidden element
     const postsDataElement = document.getElementById('posts-data');
     if (postsDataElement) {
       const posts = JSON.parse(postsDataElement.textContent);
       
-      // Debounce function
       const debounce = (func, wait) => {
         let timeout;
         return function executedFunction(...args) {
@@ -86,13 +146,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // === CATEGORY FILTERS ===
-  const categoryItems = document.querySelectorAll('.nav-category');
-  categoryItems.forEach(item => {
-    item.addEventListener('click', () => {
-      const category = item.dataset.category;
-      console.log('Filter by category:', category);
-      // Future: implement category filtering
+  // === TAG FILTERING IN POSTS ===
+  const postTagElements = document.querySelectorAll('.post-card .tag');
+  postTagElements.forEach(tagEl => {
+    tagEl.style.cursor = 'pointer';
+    tagEl.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tagText = tagEl.getAttribute('data-tag');
+      filterPostsByTag(tagText);
     });
   });
+
+  function filterPostsByTag(tag) {
+    const postCards = document.querySelectorAll('.post-card');
+    postCards.forEach(card => {
+      const cardTags = Array.from(card.querySelectorAll('.tag')).map(t => t.getAttribute('data-tag'));
+      if (cardTags.includes(tag)) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  // Add click handlers to tag pills in the sidebar for future category filtering
+  const navPostsLink = document.getElementById('nav-posts');
+  if (navPostsLink) {
+    navPostsLink.addEventListener('click', (e) => {
+      // Show all posts when clicking "Artículos"
+      const postCards = document.querySelectorAll('.post-card');
+      postCards.forEach(card => {
+        card.style.display = 'block';
+      });
+    });
+  }
 });

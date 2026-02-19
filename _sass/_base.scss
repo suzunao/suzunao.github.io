@@ -182,6 +182,7 @@ body::after {
   border-radius: 4px;
   transition: all var(--transition-fast);
   margin-bottom: 0.25rem;
+  cursor: pointer;
 }
 
 .nav-item:hover {

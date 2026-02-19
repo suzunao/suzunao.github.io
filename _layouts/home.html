@@ -4,7 +4,7 @@ title: home
 ---
 
 <!-- Posts Grid -->
-<section class="posts-section">
+<section class="posts-section" id="posts">
   <div class="section-header">
     <h2 class="section-title"><span class="bracket">[</span> RECENT POSTS <span class="bracket">]</span></h2>
     <div class="section-line"></div>
@@ -26,7 +26,7 @@ title: home
       <div class="post-footer">
         <div class="post-tags">
           {% for tag in post.tags %}
-            <span class="tag">#{{ tag }}</span>
+            <span class="tag" data-tag="{{ tag }}">#{{ tag }}</span>
           {% endfor %}
         </div>
         <span class="read-more">Read more <span class="arrow">→</span></span>
