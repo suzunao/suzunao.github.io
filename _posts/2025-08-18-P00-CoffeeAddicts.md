@@ -1,6 +1,6 @@
 ---
 layout: post
-title: CoffeeAddicts - Writeup
+title: CoffeeAddicts - Write-up
 date: 2025-08-18
 author:
   name: Suzunao
