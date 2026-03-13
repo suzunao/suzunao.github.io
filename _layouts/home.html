@@ -36,7 +36,6 @@ title: home
           <img src="{{ post.author.avatar | default: '/assets/img/icon/Suzunao.png' | relative_url }}" alt="author" style="width: 24px; height: 24px; border-radius: 50%; border: 1px solid #00ff41;">
           <span style="font-size: 0.7rem; color: rgba(255,255,255,0.6);">{{ post.author.name | default: "Suzunao" }}</span>
         </div>
-        
         <!-- Tags -->
         <div class="card-tags" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
           {% for tag in post.tags %}
