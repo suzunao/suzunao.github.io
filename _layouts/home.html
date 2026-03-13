@@ -30,7 +30,7 @@ title: home
       <p class="post-excerpt" style="font-size: 0.85rem; color: rgba(255,255,255,0.7); line-height: 1.5; margin: 0 0 1rem 0;">{{ post.excerpt | strip_html | truncate: 80 }}</p>
       
       <!-- Author y Tags -->
-      <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center;">
+      <div style="margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem;">
         <!-- Author -->
         <div style="display: flex; align-items: center; gap: 0.5rem;">
           <img src="{{ post.author.avatar | default: '/assets/img/icon/Suzunao.png' | relative_url }}" alt="author" style="width: 24px; height: 24px; border-radius: 50%; border: 1px solid #00ff41;">
