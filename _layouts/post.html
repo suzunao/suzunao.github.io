@@ -35,8 +35,8 @@ layout: default
     
     <div class="share-section">
       <span class="share-label">Share:</span>
-      <a href="https://twitter.com/intent/tweet?text={{ page.title }}&url={{ page.url | absolute_url }}" target="_blank" class="share-link">Twitter</a>
-      <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ page.url | absolute_url }}&title={{ page.title }}" target="_blank" class="share-link">LinkedIn</a>
+      <a href="https://twitter.com/intent/tweet?text={{ page.title | url_encode }}&url={{ page.url | absolute_url | url_encode }}" target="_blank" class="share-link">Twitter</a>
+      <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ page.url | absolute_url | url_encode }}&title={{ page.title | url_encode }}" target="_blank" class="share-link">LinkedIn</a>
     </div>
   </footer>
 </article>

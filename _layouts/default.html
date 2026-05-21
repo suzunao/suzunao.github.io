@@ -8,27 +8,29 @@
   <title>{{ page.title | default: site.title }}</title>
   <meta name="description" content="{{ page.description | default: site.description }}">
   <meta name="author" content="{{ site.author.name }}">
-  <meta name="keywords" content="cybersecurity, hacking, penetration testing, CTF, malware analysis, reverse engineering, {{ page.tags | join: ', ' }}">
+  {% if page.tags %}<meta name="keywords" content="cybersecurity, hacking, penetration testing, CTF, malware analysis, reverse engineering, {{ page.tags | join: ', ' }}">{% else %}<meta name="keywords" content="cybersecurity, hacking, penetration testing, CTF, malware analysis, reverse engineering">{% endif %}
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="{{ page.og_type | default: 'website' }}">
   <meta property="og:url" content="{{ page.url | absolute_url | default: site.url }}">
   <meta property="og:title" content="{{ page.title | default: site.title }}">
   <meta property="og:description" content="{{ page.description | default: site.description }}">
-  <meta property="og:image" content="{{ page.background | absolute_url | default: '/assets/img/icon/P4r4$it3.png' | absolute_url }}">
+  {% assign og_image = page.background | default: '/assets/img/icon/P4r4$it3.png' %}
+  <meta property="og:image" content="{{ og_image | absolute_url }}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:site_name" content="{{ site.title }}">
   <meta property="og:locale" content="es_ES">
   <meta property="article:author" content="{{ page.author.name | default: site.author.name }}">
-  <meta property="article:published_time" content="{{ page.date | date_to_xmlschema }}">
+  {% if page.date %}<meta property="article:published_time" content="{{ page.date | date_to_xmlschema }}">{% endif %}
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="{{ page.url | absolute_url | default: site.url }}">
   <meta name="twitter:title" content="{{ page.title | default: site.title }}">
   <meta name="twitter:description" content="{{ page.description | default: site.description }}">
-  <meta name="twitter:image" content="{{ page.background | absolute_url | default: '/assets/img/icon/P4r4$it3.png' | absolute_url }}">
+  {% assign twitter_image = page.background | default: '/assets/img/icon/P4r4$it3.png' %}
+  <meta name="twitter:image" content="{{ twitter_image | absolute_url }}">
   <meta name="twitter:site" content="@llSuzunaoll">
   <meta name="twitter:creator" content="@llSuzunaoll">
   
@@ -153,6 +155,7 @@
   <!-- Menú móvil -->
   <nav class="mobile-nav" id="mobile-nav">
     <a href="{{ '/' | relative_url }}">[HOME] Inicio</a>
+    <a href="{{ '/posts/' | relative_url }}">[POSTS] Artículos</a>
     <a href="{{ '/about/' | relative_url }}">[ABOUT] Sobre mí</a>
   </nav>
 

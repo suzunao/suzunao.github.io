@@ -45,8 +45,12 @@ h1 {
     animation-delay: 3s; 
 }
 
-.delay {
-    animation-delay: 4.5s; 
+.delay-1 {
+    animation-delay: 4.5s;
+}
+
+.delay-2 {
+    animation-delay: 6s;
 }
 
 @keyframes fadeInText {

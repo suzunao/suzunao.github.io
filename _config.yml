@@ -64,7 +64,7 @@ pagination:
   debug: false
   collection: 'posts'
 
-# Archivos por标签
+# Archivos por etiquetas
 jekyll-archives:
   enabled:
     - tags
@@ -75,15 +75,6 @@ jekyll-archives:
 
 # Búsqueda
 search_enabled: true
-
-# Configuración de jekyll-seo-tag
-jekyll_seo:
-  image: /assets/img/icon/P4r4$it3.png
-  social:
-    name: Suzunao
-    links:
-      - https://github.com/suzunao
-      - https://twitter.com/llSuzunaoll
 
 # Feed RSS
 feed:
