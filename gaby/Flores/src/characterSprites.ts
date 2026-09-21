@@ -1,9 +1,16 @@
 // Pixel Art Sprites fieles a las referencias fotográficas reales de Gaby, El Novio y Oficial John Nolan
 
+import { getSpriteDataUrl } from './spriteCache';
+
 export interface SpriteOptions {
   size?: number;
   className?: string;
   awakened?: boolean;
+}
+
+function imgTag(dataUrl: string, size: number, className?: string): string {
+  const cls = className ? ` class="${className}"` : '';
+  return `<img${cls} src="${dataUrl}" width="${size}" height="${size}" style="image-rendering: pixelated; display: block;" alt="sprite"/>`;
 }
 
 /**
@@ -16,6 +23,8 @@ export interface SpriteOptions {
  */
 export function getGabySpriteSVG(options: SpriteOptions = {}): string {
   const size = options.size || 32;
+  const cached = getSpriteDataUrl('gaby');
+  if (cached) return imgTag(cached, size, options.className);
   const cls = options.className ? ` class="${options.className}"` : '';
 
   return `
@@ -64,6 +73,8 @@ export function getGabySpriteSVG(options: SpriteOptions = {}): string {
  */
 export function getNovioSpriteSVG(options: SpriteOptions = {}): string {
   const size = options.size || 32;
+  const cached = getSpriteDataUrl('willy');
+  if (cached) return imgTag(cached, size, options.className);
   const cls = options.className ? ` class="${options.className}"` : '';
   const awakened = options.awakened || false;
 
@@ -180,6 +191,8 @@ export function getWylliStandingSpriteSVG(options: SpriteOptions & { facingLeft?
  */
 export function getNolanSpriteSVG(options: SpriteOptions = {}): string {
   const size = options.size || 32;
+  const cached = getSpriteDataUrl('nolan');
+  if (cached) return imgTag(cached, size, options.className);
   const cls = options.className ? ` class="${options.className}"` : '';
 
   return `

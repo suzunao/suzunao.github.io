@@ -39,8 +39,6 @@ export class BootScene extends Phaser.Scene {
     createCharacterAnims(this, 'gaby');
     createCharacterAnims(this, 'willy');
     createCharacterAnims(this, 'nolan');
-    this.scene.start('SalaScene');
-    this.scene.sleep('SalaScene');
   }
 }
 
@@ -323,6 +321,7 @@ export class SalaScene extends Phaser.Scene {
 interface GardenFlower {
   sprite: Phaser.GameObjects.Image;
   type: string;
+  baseX: number;
   baseY: number;
   swayPhase: number;
 }
@@ -424,6 +423,7 @@ export class GardenScene extends Phaser.Scene {
     const flower: GardenFlower = {
       sprite,
       type: ft.key,
+      baseX: x,
       baseY: y,
       swayPhase: Math.random() * Math.PI * 2,
     };
@@ -478,7 +478,7 @@ export class GardenScene extends Phaser.Scene {
     const t = this.time.now * 0.001;
     for (const f of this.flowers) {
       const sway = Math.sin(t * 1.5 + f.swayPhase) * 3;
-      f.sprite.x = f.sprite.x + sway * 0.02;
+      f.sprite.x = f.baseX + sway;
     }
   }
 }

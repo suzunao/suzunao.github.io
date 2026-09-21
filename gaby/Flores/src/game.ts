@@ -3,9 +3,10 @@ import { audio } from './audio';
 import { STORY_CHAPTERS, HOTSPOT_DIALOGUES, ACCEPTED_ANSWERS, NOLAN_RADIO_ADVICES, PROLOGUE_STEPS } from './story';
 import { getSpeakerAvatarHTML, getNovioSpriteSVG, getCoupleTogetherSVG, getGabySpriteSVG, getNolanSpriteSVG } from './characterSprites';
 import { virtualWorldGame } from './virtualWorld';
+import { initSpriteCache } from './spriteCache';
 import Phaser from 'phaser';
-import { PHASER_CONFIG } from './phaserConfig';
-import { BootScene, SalaScene, GardenScene } from './phaserScenes';
+import { PHASER_CONFIG, createCharacterAnims } from './phaserConfig';
+import { SalaScene, GardenScene } from './phaserScenes';
 
 function normalizeStr(str: string): string {
   return str
@@ -54,7 +55,8 @@ export class GameController {
   private baristaStep: number = 0;
   private caesarCurrentShift: number = 0;
   private caesarSourcePhrase: string = 'Vrv pl vro';
-  private phaserGame: Phaser.Game | null = null;
+  private phaserSalaGame: Phaser.Game | null = null;
+  private phaserGardenGame: Phaser.Game | null = null;
 
   // Hotspots definition based on exact user coordinates
   public hotspots: Hotspot[] = [
@@ -217,20 +219,68 @@ export class GameController {
     this.updateProgressBadge();
     this.updateNotebookProceduralState();
     this.setupCaesarInteractiveDecoder();
-    this.initPhaser();
     virtualWorldGame.init();
+    initSpriteCache();
     this.setupListeners();
     this.updateGabyElement();
     this.checkProximity();
     this.openPrologue(0);
   }
 
-  private initPhaser(): void {
-    if (this.phaserGame) return;
-    this.phaserGame = new Phaser.Game({
+  private initPhaserSala(): Phaser.Game {
+    if (this.phaserSalaGame) return this.phaserSalaGame;
+
+    const game = new Phaser.Game({
       ...PHASER_CONFIG,
-      scene: [BootScene, SalaScene, GardenScene],
+      parent: 'phaserAwakening',
+      scene: [
+        class extends Phaser.Scene {
+          constructor() { super('BootSala'); }
+          preload() {
+            this.load.image('sala-bg', 'sala.jpeg');
+            this.load.spritesheet('gaby', 'gaby.png', { frameWidth: 62, frameHeight: 62 });
+            this.load.spritesheet('willy', 'willy.png', { frameWidth: 62, frameHeight: 62 });
+            this.load.spritesheet('nolan', 'nolan.png', { frameWidth: 62, frameHeight: 62 });
+          }
+          create() {
+            createCharacterAnims(this, 'gaby');
+            createCharacterAnims(this, 'willy');
+            createCharacterAnims(this, 'nolan');
+            this.scene.start('SalaScene');
+          }
+        },
+        SalaScene,
+      ],
     });
+
+    this.phaserSalaGame = game;
+    return game;
+  }
+
+  private initPhaserGarden(): Phaser.Game {
+    if (this.phaserGardenGame) return this.phaserGardenGame;
+
+    const game = new Phaser.Game({
+      ...PHASER_CONFIG,
+      parent: 'phaserGarden',
+      scene: [
+        class extends Phaser.Scene {
+          constructor() { super('BootGarden'); }
+          preload() {
+            this.load.image('garden-bg', 'campo de flores.jpeg');
+            this.load.spritesheet('gaby', 'gaby.png', { frameWidth: 62, frameHeight: 62 });
+          }
+          create() {
+            createCharacterAnims(this, 'gaby');
+            this.scene.start('GardenScene');
+          }
+        },
+        GardenScene,
+      ],
+    });
+
+    this.phaserGardenGame = game;
+    return game;
   }
 
   private setupMap() {
@@ -2057,36 +2107,36 @@ export class GameController {
   }
 
   private startAwakeningCanvas() {
-    if (!this.phaserGame) this.initPhaser();
-    if (!this.phaserGame) return;
-
     const overlay = document.getElementById('awakeningOverlay');
     if (overlay) overlay.classList.add('active');
     this.state.currentScene = 'sala';
 
-    this.phaserGame.scene.stop('SalaScene');
-    this.phaserGame.scene.start('SalaScene');
-    const scene = this.phaserGame.scene.getScene('SalaScene') as SalaScene;
-    if (scene) {
-      scene.onSalaComplete = () => {
-        if (overlay) overlay.classList.remove('active');
-        this.state.currentScene = null;
-        document.getElementById('verdictModal')?.classList.add('active');
-      };
-    }
+    const game = this.initPhaserSala();
+    const checkReady = () => {
+      const scene = game.scene.getScene('SalaScene') as SalaScene;
+      if (scene && scene.sys.isActive()) {
+        scene.onSalaComplete = () => {
+          if (overlay) overlay.classList.remove('active');
+          this.state.currentScene = null;
+          document.getElementById('verdictModal')?.classList.add('active');
+        };
+      } else {
+        setTimeout(checkReady, 100);
+      }
+    };
+    checkReady();
   }
 
   private openGardenScene(): void {
-    if (!this.phaserGame) this.initPhaser();
-    if (!this.phaserGame) return;
-
     const vwModal = document.getElementById('virtualWorldModal');
     if (vwModal) vwModal.classList.add('active');
     this.state.currentScene = 'garden';
 
-    const existing = this.phaserGame.scene.getScene('GardenScene');
-    if (existing) this.phaserGame.scene.stop('GardenScene');
-    this.phaserGame.scene.start('GardenScene');
+    if (this.phaserGardenGame) {
+      this.phaserGardenGame.destroy(true);
+      this.phaserGardenGame = null;
+    }
+    this.initPhaserGarden();
   }
 
   public bloomGardenYellowFlowers() {
