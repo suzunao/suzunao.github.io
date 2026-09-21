@@ -2477,6 +2477,9 @@ export class GameController {
 
     // Keyboard WASD Controls
     window.addEventListener('keydown', (e) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
       const key = e.key.toLowerCase();
       const step = 3;
 
