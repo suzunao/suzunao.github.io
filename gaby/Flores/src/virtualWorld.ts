@@ -44,6 +44,12 @@ export class VirtualWorldGame {
   private bgImage: HTMLImageElement | null = null;
   private bgLoaded = false;
 
+  // Sprite sheets (2048x2048, 16x16 grid, 128x128 per frame)
+  private spriteGaby: HTMLImageElement | null = null;
+  private spriteWylli: HTMLImageElement | null = null;
+  private spriteNolan: HTMLImageElement | null = null;
+  private spritesLoaded = { gaby: false, wylli: false, nolan: false };
+
   // Characters
   public player = {
     x: 0,
@@ -67,7 +73,7 @@ export class VirtualWorldGame {
   };
 
   // Walk system — waypoint-based
-  private walkPhase: 'approaching' | 'sitting' | 'done' = 'approaching';
+  private walkPhase: 'farewell' | 'approaching' | 'sitting' | 'done' = 'farewell';
   private waypointIndex = 0;
   private isSitting = false;
   private freeMode = false;
@@ -140,6 +146,11 @@ export class VirtualWorldGame {
     this.bgImage.src = 'campo de flores.jpeg';
     this.bgImage.onload = () => { this.bgLoaded = true; };
 
+    // Load sprite sheets
+    this.loadSpriteSheet('gaby', 'gaby.jpeg');
+    this.loadSpriteSheet('wylli', 'willy.jpeg');
+    this.loadSpriteSheet('nolan', 'nolan.jpeg');
+
     this.generateFloatingPetals();
     this.setupInputs();
   }
@@ -153,6 +164,17 @@ export class VirtualWorldGame {
     this.canvas.height = rect.height - barH;
   }
 
+  private loadSpriteSheet(name: 'gaby' | 'wylli' | 'nolan', src: string) {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => {
+      this.spritesLoaded[name] = true;
+      if (name === 'gaby') this.spriteGaby = img;
+      if (name === 'wylli') this.spriteWylli = img;
+      if (name === 'nolan') this.spriteNolan = img;
+    };
+  }
+
   public open() {
     if (!this.container) this.init();
     if (!this.container) return;
@@ -162,7 +184,7 @@ export class VirtualWorldGame {
     this.isRunning = true;
 
     // Reset state
-    this.walkPhase = 'approaching';
+    this.walkPhase = 'farewell';
     this.waypointIndex = 0;
     this.isSitting = false;
     this.freeMode = false;
@@ -179,13 +201,19 @@ export class VirtualWorldGame {
     this.player.x = (VirtualWorldGame.ANCHORS.spawn.x / 100) * w;
     this.player.y = (VirtualWorldGame.ANCHORS.spawn.y / 100) * h;
     this.player.stepCycle = 0;
+    this.player.isWalking = false;
     this.player.facingLeft = false;
     this.companion.x = this.player.x + 20;
     this.companion.y = this.player.y + 2;
     this.companion.stepCycle = 0;
+    this.companion.isWalking = false;
     this.companion.bubbleTimer = 0;
     this.companion.bubbleText = 'Ven conmigo...';
     this.companion.facingLeft = false;
+
+    // Nolan farewell: show radio message
+    this.companion.bubbleText = '«Perímetro asegurado. Disfruten, Detective.»';
+    this.companion.bubbleTimer = 180; // 3 seconds at 60fps
 
     // Camera at spawn
     this.camera.x = this.player.x;
@@ -299,13 +327,13 @@ export class VirtualWorldGame {
     };
   }
 
-  // --- BLOOM QUEUE: 30 flowers around the bench ---
+  // --- BLOOM QUEUE: 40 flowers around the bench ---
   private buildBloomQueue() {
     this.bloomQueue = [];
 
-    // Phase 1: Ring around the bench (30 flowers)
-    for (let i = 0; i < 30; i++) {
-      const angle = (i / 30) * Math.PI * 2;
+    // Ring around the bench (40 flowers, 110ms each)
+    for (let i = 0; i < 40; i++) {
+      const angle = (i / 40) * Math.PI * 2;
       const rx = 8 + Math.random() * 10;
       const ry = 5 + Math.random() * 6;
       const x = VirtualWorldGame.ANCHORS.bench.x + Math.cos(angle) * rx;
@@ -431,7 +459,16 @@ export class VirtualWorldGame {
     const h = this.canvas?.height || 900;
 
     // 1. Walk system — waypoint-based approach
-    if (this.walkPhase === 'approaching') {
+    if (this.walkPhase === 'farewell') {
+      // Wait for Nolan farewell bubble to expire
+      if (this.companion.bubbleTimer <= 0) {
+        this.walkPhase = 'approaching';
+        this.companion.bubbleText = 'Ven conmigo...';
+        this.companion.bubbleTimer = 120;
+        this.player.isWalking = true;
+        this.companion.isWalking = true;
+      }
+    } else if (this.walkPhase === 'approaching') {
       const wp = VirtualWorldGame.WAYPOINTS[this.waypointIndex];
       if (!wp) {
         this.walkPhase = 'sitting';
@@ -581,7 +618,7 @@ export class VirtualWorldGame {
     setTimeout(() => this.startBloomSequence(), 1500);
   }
 
-  // --- BLOOM SEQUENCE: 90ms per flower ---
+  // --- BLOOM SEQUENCE: 110ms per flower ---
   private startBloomSequence() {
     this.bloomIndex = 0;
     this.bloomInterval = window.setInterval(() => {
@@ -599,7 +636,7 @@ export class VirtualWorldGame {
       const types: VirtualFlower['type'][] = ['sunflower', 'daisy', 'goldenRose', 'starBlossom'];
       this.spawnFlower(worldX, worldY, types[Math.floor(Math.random() * types.length)], 0.8 + Math.random() * 0.5);
       this.bloomIndex++;
-    }, 90);
+    }, 110);
   }
 
   // --- BLOOM COMPLETE: Show letter ---
@@ -699,16 +736,16 @@ export class VirtualWorldGame {
     ctx.save();
     ctx.translate(w / 2 - this.camera.x, h / 2 - this.camera.y);
 
-    // CAPA 1: Back flowers
+    // Back flowers (behind characters)
     const charY = (this.player.y + this.companion.y) / 2;
     for (const f of this.flowers) {
       if (f.y < charY) this.renderFlower(ctx, f);
     }
 
-    // CAPA 2: Couple
+    // Couple (with internal depth sorting between characters)
     this.renderCouple(ctx);
 
-    // CAPA 3: Front flowers
+    // Front flowers (in front of characters)
     for (const f of this.flowers) {
       if (f.y >= charY) this.renderFlower(ctx, f);
     }
@@ -757,6 +794,105 @@ export class VirtualWorldGame {
     }
   }
 
+  // --- SPRITE FRAME EXTRACTION ---
+  // Sprite sheets: 2048x2048, 16x16 grid, 128x128 per frame
+  private static readonly SPRITE_FRAME = 128;
+
+  private drawSpriteFrame(
+    ctx: CanvasRenderingContext2D,
+    sheet: HTMLImageElement,
+    row: number,
+    col: number,
+    destX: number,
+    destY: number,
+    scale: number = 2.5,
+    flipX: boolean = false
+  ) {
+    const F = VirtualWorldGame.SPRITE_FRAME;
+    const srcX = col * F;
+    const srcY = row * F;
+    const size = F * scale;
+
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    if (flipX) {
+      ctx.translate(destX + size / 2, destY);
+      ctx.scale(-1, 1);
+      ctx.drawImage(sheet, srcX, srcY, F, F, -size / 2, -size, size, size);
+    } else {
+      ctx.drawImage(sheet, srcX, srcY, F, F, destX - size / 2, destY - size, size, size);
+    }
+    ctx.restore();
+  }
+    ctx.restore();
+  }
+
+  // --- WALK FRAME MAPPING ---
+  // gaby.jpeg rows: 0=IDLE, 1=WALKING, 2=SITTING, 3=INVESTIGATING
+  // willy.jpeg rows: 0=IDLE+WALK, 1=WALKING+OFFERING, 2=???, 3=SITTING+INVESTIGATING
+  private getWalkFrame(isGaby: boolean, facingLeft: boolean, frameIndex: number): { row: number; col: number } {
+    const fi = frameIndex % 4;
+    if (isGaby) {
+      // gaby.jpeg: walking row = 1
+      if (facingLeft) return { row: 1, col: 2 + fi };  // cols 2-5: walk left
+      return { row: 1, col: 6 + fi };                   // cols 6-9: walk right
+    } else {
+      // willy.jpeg: idle row has walking left/right
+      if (facingLeft) return { row: 0, col: 3 + fi };  // cols 3-6: walk left
+      return { row: 0, col: 7 + fi };                   // cols 7-10: walk right
+    }
+  }
+
+  private getIdleFrame(isGaby: boolean, facingLeft: boolean): { row: number; col: number } {
+    if (isGaby) {
+      return facingLeft ? { row: 0, col: 1 } : { row: 0, col: 0 };
+    } else {
+      return facingLeft ? { row: 0, col: 1 } : { row: 0, col: 0 };
+    }
+  }
+
+  // --- BENCH RENDERING ---
+  private renderBench(ctx: CanvasRenderingContext2D, sc: number) {
+    const bx = this.companion.x - 25;
+    const by = this.companion.y + 8;
+
+    // Seat planks
+    ctx.fillStyle = '#8B6914';
+    ctx.fillRect(bx, by, 50 * sc, 3 * sc);
+    ctx.fillStyle = '#9B7424';
+    ctx.fillRect(bx, by + 5 * sc, 50 * sc, 3 * sc);
+
+    // Plank texture lines
+    ctx.strokeStyle = '#6B4F12';
+    ctx.lineWidth = 0.6;
+    for (let i = 1; i < 5; i++) {
+      ctx.beginPath();
+      ctx.moveTo(bx + i * 10 * sc, by);
+      ctx.lineTo(bx + i * 10 * sc, by + 8 * sc);
+      ctx.stroke();
+    }
+
+    // Backrest
+    ctx.fillStyle = '#7A5C12';
+    ctx.fillRect(bx + 2 * sc, by - 12 * sc, 46 * sc, 3 * sc);
+    ctx.fillStyle = '#8B6914';
+    ctx.fillRect(bx + 2 * sc, by - 7 * sc, 46 * sc, 3 * sc);
+
+    // Legs
+    ctx.fillStyle = '#5C4033';
+    ctx.fillRect(bx + 2 * sc, by + 8 * sc, 3 * sc, 10 * sc);
+    ctx.fillRect(bx + 45 * sc, by + 8 * sc, 3 * sc, 10 * sc);
+  }
+
+  // --- COLLISION RADIUS ---
+  private readonly COLLISION_RADIUS = 10;
+
+  private isTooCloseToCharacters(x: number, y: number): boolean {
+    const pDist = Math.hypot(x - this.player.x, y - this.player.y);
+    const cDist = Math.hypot(x - this.companion.x, y - this.companion.y);
+    return pDist < this.COLLISION_RADIUS || cDist < this.COLLISION_RADIUS;
+  }
+
   // --- COUPLE RENDERING ---
   private renderCouple(ctx: CanvasRenderingContext2D) {
     const sc = 2.5;
@@ -766,139 +902,38 @@ export class VirtualWorldGame {
       return;
     }
 
-    // --- Standing / Walking ---
-    const stepP = Math.sin(this.player.stepCycle) * 3;
-    const stepC = Math.sin(this.companion.stepCycle) * 3;
+    // --- Depth sort: draw character with lower Y first (behind) ---
+    const chars = [
+      { isPlayer: true, x: this.player.x, y: this.player.y },
+      { isPlayer: false, x: this.companion.x, y: this.companion.y },
+    ].sort((a, b) => a.y - b.y);
 
-    // === WYLLI (companion) ===
-    ctx.save();
-    ctx.translate(this.companion.x, this.companion.y);
-    ctx.fillStyle = 'rgba(10, 6, 16, 0.35)';
-    ctx.beginPath();
-    ctx.ellipse(0, 2, 18, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-    if (this.companion.facingLeft) ctx.scale(-1, 1);
+    for (const c of chars) {
+      const char = c.isPlayer ? this.player : this.companion;
+      const sheet = c.isPlayer ? this.spriteGaby : this.spriteWylli;
+      const loaded = c.isPlayer ? this.spritesLoaded.gaby : this.spritesLoaded.wylli;
 
-    // Legs
-    ctx.fillStyle = '#1b2838';
-    ctx.fillRect(-6 * sc, -15 * sc + stepC, 5 * sc, 15 * sc - stepC);
-    ctx.fillRect(1 * sc, -15 * sc - stepC, 5 * sc, 15 * sc + stepC);
-    // Shirt
-    ctx.fillStyle = '#f8f9fa';
-    ctx.fillRect(-9 * sc, -28 * sc, 18 * sc, 14 * sc);
-    // Headphones
-    ctx.fillStyle = '#111111';
-    ctx.fillRect(-10 * sc, -29 * sc, 3 * sc, 5 * sc);
-    ctx.fillRect(7 * sc, -29 * sc, 3 * sc, 5 * sc);
-    // Head
-    ctx.fillStyle = '#fcdbcf';
-    ctx.fillRect(-5 * sc, -38 * sc, 10 * sc, 10 * sc);
-    // Smile
-    ctx.strokeStyle = '#c9846a';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.arc(0, -33 * sc, 3 * sc, 0.1, Math.PI - 0.1);
-    ctx.stroke();
-    // Eyes
-    ctx.fillStyle = '#2c1810';
-    ctx.fillRect(-3 * sc, -36 * sc, 2 * sc, 2 * sc);
-    ctx.fillRect(2 * sc, -36 * sc, 2 * sc, 2 * sc);
-    // Shark cap
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(-7 * sc, -42 * sc, 14 * sc, 5 * sc);
-    ctx.fillRect(3 * sc, -40 * sc, 5 * sc, 2 * sc);
-    ctx.fillStyle = '#385a7c';
-    ctx.fillRect(-2 * sc, -41 * sc, 4 * sc, 2 * sc);
-    // Bouquet
-    const bX = 10 * sc, bY = -20 * sc;
-    ctx.fillStyle = '#52b788';
-    ctx.fillRect(bX - 1, bY, 2, 14);
-    const pCols = ['#f5c538', '#ffd166', '#ffe066'];
-    for (let i = 0; i < 5; i++) {
-      const a = (i / 5) * Math.PI * 2 + Math.sin(performance.now() * 0.001) * 0.1;
-      ctx.fillStyle = pCols[i % 3];
+      // Shadow
+      ctx.fillStyle = 'rgba(10, 6, 16, 0.35)';
       ctx.beginPath();
-      ctx.ellipse(bX + Math.cos(a) * 5, bY - 4 + Math.sin(a) * 4, 3, 5, a, 0, Math.PI * 2);
+      ctx.ellipse(c.x, c.y + 2, 18, 6, 0, 0, Math.PI * 2);
       ctx.fill();
-    }
-    ctx.fillStyle = '#ffb703';
-    ctx.beginPath();
-    ctx.arc(bX, bY - 4, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
 
-    // === GABY (player) ===
-    ctx.save();
-    ctx.translate(this.player.x, this.player.y);
-    ctx.fillStyle = 'rgba(10, 6, 16, 0.35)';
-    ctx.beginPath();
-    ctx.ellipse(0, 2, 18, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-    if (this.player.facingLeft) ctx.scale(-1, 1);
-
-    // Legs
-    ctx.fillStyle = '#1e1e1e';
-    ctx.fillRect(-6 * sc, -15 * sc + stepP, 5 * sc, 15 * sc - stepP);
-    ctx.fillRect(1 * sc, -15 * sc - stepP, 5 * sc, 15 * sc + stepP);
-    // Sweater
-    ctx.fillStyle = '#f4ccd5';
-    ctx.fillRect(-9 * sc, -28 * sc, 18 * sc, 14 * sc);
-    // Dog outline on sweater
-    ctx.strokeStyle = '#4a90e2';
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(-3 * sc, -22 * sc);
-    ctx.lineTo(-1 * sc, -20 * sc);
-    ctx.lineTo(1 * sc, -22 * sc);
-    ctx.stroke();
-    // Head
-    ctx.fillStyle = '#fcdbcf';
-    ctx.fillRect(-5 * sc, -38 * sc, 10 * sc, 10 * sc);
-    // Smile
-    ctx.strokeStyle = '#c9846a';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.arc(0, -33 * sc, 3 * sc, 0.1, Math.PI - 0.1);
-    ctx.stroke();
-    // Eyes
-    ctx.fillStyle = '#2c1810';
-    ctx.fillRect(-3 * sc, -36 * sc, 2 * sc, 2 * sc);
-    ctx.fillRect(2 * sc, -36 * sc, 2 * sc, 2 * sc);
-    // Hair
-    ctx.fillStyle = '#442a1b';
-    ctx.beginPath();
-    ctx.arc(0, -36 * sc, 7.5 * sc, Math.PI, 0);
-    ctx.fill();
-    ctx.fillRect(-7 * sc, -36 * sc, 3 * sc, 10 * sc);
-    ctx.fillRect(4 * sc, -36 * sc, 3 * sc, 10 * sc);
-    ctx.beginPath();
-    ctx.moveTo(-7 * sc, -26 * sc);
-    ctx.quadraticCurveTo(-9 * sc, -22 * sc, -7 * sc, -18 * sc);
-    ctx.quadraticCurveTo(-5 * sc, -22 * sc, -4 * sc, -26 * sc);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(4 * sc, -26 * sc);
-    ctx.quadraticCurveTo(5 * sc, -22 * sc, 7 * sc, -18 * sc);
-    ctx.quadraticCurveTo(9 * sc, -22 * sc, 7 * sc, -26 * sc);
-    ctx.fill();
-    // Cup
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(-3 * sc, -24 * sc, 6 * sc, 5 * sc);
-    ctx.fillStyle = '#ffd166';
-    ctx.fillRect(-1 * sc, -25 * sc, 2 * sc, 1 * sc);
-    // Steam
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.lineWidth = 1;
-    const steamTime = performance.now() * 0.002;
-    for (let i = 0; i < 3; i++) {
-      const sx = (-1 + i) * sc;
-      const sy = -27 * sc - Math.sin(steamTime + i) * 3;
-      ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.quadraticCurveTo(sx + Math.sin(steamTime + i * 2) * 2, sy - 4, sx, sy - 7);
-      ctx.stroke();
+      if (loaded && sheet) {
+        // Sprite sheet rendering — idle vs walk
+        let frame: { row: number; col: number };
+        if (char.isWalking) {
+          const walkFrame = Math.floor(char.stepCycle) % 4;
+          frame = this.getWalkFrame(c.isPlayer, char.facingLeft, walkFrame);
+        } else {
+          frame = this.getIdleFrame(c.isPlayer, char.facingLeft);
+        }
+        this.drawSpriteFrame(ctx, sheet, frame.row, frame.col, c.x, c.y, sc, char.facingLeft);
+      } else {
+        // Fallback: shape-based rendering
+        this.renderCharacterShapes(ctx, c.isPlayer, char, sc);
+      }
     }
-    ctx.restore();
 
     // Heart between them
     const dist = Math.hypot(this.player.x - this.companion.x, this.player.y - this.companion.y);
@@ -921,163 +956,152 @@ export class VirtualWorldGame {
     }
   }
 
+  // --- FALLBACK: Shape-based character rendering (when sprites not loaded) ---
+  private renderCharacterShapes(ctx: CanvasRenderingContext2D, isPlayer: boolean, char: any, sc: number) {
+    const step = Math.sin(char.stepCycle) * 3;
+    const x = char.x;
+    const y = char.y;
+
+    ctx.save();
+    ctx.translate(x, y);
+    if (char.facingLeft) ctx.scale(-1, 1);
+
+    if (isPlayer) {
+      // GABY shape fallback
+      ctx.fillStyle = '#1e1e1e';
+      ctx.fillRect(-6 * sc, -15 * sc + step, 5 * sc, 15 * sc - step);
+      ctx.fillRect(1 * sc, -15 * sc - step, 5 * sc, 15 * sc + step);
+      ctx.fillStyle = '#f4ccd5';
+      ctx.fillRect(-9 * sc, -28 * sc, 18 * sc, 14 * sc);
+      ctx.strokeStyle = '#4a90e2';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(-3 * sc, -22 * sc);
+      ctx.lineTo(-1 * sc, -20 * sc);
+      ctx.lineTo(1 * sc, -22 * sc);
+      ctx.stroke();
+      ctx.fillStyle = '#fcdbcf';
+      ctx.fillRect(-5 * sc, -38 * sc, 10 * sc, 10 * sc);
+      ctx.strokeStyle = '#c9846a';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(0, -33 * sc, 3 * sc, 0.1, Math.PI - 0.1);
+      ctx.stroke();
+      ctx.fillStyle = '#2c1810';
+      ctx.fillRect(-3 * sc, -36 * sc, 2 * sc, 2 * sc);
+      ctx.fillRect(2 * sc, -36 * sc, 2 * sc, 2 * sc);
+      ctx.fillStyle = '#442a1b';
+      ctx.beginPath();
+      ctx.arc(0, -36 * sc, 7.5 * sc, Math.PI, 0);
+      ctx.fill();
+      ctx.fillRect(-7 * sc, -36 * sc, 3 * sc, 10 * sc);
+      ctx.fillRect(4 * sc, -36 * sc, 3 * sc, 10 * sc);
+      ctx.beginPath();
+      ctx.moveTo(-7 * sc, -26 * sc);
+      ctx.quadraticCurveTo(-9 * sc, -22 * sc, -7 * sc, -18 * sc);
+      ctx.quadraticCurveTo(-5 * sc, -22 * sc, -4 * sc, -26 * sc);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(4 * sc, -26 * sc);
+      ctx.quadraticCurveTo(5 * sc, -22 * sc, 7 * sc, -18 * sc);
+      ctx.quadraticCurveTo(9 * sc, -22 * sc, 7 * sc, -26 * sc);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-3 * sc, -24 * sc, 6 * sc, 5 * sc);
+      ctx.fillStyle = '#ffd166';
+      ctx.fillRect(-1 * sc, -25 * sc, 2 * sc, 1 * sc);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 1;
+      const steamTime = performance.now() * 0.002;
+      for (let i = 0; i < 3; i++) {
+        const sx = (-1 + i) * sc;
+        const sy = -27 * sc - Math.sin(steamTime + i) * 3;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.quadraticCurveTo(sx + Math.sin(steamTime + i * 2) * 2, sy - 4, sx, sy - 7);
+        ctx.stroke();
+      }
+    } else {
+      // WYLLI shape fallback
+      ctx.fillStyle = '#1b2838';
+      ctx.fillRect(-6 * sc, -15 * sc + step, 5 * sc, 15 * sc - step);
+      ctx.fillRect(1 * sc, -15 * sc - step, 5 * sc, 15 * sc + step);
+      ctx.fillStyle = '#f8f9fa';
+      ctx.fillRect(-9 * sc, -28 * sc, 18 * sc, 14 * sc);
+      ctx.fillStyle = '#111111';
+      ctx.fillRect(-10 * sc, -29 * sc, 3 * sc, 5 * sc);
+      ctx.fillRect(7 * sc, -29 * sc, 3 * sc, 5 * sc);
+      ctx.fillStyle = '#fcdbcf';
+      ctx.fillRect(-5 * sc, -38 * sc, 10 * sc, 10 * sc);
+      ctx.strokeStyle = '#c9846a';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(0, -33 * sc, 3 * sc, 0.1, Math.PI - 0.1);
+      ctx.stroke();
+      ctx.fillStyle = '#2c1810';
+      ctx.fillRect(-3 * sc, -36 * sc, 2 * sc, 2 * sc);
+      ctx.fillRect(2 * sc, -36 * sc, 2 * sc, 2 * sc);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-7 * sc, -42 * sc, 14 * sc, 5 * sc);
+      ctx.fillRect(3 * sc, -40 * sc, 5 * sc, 2 * sc);
+      ctx.fillStyle = '#385a7c';
+      ctx.fillRect(-2 * sc, -41 * sc, 4 * sc, 2 * sc);
+      const bX = 10 * sc, bY = -20 * sc;
+      ctx.fillStyle = '#52b788';
+      ctx.fillRect(bX - 1, bY, 2, 14);
+      const pCols = ['#f5c538', '#ffd166', '#ffe066'];
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2 + Math.sin(performance.now() * 0.001) * 0.1;
+        ctx.fillStyle = pCols[i % 3];
+        ctx.beginPath();
+        ctx.ellipse(bX + Math.cos(a) * 5, bY - 4 + Math.sin(a) * 4, 3, 5, a, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = '#ffb703';
+      ctx.beginPath();
+      ctx.arc(bX, bY - 4, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
   // --- SITTING COUPLE AT BENCH ---
   private renderSittingCouple(ctx: CanvasRenderingContext2D, sc: number) {
     const time = performance.now() * 0.001;
 
-    // === WYLLI (left side of bench) ===
-    ctx.save();
-    ctx.translate(this.companion.x, this.companion.y);
+    // Draw bench first (behind characters)
+    this.renderBench(ctx, sc);
 
-    // Shadow under bench
-    ctx.fillStyle = 'rgba(10, 6, 16, 0.25)';
-    ctx.beginPath();
-    ctx.ellipse(0, 8, 22, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
+    // Depth sort sitting characters
+    const chars = [
+      { isPlayer: true, x: this.player.x, y: this.player.y },
+      { isPlayer: false, x: this.companion.x, y: this.companion.y },
+    ].sort((a, b) => a.y - b.y);
 
-    // Legs extended on bench
-    ctx.fillStyle = '#1b2838';
-    ctx.fillRect(-8 * sc, -2 * sc, 7 * sc, 4 * sc);
-    ctx.fillRect(1 * sc, -2 * sc, 7 * sc, 4 * sc);
+    for (const c of chars) {
+      const sheet = c.isPlayer ? this.spriteGaby : this.spriteWylli;
+      const loaded = c.isPlayer ? this.spritesLoaded.gaby : this.spritesLoaded.wylli;
 
-    // Torso
-    ctx.fillStyle = '#f8f9fa';
-    ctx.fillRect(-7 * sc, -16 * sc, 14 * sc, 14 * sc);
-
-    // Headphones
-    ctx.fillStyle = '#111111';
-    ctx.fillRect(-8 * sc, -17 * sc, 3 * sc, 4 * sc);
-    ctx.fillRect(5 * sc, -17 * sc, 3 * sc, 4 * sc);
-
-    // Head (tilted slightly toward Gaby)
-    ctx.fillStyle = '#fcdbcf';
-    ctx.fillRect(-4 * sc, -26 * sc, 8 * sc, 9 * sc);
-
-    // Smile
-    ctx.strokeStyle = '#c9846a';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.arc(1 * sc, -21 * sc, 2.5 * sc, 0.1, Math.PI - 0.1);
-    ctx.stroke();
-
-    // Eyes (looking at Gaby)
-    ctx.fillStyle = '#2c1810';
-    ctx.fillRect(-1 * sc, -24 * sc, 2 * sc, 2 * sc);
-    ctx.fillRect(4 * sc, -24 * sc, 2 * sc, 2 * sc);
-
-    // Shark cap (slightly tilted)
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(-5 * sc, -30 * sc, 12 * sc, 4 * sc);
-    ctx.fillRect(3 * sc, -28 * sc, 4 * sc, 2 * sc);
-    ctx.fillStyle = '#385a7c';
-    ctx.fillRect(-1 * sc, -29 * sc, 4 * sc, 2 * sc);
-
-    // Right arm extended holding envelope
-    ctx.fillStyle = '#fcdbcf';
-    ctx.fillRect(7 * sc, -12 * sc, 10 * sc, 3 * sc);
-    // Envelope
-    ctx.fillStyle = '#f5e6d0';
-    ctx.fillRect(14 * sc, -14 * sc, 8 * sc, 6 * sc);
-    ctx.strokeStyle = '#c9a882';
-    ctx.lineWidth = 0.5;
-    ctx.strokeRect(14 * sc, -14 * sc, 8 * sc, 6 * sc);
-    // Wax seal on envelope
-    ctx.fillStyle = '#c0392b';
-    ctx.beginPath();
-    ctx.arc(18 * sc, -11 * sc, 2 * sc, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
-
-    // === GABY (right side of bench) ===
-    ctx.save();
-    ctx.translate(this.player.x, this.player.y);
-
-    // Shadow
-    ctx.fillStyle = 'rgba(10, 6, 16, 0.25)';
-    ctx.beginPath();
-    ctx.ellipse(0, 8, 22, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Legs
-    ctx.fillStyle = '#1e1e1e';
-    ctx.fillRect(-8 * sc, -2 * sc, 7 * sc, 4 * sc);
-    ctx.fillRect(1 * sc, -2 * sc, 7 * sc, 4 * sc);
-
-    // Pink sweater
-    ctx.fillStyle = '#f4ccd5';
-    ctx.fillRect(-7 * sc, -16 * sc, 14 * sc, 14 * sc);
-
-    // Dog outline on sweater
-    ctx.strokeStyle = '#4a90e2';
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(-2 * sc, -10 * sc);
-    ctx.lineTo(0, -8 * sc);
-    ctx.lineTo(2 * sc, -10 * sc);
-    ctx.stroke();
-
-    // Head (facing Wylli)
-    ctx.fillStyle = '#fcdbcf';
-    ctx.fillRect(-4 * sc, -26 * sc, 8 * sc, 9 * sc);
-
-    // Smile
-    ctx.strokeStyle = '#c9846a';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.arc(-1 * sc, -21 * sc, 2.5 * sc, 0.1, Math.PI - 0.1);
-    ctx.stroke();
-
-    // Eyes (looking at Wylli)
-    ctx.fillStyle = '#2c1810';
-    ctx.fillRect(-3 * sc, -24 * sc, 2 * sc, 2 * sc);
-    ctx.fillRect(2 * sc, -24 * sc, 2 * sc, 2 * sc);
-
-    // Blush
-    ctx.fillStyle = 'rgba(255, 150, 150, 0.3)';
-    ctx.beginPath();
-    ctx.arc(-3 * sc, -21 * sc, 2 * sc, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(3 * sc, -21 * sc, 2 * sc, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Wavy hair
-    ctx.fillStyle = '#442a1b';
-    ctx.beginPath();
-    ctx.arc(0, -24 * sc, 6 * sc, Math.PI, 0);
-    ctx.fill();
-    ctx.fillRect(-6 * sc, -24 * sc, 2.5 * sc, 8 * sc);
-    ctx.fillRect(3.5 * sc, -24 * sc, 2.5 * sc, 8 * sc);
-    ctx.beginPath();
-    ctx.moveTo(-6 * sc, -16 * sc);
-    ctx.quadraticCurveTo(-7 * sc, -13 * sc, -5.5 * sc, -10 * sc);
-    ctx.quadraticCurveTo(-4 * sc, -13 * sc, -3.5 * sc, -16 * sc);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(3.5 * sc, -16 * sc);
-    ctx.quadraticCurveTo(4 * sc, -13 * sc, 5.5 * sc, -10 * sc);
-    ctx.quadraticCurveTo(7 * sc, -13 * sc, 6 * sc, -16 * sc);
-    ctx.fill();
-
-    // Cup in hand
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(-10 * sc, -10 * sc, 5 * sc, 4 * sc);
-    ctx.fillStyle = '#ffd166';
-    ctx.fillRect(-9 * sc, -11 * sc, 3 * sc, 1 * sc);
-    // Steam
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 3; i++) {
-      const sx = (-9 + i) * sc;
-      const sy = -13 * sc - Math.sin(time + i) * 3;
+      // Shadow
+      ctx.fillStyle = 'rgba(10, 6, 16, 0.25)';
       ctx.beginPath();
-      ctx.moveTo(sx, sy);
-      ctx.quadraticCurveTo(sx + Math.sin(time + i * 2) * 2, sy - 4, sx, sy - 7);
-      ctx.stroke();
-    }
+      ctx.ellipse(c.x, c.y + 8, 22, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
 
-    ctx.restore();
+      if (loaded && sheet) {
+        if (c.isPlayer) {
+          // Gaby sitting: gaby.jpeg row 2, col 4 (sitting reading), facing left toward Wylli
+          this.drawSpriteFrame(ctx, sheet, 2, 4, c.x, c.y, sc, true);
+        } else {
+          // Wylli sitting: willy.jpeg row 1, col 3 (sitting offering envelope)
+          this.drawSpriteFrame(ctx, sheet, 1, 3, c.x, c.y, sc, false);
+        }
+      } else {
+        // Fallback: shape-based sitting
+        this.renderSittingShape(ctx, c.isPlayer, c.x, c.y, sc, time);
+      }
+    }
 
     // Floating heart
     const midX = (this.player.x + this.companion.x) / 2;
@@ -1095,6 +1119,113 @@ export class VirtualWorldGame {
     if (this.companion.bubbleTimer > 0) {
       this.drawSpeechBubble(ctx, this.companion.bubbleText, this.companion.x, this.companion.y - 80);
     }
+  }
+
+  // --- FALLBACK: Shape-based sitting rendering ---
+  private renderSittingShape(ctx: CanvasRenderingContext2D, isPlayer: boolean, x: number, y: number, sc: number, time: number) {
+    ctx.save();
+    ctx.translate(x, y);
+
+    if (!isPlayer) {
+      // WYLLI sitting shape fallback
+      ctx.fillStyle = '#1b2838';
+      ctx.fillRect(-8 * sc, -2 * sc, 7 * sc, 4 * sc);
+      ctx.fillRect(1 * sc, -2 * sc, 7 * sc, 4 * sc);
+      ctx.fillStyle = '#f8f9fa';
+      ctx.fillRect(-7 * sc, -16 * sc, 14 * sc, 14 * sc);
+      ctx.fillStyle = '#111111';
+      ctx.fillRect(-8 * sc, -17 * sc, 3 * sc, 4 * sc);
+      ctx.fillRect(5 * sc, -17 * sc, 3 * sc, 4 * sc);
+      ctx.fillStyle = '#fcdbcf';
+      ctx.fillRect(-4 * sc, -26 * sc, 8 * sc, 9 * sc);
+      ctx.strokeStyle = '#c9846a';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(1 * sc, -21 * sc, 2.5 * sc, 0.1, Math.PI - 0.1);
+      ctx.stroke();
+      ctx.fillStyle = '#2c1810';
+      ctx.fillRect(-1 * sc, -24 * sc, 2 * sc, 2 * sc);
+      ctx.fillRect(4 * sc, -24 * sc, 2 * sc, 2 * sc);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-5 * sc, -30 * sc, 12 * sc, 4 * sc);
+      ctx.fillRect(3 * sc, -28 * sc, 4 * sc, 2 * sc);
+      ctx.fillStyle = '#385a7c';
+      ctx.fillRect(-1 * sc, -29 * sc, 4 * sc, 2 * sc);
+      ctx.fillStyle = '#fcdbcf';
+      ctx.fillRect(7 * sc, -12 * sc, 10 * sc, 3 * sc);
+      ctx.fillStyle = '#f5e6d0';
+      ctx.fillRect(14 * sc, -14 * sc, 8 * sc, 6 * sc);
+      ctx.strokeStyle = '#c9a882';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(14 * sc, -14 * sc, 8 * sc, 6 * sc);
+      ctx.fillStyle = '#c0392b';
+      ctx.beginPath();
+      ctx.arc(18 * sc, -11 * sc, 2 * sc, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // GABY sitting shape fallback
+      ctx.fillStyle = '#1e1e1e';
+      ctx.fillRect(-8 * sc, -2 * sc, 7 * sc, 4 * sc);
+      ctx.fillRect(1 * sc, -2 * sc, 7 * sc, 4 * sc);
+      ctx.fillStyle = '#f4ccd5';
+      ctx.fillRect(-7 * sc, -16 * sc, 14 * sc, 14 * sc);
+      ctx.strokeStyle = '#4a90e2';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(-2 * sc, -10 * sc);
+      ctx.lineTo(0, -8 * sc);
+      ctx.lineTo(2 * sc, -10 * sc);
+      ctx.stroke();
+      ctx.fillStyle = '#fcdbcf';
+      ctx.fillRect(-4 * sc, -26 * sc, 8 * sc, 9 * sc);
+      ctx.strokeStyle = '#c9846a';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(-1 * sc, -21 * sc, 2.5 * sc, 0.1, Math.PI - 0.1);
+      ctx.stroke();
+      ctx.fillStyle = '#2c1810';
+      ctx.fillRect(-3 * sc, -24 * sc, 2 * sc, 2 * sc);
+      ctx.fillRect(2 * sc, -24 * sc, 2 * sc, 2 * sc);
+      ctx.fillStyle = 'rgba(255, 150, 150, 0.3)';
+      ctx.beginPath();
+      ctx.arc(-3 * sc, -21 * sc, 2 * sc, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(3 * sc, -21 * sc, 2 * sc, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#442a1b';
+      ctx.beginPath();
+      ctx.arc(0, -24 * sc, 6 * sc, Math.PI, 0);
+      ctx.fill();
+      ctx.fillRect(-6 * sc, -24 * sc, 2.5 * sc, 8 * sc);
+      ctx.fillRect(3.5 * sc, -24 * sc, 2.5 * sc, 8 * sc);
+      ctx.beginPath();
+      ctx.moveTo(-6 * sc, -16 * sc);
+      ctx.quadraticCurveTo(-7 * sc, -13 * sc, -5.5 * sc, -10 * sc);
+      ctx.quadraticCurveTo(-4 * sc, -13 * sc, -3.5 * sc, -16 * sc);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(3.5 * sc, -16 * sc);
+      ctx.quadraticCurveTo(4 * sc, -13 * sc, 5.5 * sc, -10 * sc);
+      ctx.quadraticCurveTo(7 * sc, -13 * sc, 6 * sc, -16 * sc);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-10 * sc, -10 * sc, 5 * sc, 4 * sc);
+      ctx.fillStyle = '#ffd166';
+      ctx.fillRect(-9 * sc, -11 * sc, 3 * sc, 1 * sc);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 3; i++) {
+        const sx = (-9 + i) * sc;
+        const sy = -13 * sc - Math.sin(time + i) * 3;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.quadraticCurveTo(sx + Math.sin(time + i * 2) * 2, sy - 4, sx, sy - 7);
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
   }
 
   // --- SPEECH BUBBLE ---
