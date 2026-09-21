@@ -40,31 +40,37 @@ export class VirtualWorldGame {
   private isRunning: boolean = false;
   private animId: number | null = null;
 
-  // Characters — positioned center-left, walk to center-right
+  // Background image
+  private bgImage: HTMLImageElement | null = null;
+  private bgLoaded = false;
+
+  // Characters
   public player = {
-    x: -120,
-    y: 30,
-    speed: 1.8,
+    x: 0,
+    y: 0,
+    speed: 1.2,
     isWalking: true,
     facingLeft: false,
     stepCycle: 0,
   };
 
   public companion = {
-    x: -120,
-    y: 34,
-    speed: 1.8,
+    x: 0,
+    y: 0,
+    speed: 1.2,
     isWalking: true,
     facingLeft: false,
     stepCycle: 0,
-    bubbleText: '«Gracias por traerme de vuelta, Gaby... Feliz 21 de Septiembre. Este jardín es todo tuyo ❤️»',
+    bubbleText: 'Ven conmigo...',
     bubbleTimer: 0,
-    bubbleDelay: 180,
+    bubbleDelay: 60,
   };
 
-  // Walk animation
-  private walkProgress = 0;
-  private walkDone = false;
+  // Walk system — waypoint-based
+  private walkPhase: 'approaching' | 'sitting' | 'done' = 'approaching';
+  private waypointIndex = 0;
+  private isSitting = false;
+  private freeMode = false;
 
   // Camera
   private camera = { x: 0, y: 0 };
@@ -76,56 +82,75 @@ export class VirtualWorldGame {
   private flowers: VirtualFlower[] = [];
   private particles: VirtualParticle[] = [];
 
-  // Bloom queue for sequential spawning
+  // Bloom queue
   private bloomQueue: BloomEntry[] = [];
-  private bloomTimer = 0;
   private bloomIndex = 0;
-  private bloomStarted = false;
+  private bloomInterval: ReturnType<typeof setInterval> | null = null;
 
-  // Floating petals
+  // Floating petals (cherry blossom pink)
   private floatingPetals: { x: number; y: number; vx: number; vy: number; size: number; alpha: number; rot: number; rotSpeed: number }[] = [];
-
-  // Stars for sky
-  private stars: { x: number; y: number; size: number; phase: number }[] = [];
 
   // Dialogue
   private dialogueAlpha = 0;
   private dialogueStarted = false;
 
-  // Exclusion zone radius (pixels)
-  private readonly EXCLUSION_RADIUS = 80;
-
-  // Flower count for display
+  // Flower count
   public flowerCount = 0;
 
-  // DOM elements for UI
+  // DOM elements
   private dialogueEl: HTMLElement | null = null;
   private flowerCountEl: HTMLElement | null = null;
+
+  // Anchor points (percentage of canvas)
+  private static ANCHORS = {
+    spawn: { x: 92, y: 62 },
+    wp1: { x: 82, y: 55 },
+    wp2: { x: 60, y: 54 },
+    wp3: { x: 38, y: 56 },
+    bench: { x: 35, y: 54 },
+    pond: { x1: 12, y1: 68, x2: 42, y2: 90 },
+    cherry: { x: 28, y: 56 },
+    blanket: { x: 68, y: 65 },
+    grandMantle: { x1: 45, y1: 25, x2: 95, y2: 48 },
+  };
+
+  // Waypoints for path walking (in order)
+  private static WAYPOINTS = [
+    VirtualWorldGame.ANCHORS.spawn,
+    VirtualWorldGame.ANCHORS.wp1,
+    VirtualWorldGame.ANCHORS.wp2,
+    VirtualWorldGame.ANCHORS.wp3,
+    VirtualWorldGame.ANCHORS.bench,
+  ];
 
   constructor() {}
 
   public init() {
-    this.container = document.getElementById('virtualWorldModal');
     this.canvas = document.getElementById('virtualWorldCanvas') as HTMLCanvasElement;
-    if (!this.canvas || !this.container) return;
+    this.ctx = this.canvas?.getContext('2d') || null;
+    this.container = document.getElementById('virtualWorldModal');
+    this.dialogueEl = document.getElementById('awakeningDialogue');
+    this.flowerCountEl = null; // No longer in DOM
 
-    this.ctx = this.canvas.getContext('2d');
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
 
-    this.dialogueEl = document.getElementById('vwDialogueText');
-    this.flowerCountEl = document.getElementById('vwFlowerCount');
+    // Load background image
+    this.bgImage = new Image();
+    this.bgImage.src = 'campo de flores.jpeg';
+    this.bgImage.onload = () => { this.bgLoaded = true; };
 
-    this.setupInputs();
-    this.generateStars();
     this.generateFloatingPetals();
+    this.setupInputs();
   }
 
   private resizeCanvas() {
     if (!this.canvas || !this.container) return;
     const rect = this.container.getBoundingClientRect();
-    this.canvas.width = rect.width || window.innerWidth;
-    this.canvas.height = rect.height || window.innerHeight;
+    const topBar = this.container.querySelector('.vw-top-bar') as HTMLElement;
+    const barH = topBar?.offsetHeight || 50;
+    this.canvas.width = rect.width;
+    this.canvas.height = rect.height - barH;
   }
 
   public open() {
@@ -137,34 +162,43 @@ export class VirtualWorldGame {
     this.isRunning = true;
 
     // Reset state
-    this.walkProgress = 0;
-    this.walkDone = false;
+    this.walkPhase = 'approaching';
+    this.waypointIndex = 0;
+    this.isSitting = false;
+    this.freeMode = false;
     this.dialogueAlpha = 0;
     this.dialogueStarted = false;
-    this.bloomStarted = false;
     this.bloomIndex = 0;
     this.flowers = [];
     this.particles = [];
     this.flowerCount = 0;
 
-    // Position characters center-left
-    this.player.x = -120;
-    this.player.y = 30;
+    // Position characters at spawn point (percentage -> pixels)
+    const w = this.canvas?.width || 1200;
+    const h = this.canvas?.height || 900;
+    this.player.x = (VirtualWorldGame.ANCHORS.spawn.x / 100) * w;
+    this.player.y = (VirtualWorldGame.ANCHORS.spawn.y / 100) * h;
     this.player.stepCycle = 0;
-    this.companion.x = -120;
-    this.companion.y = 34;
+    this.player.facingLeft = false;
+    this.companion.x = this.player.x + 20;
+    this.companion.y = this.player.y + 2;
     this.companion.stepCycle = 0;
     this.companion.bubbleTimer = 0;
-    this.companion.bubbleDelay = 180;
+    this.companion.bubbleText = 'Ven conmigo...';
+    this.companion.facingLeft = false;
 
-    this.camera.x = 0;
-    this.camera.y = 30;
+    // Camera at spawn
+    this.camera.x = this.player.x;
+    this.camera.y = this.player.y - 10;
 
     // Build bloom queue
     this.buildBloomQueue();
 
     // Update UI
     if (this.flowerCountEl) this.flowerCountEl.textContent = '0';
+
+    // Hide letter overlay
+    document.getElementById('vwLetterOverlay')?.classList.remove('active');
 
     // Play music
     audio.playVictoryWaltz();
@@ -179,54 +213,47 @@ export class VirtualWorldGame {
     this.container.classList.remove('active');
     this.isRunning = false;
     if (this.animId) cancelAnimationFrame(this.animId);
+    if (this.bloomInterval) { clearInterval(this.bloomInterval); this.bloomInterval = null; }
+    document.getElementById('vwLetterOverlay')?.classList.remove('active');
   }
 
   private setupInputs() {
+    // Keyboard
     window.addEventListener('keydown', (e) => {
-      if (!this.isRunning) return;
-      const k = e.key.toLowerCase();
-      this.keys[k] = true;
-
-      if (k === ' ') {
-        e.preventDefault();
-        this.spawnPlayerFlower();
-      }
+      this.keys[e.key.toLowerCase()] = true;
     });
-
     window.addEventListener('keyup', (e) => {
-      const k = e.key.toLowerCase();
-      this.keys[k] = false;
+      this.keys[e.key.toLowerCase()] = false;
     });
 
-    // Canvas click to plant flower
-    this.canvas?.addEventListener('pointerdown', (e) => {
-      if (!this.isRunning || !this.canvas) return;
+    // Canvas click — plant flower in free mode
+    this.canvas?.addEventListener('click', (e) => {
+      if (!this.freeMode || !this.canvas) return;
       const rect = this.canvas.getBoundingClientRect();
-      const clickScreenX = e.clientX - rect.left;
-      const clickScreenY = e.clientY - rect.top;
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      this.spawnFlowerAtClick(x, y);
+    });
 
-      const worldX = clickScreenX - this.canvas.width / 2 + this.camera.x;
-      const worldY = clickScreenY - this.canvas.height / 2 + this.camera.y;
-
-      this.spawnFlowerAtClick(worldX, worldY);
+    // Spacebar — burst in free mode
+    window.addEventListener('keydown', (e) => {
+      if (e.key === ' ' && this.freeMode) {
+        e.preventDefault();
+        this.plantBurstAroundPlayer();
+      }
     });
 
     // UI Buttons
     document.getElementById('btnVwClose')?.addEventListener('click', () => this.close());
 
-    document.getElementById('btnVwLetter')?.addEventListener('click', () => {
-      this.close();
-      const letterModal = document.getElementById('secretGardenLetterContainer');
-      const gardenModal = document.getElementById('secretGardenScenario');
-      if (gardenModal) gardenModal.classList.add('active');
-      if (letterModal) {
-        letterModal.style.display = 'block';
-        letterModal.scrollIntoView({ behavior: 'smooth' });
-      }
+    // Letter overlay button — stay in garden
+    document.getElementById('btnStayInGarden')?.addEventListener('click', () => {
+      this.hideLetterOverlay();
     });
 
-    document.getElementById('btnVwPlantMore')?.addEventListener('click', () => {
-      this.plantBurstAroundPlayer();
+    // Wax seal click inside letter overlay
+    document.getElementById('vwWaxSealBtn')?.addEventListener('click', () => {
+      this.openLetter();
     });
 
     // Touch D-Pad
@@ -252,23 +279,9 @@ export class VirtualWorldGame {
     });
   }
 
-  // --- STARS ---
-  private generateStars() {
-    this.stars = [];
-    for (let i = 0; i < 60; i++) {
-      this.stars.push({
-        x: Math.random(),
-        y: Math.random() * 0.35,
-        size: 0.5 + Math.random() * 1.5,
-        phase: Math.random() * Math.PI * 2,
-      });
-    }
-  }
-
-  // --- FLOATING PETALS ---
   private generateFloatingPetals() {
     this.floatingPetals = [];
-    for (let i = 0; i < 24; i++) {
+    for (let i = 0; i < 20; i++) {
       this.floatingPetals.push(this.createPetal());
     }
   }
@@ -277,8 +290,8 @@ export class VirtualWorldGame {
     return {
       x: Math.random() * 2000 - 500,
       y: Math.random() * 1200 - 200,
-      vx: -0.3 + Math.random() * 0.2,
-      vy: 0.2 + Math.random() * 0.4,
+      vx: -0.2 + Math.random() * 0.15,
+      vy: 0.15 + Math.random() * 0.35,
       size: 2 + Math.random() * 3,
       alpha: 0.3 + Math.random() * 0.5,
       rot: Math.random() * Math.PI * 2,
@@ -286,79 +299,52 @@ export class VirtualWorldGame {
     };
   }
 
-  // --- BLOOM QUEUE ---
+  // --- BLOOM QUEUE: 30 flowers around the bench ---
   private buildBloomQueue() {
     this.bloomQueue = [];
-    let delay = 60;
 
-    // Perimeter ring — flowers around the edges
-    for (let i = 0; i < 36; i++) {
-      const angle = (i / 36) * Math.PI * 2;
-      const rx = 220 + Math.random() * 80;
-      const ry = 140 + Math.random() * 60;
-      const x = Math.cos(angle) * rx;
-      const y = Math.sin(angle) * ry + 20;
+    // Phase 1: Ring around the bench (30 flowers)
+    for (let i = 0; i < 30; i++) {
+      const angle = (i / 30) * Math.PI * 2;
+      const rx = 8 + Math.random() * 10;
+      const ry = 5 + Math.random() * 6;
+      const x = VirtualWorldGame.ANCHORS.bench.x + Math.cos(angle) * rx;
+      const y = VirtualWorldGame.ANCHORS.bench.y + Math.sin(angle) * ry;
       if (!this.isInExclusionZone(x, y)) {
-        this.bloomQueue.push({ x, y, delay });
-        delay += 6;
+        this.bloomQueue.push({ x, y, delay: i });
       }
     }
-
-    // Path along the walk — flowers where they walk
-    for (let i = 0; i < 20; i++) {
-      const t = i / 20;
-      const x = -140 + t * 300;
-      const y = 30 + Math.sin(t * Math.PI * 2) * 15 + (Math.random() - 0.5) * 40;
-      if (!this.isInExclusionZone(x, y)) {
-        this.bloomQueue.push({ x, y, delay });
-        delay += 4;
-      }
-    }
-
-    // Scattered extras
-    for (let i = 0; i < 12; i++) {
-      const x = (Math.random() - 0.5) * 500;
-      const y = Math.random() * 180 - 40;
-      if (!this.isInExclusionZone(x, y)) {
-        this.bloomQueue.push({ x, y, delay });
-        delay += 5;
-      }
-    }
-
-    // Sort by delay for sequential bloom
-    this.bloomQueue.sort((a, b) => a.delay - b.delay);
   }
 
+  // Elliptical exclusion zone around the bench
   private isInExclusionZone(x: number, y: number): boolean {
-    const chars = [
-      { x: this.player.x, y: this.player.y },
-      { x: this.companion.x, y: this.companion.y },
-    ];
-    for (const c of chars) {
-      const dx = x - c.x;
-      const dy = y - c.y;
-      if (Math.sqrt(dx * dx + dy * dy) < this.EXCLUSION_RADIUS) return true;
-    }
-    return false;
+    const bx = VirtualWorldGame.ANCHORS.bench.x;
+    const by = VirtualWorldGame.ANCHORS.bench.y;
+    const dx = (x - bx) / 8;
+    const dy = (y - by) / 5;
+    return dx * dx + dy * dy < 1;
+  }
+
+  private isPointInPond(x: number, y: number): boolean {
+    const p = VirtualWorldGame.ANCHORS.pond;
+    return x >= p.x1 && x <= p.x2 && y >= p.y1 && y <= p.y2;
   }
 
   private displaceFromCharacters(x: number, y: number): { x: number; y: number } {
-    const centerX = (this.player.x + this.companion.x) / 2;
-    const centerY = (this.player.y + this.companion.y) / 2;
-    const dx = x - centerX;
-    const dy = y - centerY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < this.EXCLUSION_RADIUS) {
-      const pushDist = this.EXCLUSION_RADIUS + 20;
-      const angle = Math.atan2(dy, dx) || Math.random() * Math.PI * 2;
-      return { x: centerX + Math.cos(angle) * pushDist, y: centerY + Math.sin(angle) * pushDist };
+    const bx = VirtualWorldGame.ANCHORS.bench.x;
+    const by = VirtualWorldGame.ANCHORS.bench.y;
+    const dx = x - bx;
+    const dy = y - by;
+    const dist = Math.hypot(dx, dy);
+    const minDist = 12;
+    if (dist < minDist && dist > 0) {
+      return { x: bx + (dx / dist) * minDist, y: by + (dy / dist) * minDist };
     }
     return { x, y };
   }
 
-  // --- FLOWER SPAWNING ---
   private spawnFlower(x: number, y: number, type: VirtualFlower['type'] = 'sunflower', targetScale = 1.0) {
-    const flower: VirtualFlower = {
+    this.flowers.push({
       x,
       y,
       type,
@@ -366,23 +352,20 @@ export class VirtualWorldGame {
       targetScale,
       rotation: (Math.random() - 0.5) * 0.3,
       stemHeight: 28 + Math.random() * 30,
-      color: Math.random() > 0.3 ? '#ffd166' : '#ffe066',
+      color: Math.random() < 0.7 ? '#ffd166' : '#ffe066',
       bloomSpeed: 0.03 + Math.random() * 0.025,
       swayPhase: Math.random() * Math.PI * 2,
       swaySpeed: 1.2 + Math.random() * 1.2,
-    };
-    this.flowers.push(flower);
-    this.flowerCount++;
-    if (this.flowerCountEl) this.flowerCountEl.textContent = String(this.flowerCount);
+    });
 
     // Sparkle particles
     for (let i = 0; i < 3; i++) {
       this.particles.push({
-        x: x + (Math.random() - 0.5) * 10,
-        y: y - flower.stemHeight * 0.6 + (Math.random() - 0.5) * 10,
-        vx: (Math.random() - 0.5) * 1.2,
-        vy: -0.5 - Math.random() * 1.0,
-        size: 1.5 + Math.random() * 2,
+        x: x + (Math.random() - 0.5) * 12,
+        y: y + (Math.random() - 0.5) * 12,
+        vx: (Math.random() - 0.5) * 1.5,
+        vy: -0.5 - Math.random() * 1.5,
+        size: 2 + Math.random() * 3,
         alpha: 1,
         color: '#ffd166',
         life: 0,
@@ -391,17 +374,24 @@ export class VirtualWorldGame {
       });
     }
 
-    // Musical note
-    const notes = [523, 587, 659, 784, 880];
-    audio.playChime(notes[Math.floor(Math.random() * notes.length)]);
+    audio.playChime([523, 587, 659, 784, 880][Math.floor(Math.random() * 5)]);
+    this.flowerCount++;
+    if (this.flowerCountEl) this.flowerCountEl.textContent = String(this.flowerCount);
   }
 
   private spawnFlowerAtClick(x: number, y: number) {
-    const pos = this.displaceFromCharacters(x, y);
-    this.spawnFlower(pos.x, pos.y, 'sunflower', 1.0);
+    if (!this.canvas) return;
+    // Convert screen coords to percentage, then displace if near bench
+    const px = (x / this.canvas.width) * 100;
+    const py = (y / this.canvas.height) * 100;
+    const displaced = this.displaceFromCharacters(px, py);
+    const worldX = (displaced.x / 100) * this.canvas.width;
+    const worldY = (displaced.y / 100) * this.canvas.height;
+    this.spawnFlower(worldX, worldY, 'sunflower', 0.8 + Math.random() * 0.5);
   }
 
   private spawnPlayerFlower() {
+    if (!this.canvas) return;
     const x = this.player.x + (Math.random() - 0.5) * 30;
     const y = this.player.y + 5 + (Math.random() - 0.5) * 20;
     this.spawnFlower(x, y, 'daisy', 0.9 + Math.random() * 0.3);
@@ -413,14 +403,12 @@ export class VirtualWorldGame {
       const dist = 30 + Math.random() * 25;
       const x = this.player.x + Math.cos(angle) * dist;
       const y = this.player.y + Math.sin(angle) * dist * 0.6;
-      const types: VirtualFlower['type'][] = ['sunflower', 'daisy', 'goldenRose', 'starBlossom'];
-      this.spawnFlower(x, y, types[Math.floor(Math.random() * types.length)], 0.8 + Math.random() * 0.4);
+      this.spawnFlower(x, y, Math.random() < 0.5 ? 'sunflower' : 'daisy', 0.8 + Math.random() * 0.4);
     }
-    audio.playVictoryWaltz();
-    this.setWylliBubble('«¡Mira cómo brotan a tu alrededor, mi amor! 🌻»', 220);
+    this.companion.bubbleText = '«¡Mira cómo brotan a tu alrededor, mi amor! 🌻»';
+    this.companion.bubbleTimer = 220;
   }
 
-  // --- WYLLI BUBBLE ---
   public setWylliBubble(text: string, durationFrames = 200) {
     this.companion.bubbleText = text;
     this.companion.bubbleTimer = durationFrames;
@@ -433,40 +421,53 @@ export class VirtualWorldGame {
     if (!this.isRunning) return;
     const dt = Math.min(0.05, (time - this.lastTime) / 1000);
     this.lastTime = time;
-
     this.update(dt);
     this.render();
-
     this.animId = requestAnimationFrame(this.loop);
   };
 
   private update(dt: number) {
-    // 1. Walk animation — characters move from left to center
-    if (!this.walkDone) {
-      this.walkProgress += dt * 0.12;
-      if (this.walkProgress >= 1) {
-        this.walkProgress = 1;
-        this.walkDone = true;
-      }
-      this.player.x = -120 + this.walkProgress * 240;
-      this.companion.x = -120 + this.walkProgress * 240;
-      this.player.stepCycle += dt * 6;
-      this.companion.stepCycle += dt * 5.5;
-      this.player.isWalking = true;
-      this.companion.isWalking = true;
-    } else {
-      this.player.isWalking = false;
-      this.companion.isWalking = false;
+    const w = this.canvas?.width || 1200;
+    const h = this.canvas?.height || 900;
 
-      // Show dialogue after walk finishes
-      if (!this.dialogueStarted) {
-        this.dialogueStarted = true;
-        this.companion.bubbleTimer = 600;
+    // 1. Walk system — waypoint-based approach
+    if (this.walkPhase === 'approaching') {
+      const wp = VirtualWorldGame.WAYPOINTS[this.waypointIndex];
+      if (!wp) {
+        this.walkPhase = 'sitting';
+        this.startSitting();
+        return;
+      }
+      const targetX = (wp.x / 100) * w;
+      const targetY = (wp.y / 100) * h;
+      const dx = targetX - this.player.x;
+      const dy = targetY - this.player.y;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist < 4) {
+        this.waypointIndex++;
+        if (this.waypointIndex >= VirtualWorldGame.WAYPOINTS.length) {
+          this.walkPhase = 'sitting';
+          this.startSitting();
+          return;
+        }
+      } else {
+        const speed = this.player.speed;
+        this.player.x += (dx / dist) * speed * (dt * 60);
+        this.player.y += (dy / dist) * speed * (dt * 60);
+        this.companion.x = this.player.x + 20;
+        this.companion.y = this.player.y + 2;
+        this.player.stepCycle += dt * 6;
+        this.companion.stepCycle += dt * 5.5;
+        this.player.isWalking = true;
+        this.companion.isWalking = true;
+        this.player.facingLeft = dx < 0;
+        this.companion.facingLeft = dx < 0;
       }
     }
 
-    // 2. Keyboard WASD movement after walk is done
-    if (this.walkDone) {
+    // 2. WASD movement in free mode
+    if (this.freeMode) {
       let moveX = 0;
       let moveY = 0;
       if (this.keys['w'] || this.keys['arrowup']) moveY -= 1;
@@ -484,61 +485,44 @@ export class VirtualWorldGame {
       } else {
         this.player.isWalking = false;
       }
+
+      // Companion follows
+      const targetOffsetX = this.player.facingLeft ? 32 : -32;
+      const companionTargetX = this.player.x + targetOffsetX;
+      const companionTargetY = this.player.y + 4;
+      const compDx = companionTargetX - this.companion.x;
+      const compDy = companionTargetY - this.companion.y;
+      const compDist = Math.hypot(compDx, compDy);
+      if (compDist > 6) {
+        this.companion.x += (compDx / compDist) * Math.min(this.companion.speed, compDist * 0.1) * (dt * 60);
+        this.companion.y += (compDy / compDist) * Math.min(this.companion.speed, compDist * 0.1) * (dt * 60);
+        this.companion.isWalking = true;
+        this.companion.stepCycle += dt * 9;
+        this.companion.facingLeft = this.player.facingLeft;
+      } else {
+        this.companion.isWalking = false;
+      }
     }
 
-    // 3. Companion follows player
-    const targetOffsetX = this.player.facingLeft ? 32 : -32;
-    const companionTargetX = this.player.x + targetOffsetX;
-    const companionTargetY = this.player.y + 4;
-    const compDx = companionTargetX - this.companion.x;
-    const compDy = companionTargetY - this.companion.y;
-    const compDist = Math.hypot(compDx, compDy);
-    if (compDist > 6) {
-      this.companion.x += (compDx / compDist) * Math.min(this.companion.speed, compDist * 0.1) * (dt * 60);
-      this.companion.y += (compDy / compDist) * Math.min(this.companion.speed, compDist * 0.1) * (dt * 60);
-      this.companion.isWalking = true;
-      this.companion.stepCycle += dt * 9;
-      this.companion.facingLeft = this.player.facingLeft;
-    } else if (this.walkDone) {
-      this.companion.isWalking = false;
-    }
-
-    // 4. Bubble timer
+    // 3. Bubble timer
     if (this.companion.bubbleTimer > 0) {
       this.companion.bubbleTimer--;
     }
 
-    // 5. Camera follows characters
+    // 4. Camera follows characters
     const targetCamX = (this.player.x + this.companion.x) / 2;
     const targetCamY = (this.player.y + this.companion.y) / 2 - 10;
     this.camera.x += (targetCamX - this.camera.x) * 0.06;
     this.camera.y += (targetCamY - this.camera.y) * 0.06;
 
-    // 6. Sequential bloom from queue
-    if (this.bloomStarted && this.bloomIndex < this.bloomQueue.length) {
-      this.bloomTimer++;
-      const entry = this.bloomQueue[this.bloomIndex];
-      if (this.bloomTimer >= entry.delay) {
-        const types: VirtualFlower['type'][] = ['sunflower', 'daisy', 'goldenRose', 'starBlossom'];
-        this.spawnFlower(entry.x, entry.y, types[Math.floor(Math.random() * types.length)], 0.8 + Math.random() * 0.5);
-        this.bloomIndex++;
-      }
-    }
-
-    // Start bloom after a short delay
-    if (!this.bloomStarted && this.walkDone) {
-      this.bloomStarted = true;
-      this.bloomTimer = 0;
-    }
-
-    // 7. Update flower growth
+    // 5. Update flower growth
     for (const f of this.flowers) {
       if (f.scale < f.targetScale) {
         f.scale = Math.min(f.targetScale, f.scale + f.bloomSpeed);
       }
     }
 
-    // 8. Update particles
+    // 6. Update particles
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.x += p.vx;
@@ -550,12 +534,11 @@ export class VirtualWorldGame {
       }
     }
 
-    // 9. Update floating petals
+    // 7. Update floating petals
     for (const petal of this.floatingPetals) {
       petal.x += petal.vx;
       petal.y += petal.vy;
       petal.rot += petal.rotSpeed;
-      // Wrap around
       if (petal.y > (this.canvas?.height || 800) + 50) {
         petal.y = -30;
         petal.x = Math.random() * ((this.canvas?.width || 1200) + 200) - 100;
@@ -565,10 +548,139 @@ export class VirtualWorldGame {
       }
     }
 
-    // 10. Dialogue fade-in
+    // 8. Dialogue fade-in
     if (this.dialogueStarted && this.dialogueAlpha < 1) {
       this.dialogueAlpha = Math.min(1, this.dialogueAlpha + dt * 0.8);
     }
+  }
+
+  // --- SITTING TRANSITION ---
+  private startSitting() {
+    this.isSitting = true;
+    this.player.isWalking = false;
+    this.companion.isWalking = false;
+
+    const w = this.canvas?.width || 1200;
+    const h = this.canvas?.height || 900;
+    const benchX = (VirtualWorldGame.ANCHORS.bench.x / 100) * w;
+    const benchY = (VirtualWorldGame.ANCHORS.bench.y / 100) * h;
+
+    // Position on bench — Wylli left, Gaby right
+    this.companion.x = benchX - 15;
+    this.companion.y = benchY;
+    this.companion.facingLeft = false;
+    this.player.x = benchX + 15;
+    this.player.y = benchY;
+    this.player.facingLeft = true; // Face Wylli
+
+    // Show Wylli dialogue
+    this.companion.bubbleText = '«Aquí es donde quería traerte... Feliz 21 de septiembre, Gaby ❤️»';
+    this.companion.bubbleTimer = 180;
+
+    // Start bloom after 1.5s
+    setTimeout(() => this.startBloomSequence(), 1500);
+  }
+
+  // --- BLOOM SEQUENCE: 90ms per flower ---
+  private startBloomSequence() {
+    this.bloomIndex = 0;
+    this.bloomInterval = window.setInterval(() => {
+      if (this.bloomIndex >= this.bloomQueue.length) {
+        if (this.bloomInterval) clearInterval(this.bloomInterval);
+        this.bloomInterval = null;
+        this.onBloomComplete();
+        return;
+      }
+      const entry = this.bloomQueue[this.bloomIndex];
+      const w = this.canvas?.width || 1200;
+      const h = this.canvas?.height || 900;
+      const worldX = (entry.x / 100) * w;
+      const worldY = (entry.y / 100) * h;
+      const types: VirtualFlower['type'][] = ['sunflower', 'daisy', 'goldenRose', 'starBlossom'];
+      this.spawnFlower(worldX, worldY, types[Math.floor(Math.random() * types.length)], 0.8 + Math.random() * 0.5);
+      this.bloomIndex++;
+    }, 90);
+  }
+
+  // --- BLOOM COMPLETE: Show letter ---
+  private onBloomComplete() {
+    // Spawn golden pollen particles toward grand mantle
+    for (let i = 0; i < 20; i++) {
+      const w = this.canvas?.width || 1200;
+      const h = this.canvas?.height || 900;
+      this.particles.push({
+        x: (VirtualWorldGame.ANCHORS.bench.x / 100) * w + (Math.random() - 0.5) * 100,
+        y: (VirtualWorldGame.ANCHORS.bench.y / 100) * h - 30,
+        vx: 0.5 + Math.random() * 1.5,
+        vy: -0.3 - Math.random() * 0.8,
+        size: 2 + Math.random() * 2,
+        alpha: 1,
+        color: '#ffd166',
+        life: 0,
+        maxLife: 80 + Math.random() * 40,
+        type: 'pollen',
+      });
+    }
+
+    // Show letter overlay after 2s
+    setTimeout(() => this.showLetterOverlay(), 2000);
+  }
+
+  private showLetterOverlay() {
+    const overlay = document.getElementById('vwLetterOverlay');
+    if (overlay) {
+      overlay.classList.add('active');
+      // Reset envelope state
+      document.getElementById('vwEnvelopeFlap')?.classList.remove('opened');
+      document.getElementById('vwWaxSealBtn')?.classList.remove('broken');
+      document.getElementById('vwLetterUnfolded')?.classList.remove('visible');
+      document.getElementById('vwEnvelope3D')?.style.setProperty('display', 'flex');
+      document.getElementById('vwEnvelopeInstruction')?.style.setProperty('display', 'block');
+    }
+  }
+
+  private hideLetterOverlay() {
+    document.getElementById('vwLetterOverlay')?.classList.remove('active');
+    this.freeMode = true;
+    // Show only the Volver button
+    const actions = document.querySelector('.vw-actions');
+    if (actions) {
+      (actions as HTMLElement).style.display = 'flex';
+    }
+  }
+
+  private openLetter() {
+    audio.playSealBreak();
+    // Break seal
+    document.getElementById('vwWaxSealBtn')?.classList.add('broken');
+    // Spawn golden particles around seal
+    const seal = document.getElementById('vwWaxSealBtn');
+    if (seal) {
+      const rect = seal.getBoundingClientRect();
+      for (let i = 0; i < 12; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'seal-particle';
+        const angle = (i / 12) * Math.PI * 2;
+        const dist = 30 + Math.random() * 20;
+        particle.style.setProperty('--px', `${Math.cos(angle) * dist}px`);
+        particle.style.setProperty('--py', `${Math.sin(angle) * dist}px`);
+        particle.style.left = `${rect.left + rect.width / 2}px`;
+        particle.style.top = `${rect.top + rect.height / 2}px`;
+        particle.style.background = i % 2 === 0 ? '#f5c538' : '#ffd166';
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 700);
+      }
+    }
+    // Open flap after 0.5s
+    setTimeout(() => {
+      document.getElementById('vwEnvelopeFlap')?.classList.add('opened');
+      document.getElementById('vwEnvelopeInstruction')?.style.setProperty('display', 'none');
+      // Show letter after flap opens
+      setTimeout(() => {
+        document.getElementById('vwEnvelope3D')?.style.setProperty('display', 'none');
+        document.getElementById('vwLetterUnfolded')?.classList.add('visible');
+      }, 800);
+    }, 500);
   }
 
   // --- RENDER ---
@@ -580,30 +692,28 @@ export class VirtualWorldGame {
 
     ctx.clearRect(0, 0, w, h);
 
-    // CAPA 0: Warm sunset background
-    this.renderSunsetBackground(ctx, w, h);
+    // CAPA 0: Background image
+    this.renderBackground(ctx, w, h);
 
     // Camera transform for world-space elements
     ctx.save();
     ctx.translate(w / 2 - this.camera.x, h / 2 - this.camera.y);
 
-    // CAPA 1: Back flowers (above character Y = background)
+    // CAPA 1: Back flowers
     const charY = (this.player.y + this.companion.y) / 2;
-    const backFlowers = this.flowers.filter((f) => f.y < charY);
-    for (const f of backFlowers) {
-      this.renderFlower(ctx, f);
+    for (const f of this.flowers) {
+      if (f.y < charY) this.renderFlower(ctx, f);
     }
 
-    // CAPA 2: Couple (characters)
+    // CAPA 2: Couple
     this.renderCouple(ctx);
 
-    // CAPA 3: Front flowers (below character Y = foreground)
-    const frontFlowers = this.flowers.filter((f) => f.y >= charY);
-    for (const f of frontFlowers) {
-      this.renderFlower(ctx, f);
+    // CAPA 3: Front flowers
+    for (const f of this.flowers) {
+      if (f.y >= charY) this.renderFlower(ctx, f);
     }
 
-    // CAPA 4: Sparkle particles (world space)
+    // CAPA 4: Particles
     this.renderParticles(ctx);
 
     ctx.restore();
@@ -611,202 +721,156 @@ export class VirtualWorldGame {
     // CAPA 4b: Floating petals (screen space)
     this.renderFloatingPetals(ctx, w, h);
 
-    // CAPA 5: UI — dialogue box + controls
+    // CAPA 5: Dialogue
     this.renderDialogue(ctx, w, h);
     this.renderScreenVignette(ctx, w, h);
   }
 
-  // --- CAPA 0: SUNSET BACKGROUND ---
-  private renderSunsetBackground(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    // Sky gradient: deep violet → warm peach → golden horizon
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
-    skyGrad.addColorStop(0, '#2b1b24');
-    skyGrad.addColorStop(0.3, '#4a2a3a');
-    skyGrad.addColorStop(0.55, '#7d4a5a');
-    skyGrad.addColorStop(0.72, '#c98a5a');
-    skyGrad.addColorStop(0.82, '#f5c538');
-    skyGrad.addColorStop(0.88, '#f5d76e');
-    skyGrad.addColorStop(1, '#3a7d44');
-    ctx.fillStyle = skyGrad;
-    ctx.fillRect(0, 0, w, h);
-
-    // Soft radial glow at horizon
-    const glowGrad = ctx.createRadialGradient(w * 0.5, h * 0.75, 20, w * 0.5, h * 0.75, w * 0.45);
-    glowGrad.addColorStop(0, 'rgba(245, 197, 56, 0.35)');
-    glowGrad.addColorStop(0.5, 'rgba(245, 197, 56, 0.1)');
-    glowGrad.addColorStop(1, 'rgba(245, 197, 56, 0)');
-    ctx.fillStyle = glowGrad;
-    ctx.fillRect(0, 0, w, h);
-
-    // Stars in upper sky
-    const time = performance.now() * 0.001;
-    for (const star of this.stars) {
-      const sx = star.x * w;
-      const sy = star.y * h;
-      const pulse = 0.5 + 0.5 * Math.sin(time * 0.8 + star.phase);
-      ctx.globalAlpha = 0.3 + pulse * 0.5;
-      ctx.fillStyle = '#fffdf0';
-      ctx.beginPath();
-      ctx.arc(sx, sy, star.size, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-
-    // Moon crescent
-    const moonX = w * 0.82;
-    const moonY = h * 0.1;
-    ctx.fillStyle = 'rgba(255, 253, 240, 0.85)';
-    ctx.beginPath();
-    ctx.arc(moonX, moonY, 16, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#3a2a3a';
-    ctx.beginPath();
-    ctx.arc(moonX + 6, moonY - 3, 14, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Grass ground at bottom
-    const grassGrad = ctx.createLinearGradient(0, h * 0.85, 0, h);
-    grassGrad.addColorStop(0, '#2d6a4f');
-    grassGrad.addColorStop(0.5, '#40916c');
-    grassGrad.addColorStop(1, '#1b4332');
-    ctx.fillStyle = grassGrad;
-    ctx.fillRect(0, h * 0.85, w, h * 0.15);
-
-    // Subtle grass blades
-    ctx.strokeStyle = 'rgba(64, 145, 108, 0.4)';
-    ctx.lineWidth = 1.5;
-    for (let i = 0; i < 80; i++) {
-      const gx = (i / 80) * w;
-      const gy = h * 0.86 + Math.random() * (h * 0.12);
-      const gh = 6 + Math.random() * 10;
-      const sway = Math.sin(time * 0.5 + i * 0.3) * 2;
-      ctx.beginPath();
-      ctx.moveTo(gx, gy);
-      ctx.quadraticCurveTo(gx + sway, gy - gh * 0.6, gx + sway * 1.5, gy - gh);
-      ctx.stroke();
+  // --- BACKGROUND IMAGE ---
+  private renderBackground(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    if (this.bgLoaded && this.bgImage) {
+      const imgRatio = this.bgImage.width / this.bgImage.height;
+      const canvasRatio = w / h;
+      let drawW: number, drawH: number, drawX: number, drawY: number;
+      if (canvasRatio > imgRatio) {
+        drawW = w;
+        drawH = w / imgRatio;
+        drawX = 0;
+        drawY = (h - drawH) / 2;
+      } else {
+        drawH = h;
+        drawW = h * imgRatio;
+        drawX = (w - drawW) / 2;
+        drawY = 0;
+      }
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(this.bgImage, drawX, drawY, drawW, drawH);
+    } else {
+      // Fallback: green meadow + blue sky
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+      skyGrad.addColorStop(0, '#87ceeb');
+      skyGrad.addColorStop(0.5, '#b8e4f0');
+      skyGrad.addColorStop(0.7, '#52b788');
+      skyGrad.addColorStop(1, '#2d6a4f');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, w, h);
     }
   }
 
-  // --- CAPA 2: COUPLE ---
+  // --- COUPLE RENDERING ---
   private renderCouple(ctx: CanvasRenderingContext2D) {
+    const sc = 2.5;
+
+    if (this.isSitting) {
+      this.renderSittingCouple(ctx, sc);
+      return;
+    }
+
+    // --- Standing / Walking ---
     const stepP = Math.sin(this.player.stepCycle) * 3;
     const stepC = Math.sin(this.companion.stepCycle) * 3;
 
-    // === WYLLI ===
+    // === WYLLI (companion) ===
     ctx.save();
     ctx.translate(this.companion.x, this.companion.y);
-
-    // Shadow
     ctx.fillStyle = 'rgba(10, 6, 16, 0.35)';
     ctx.beginPath();
     ctx.ellipse(0, 2, 18, 6, 0, 0, Math.PI * 2);
     ctx.fill();
-
-    const sc = 2.5;
     if (this.companion.facingLeft) ctx.scale(-1, 1);
 
-    // Legs (jeans)
+    // Legs
     ctx.fillStyle = '#1b2838';
     ctx.fillRect(-6 * sc, -15 * sc + stepC, 5 * sc, 15 * sc - stepC);
     ctx.fillRect(1 * sc, -15 * sc - stepC, 5 * sc, 15 * sc + stepC);
-
-    // White shirt
+    // Shirt
     ctx.fillStyle = '#f8f9fa';
     ctx.fillRect(-9 * sc, -28 * sc, 18 * sc, 14 * sc);
-
     // Headphones
     ctx.fillStyle = '#111111';
     ctx.fillRect(-10 * sc, -29 * sc, 3 * sc, 5 * sc);
     ctx.fillRect(7 * sc, -29 * sc, 3 * sc, 5 * sc);
-
     // Head
     ctx.fillStyle = '#fcdbcf';
     ctx.fillRect(-5 * sc, -38 * sc, 10 * sc, 10 * sc);
-
     // Smile
     ctx.strokeStyle = '#c9846a';
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.arc(0, -33 * sc, 3 * sc, 0.1, Math.PI - 0.1);
     ctx.stroke();
-
     // Eyes
     ctx.fillStyle = '#2c1810';
     ctx.fillRect(-3 * sc, -36 * sc, 2 * sc, 2 * sc);
     ctx.fillRect(2 * sc, -36 * sc, 2 * sc, 2 * sc);
-
     // Shark cap
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(-7 * sc, -42 * sc, 14 * sc, 5 * sc);
     ctx.fillRect(3 * sc, -40 * sc, 5 * sc, 2 * sc);
     ctx.fillStyle = '#385a7c';
     ctx.fillRect(-2 * sc, -41 * sc, 4 * sc, 2 * sc);
-
-    // Bouquet of yellow flowers in hand
-    const bouquetX = 10 * sc;
-    const bouquetY = -20 * sc;
+    // Bouquet
+    const bX = 10 * sc, bY = -20 * sc;
     ctx.fillStyle = '#52b788';
-    ctx.fillRect(bouquetX - 1, bouquetY, 2, 14);
-    const petalColors = ['#f5c538', '#ffd166', '#ffe066'];
+    ctx.fillRect(bX - 1, bY, 2, 14);
+    const pCols = ['#f5c538', '#ffd166', '#ffe066'];
     for (let i = 0; i < 5; i++) {
       const a = (i / 5) * Math.PI * 2 + Math.sin(performance.now() * 0.001) * 0.1;
-      ctx.fillStyle = petalColors[i % 3];
+      ctx.fillStyle = pCols[i % 3];
       ctx.beginPath();
-      ctx.ellipse(bouquetX + Math.cos(a) * 5, bouquetY - 4 + Math.sin(a) * 4, 3, 5, a, 0, Math.PI * 2);
+      ctx.ellipse(bX + Math.cos(a) * 5, bY - 4 + Math.sin(a) * 4, 3, 5, a, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.fillStyle = '#ffb703';
     ctx.beginPath();
-    ctx.arc(bouquetX, bouquetY - 4, 3, 0, Math.PI * 2);
+    ctx.arc(bX, bY - 4, 3, 0, Math.PI * 2);
     ctx.fill();
-
     ctx.restore();
 
-    // === GABY ===
+    // === GABY (player) ===
     ctx.save();
     ctx.translate(this.player.x, this.player.y);
-
-    // Shadow
     ctx.fillStyle = 'rgba(10, 6, 16, 0.35)';
     ctx.beginPath();
     ctx.ellipse(0, 2, 18, 6, 0, 0, Math.PI * 2);
     ctx.fill();
-
     if (this.player.facingLeft) ctx.scale(-1, 1);
 
     // Legs
     ctx.fillStyle = '#1e1e1e';
     ctx.fillRect(-6 * sc, -15 * sc + stepP, 5 * sc, 15 * sc - stepP);
     ctx.fillRect(1 * sc, -15 * sc - stepP, 5 * sc, 15 * sc + stepP);
-
-    // Pink sweater
+    // Sweater
     ctx.fillStyle = '#f4ccd5';
     ctx.fillRect(-9 * sc, -28 * sc, 18 * sc, 14 * sc);
-
+    // Dog outline on sweater
+    ctx.strokeStyle = '#4a90e2';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(-3 * sc, -22 * sc);
+    ctx.lineTo(-1 * sc, -20 * sc);
+    ctx.lineTo(1 * sc, -22 * sc);
+    ctx.stroke();
     // Head
     ctx.fillStyle = '#fcdbcf';
     ctx.fillRect(-5 * sc, -38 * sc, 10 * sc, 10 * sc);
-
     // Smile
     ctx.strokeStyle = '#c9846a';
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.arc(0, -33 * sc, 3 * sc, 0.1, Math.PI - 0.1);
     ctx.stroke();
-
     // Eyes
     ctx.fillStyle = '#2c1810';
     ctx.fillRect(-3 * sc, -36 * sc, 2 * sc, 2 * sc);
     ctx.fillRect(2 * sc, -36 * sc, 2 * sc, 2 * sc);
-
-    // Wavy hair
+    // Hair
     ctx.fillStyle = '#442a1b';
     ctx.beginPath();
     ctx.arc(0, -36 * sc, 7.5 * sc, Math.PI, 0);
     ctx.fill();
     ctx.fillRect(-7 * sc, -36 * sc, 3 * sc, 10 * sc);
     ctx.fillRect(4 * sc, -36 * sc, 3 * sc, 10 * sc);
-    // Wavy ends
     ctx.beginPath();
     ctx.moveTo(-7 * sc, -26 * sc);
     ctx.quadraticCurveTo(-9 * sc, -22 * sc, -7 * sc, -18 * sc);
@@ -817,8 +881,7 @@ export class VirtualWorldGame {
     ctx.quadraticCurveTo(5 * sc, -22 * sc, 7 * sc, -18 * sc);
     ctx.quadraticCurveTo(9 * sc, -22 * sc, 7 * sc, -26 * sc);
     ctx.fill();
-
-    // Cup in hand
+    // Cup
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(-3 * sc, -24 * sc, 6 * sc, 5 * sc);
     ctx.fillStyle = '#ffd166';
@@ -835,12 +898,11 @@ export class VirtualWorldGame {
       ctx.quadraticCurveTo(sx + Math.sin(steamTime + i * 2) * 2, sy - 4, sx, sy - 7);
       ctx.stroke();
     }
-
     ctx.restore();
 
     // Heart between them
     const dist = Math.hypot(this.player.x - this.companion.x, this.player.y - this.companion.y);
-    if (dist < 50) {
+    if (dist < 60) {
       const midX = (this.player.x + this.companion.x) / 2;
       const midY = (this.player.y + this.companion.y) / 2 - 80;
       ctx.save();
@@ -853,9 +915,185 @@ export class VirtualWorldGame {
       ctx.restore();
     }
 
-    // Wylli speech bubble
+    // Speech bubble
     if (this.companion.bubbleTimer > 0) {
       this.drawSpeechBubble(ctx, this.companion.bubbleText, this.companion.x, this.companion.y - 110);
+    }
+  }
+
+  // --- SITTING COUPLE AT BENCH ---
+  private renderSittingCouple(ctx: CanvasRenderingContext2D, sc: number) {
+    const time = performance.now() * 0.001;
+
+    // === WYLLI (left side of bench) ===
+    ctx.save();
+    ctx.translate(this.companion.x, this.companion.y);
+
+    // Shadow under bench
+    ctx.fillStyle = 'rgba(10, 6, 16, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 8, 22, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Legs extended on bench
+    ctx.fillStyle = '#1b2838';
+    ctx.fillRect(-8 * sc, -2 * sc, 7 * sc, 4 * sc);
+    ctx.fillRect(1 * sc, -2 * sc, 7 * sc, 4 * sc);
+
+    // Torso
+    ctx.fillStyle = '#f8f9fa';
+    ctx.fillRect(-7 * sc, -16 * sc, 14 * sc, 14 * sc);
+
+    // Headphones
+    ctx.fillStyle = '#111111';
+    ctx.fillRect(-8 * sc, -17 * sc, 3 * sc, 4 * sc);
+    ctx.fillRect(5 * sc, -17 * sc, 3 * sc, 4 * sc);
+
+    // Head (tilted slightly toward Gaby)
+    ctx.fillStyle = '#fcdbcf';
+    ctx.fillRect(-4 * sc, -26 * sc, 8 * sc, 9 * sc);
+
+    // Smile
+    ctx.strokeStyle = '#c9846a';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(1 * sc, -21 * sc, 2.5 * sc, 0.1, Math.PI - 0.1);
+    ctx.stroke();
+
+    // Eyes (looking at Gaby)
+    ctx.fillStyle = '#2c1810';
+    ctx.fillRect(-1 * sc, -24 * sc, 2 * sc, 2 * sc);
+    ctx.fillRect(4 * sc, -24 * sc, 2 * sc, 2 * sc);
+
+    // Shark cap (slightly tilted)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-5 * sc, -30 * sc, 12 * sc, 4 * sc);
+    ctx.fillRect(3 * sc, -28 * sc, 4 * sc, 2 * sc);
+    ctx.fillStyle = '#385a7c';
+    ctx.fillRect(-1 * sc, -29 * sc, 4 * sc, 2 * sc);
+
+    // Right arm extended holding envelope
+    ctx.fillStyle = '#fcdbcf';
+    ctx.fillRect(7 * sc, -12 * sc, 10 * sc, 3 * sc);
+    // Envelope
+    ctx.fillStyle = '#f5e6d0';
+    ctx.fillRect(14 * sc, -14 * sc, 8 * sc, 6 * sc);
+    ctx.strokeStyle = '#c9a882';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(14 * sc, -14 * sc, 8 * sc, 6 * sc);
+    // Wax seal on envelope
+    ctx.fillStyle = '#c0392b';
+    ctx.beginPath();
+    ctx.arc(18 * sc, -11 * sc, 2 * sc, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+
+    // === GABY (right side of bench) ===
+    ctx.save();
+    ctx.translate(this.player.x, this.player.y);
+
+    // Shadow
+    ctx.fillStyle = 'rgba(10, 6, 16, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 8, 22, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Legs
+    ctx.fillStyle = '#1e1e1e';
+    ctx.fillRect(-8 * sc, -2 * sc, 7 * sc, 4 * sc);
+    ctx.fillRect(1 * sc, -2 * sc, 7 * sc, 4 * sc);
+
+    // Pink sweater
+    ctx.fillStyle = '#f4ccd5';
+    ctx.fillRect(-7 * sc, -16 * sc, 14 * sc, 14 * sc);
+
+    // Dog outline on sweater
+    ctx.strokeStyle = '#4a90e2';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(-2 * sc, -10 * sc);
+    ctx.lineTo(0, -8 * sc);
+    ctx.lineTo(2 * sc, -10 * sc);
+    ctx.stroke();
+
+    // Head (facing Wylli)
+    ctx.fillStyle = '#fcdbcf';
+    ctx.fillRect(-4 * sc, -26 * sc, 8 * sc, 9 * sc);
+
+    // Smile
+    ctx.strokeStyle = '#c9846a';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(-1 * sc, -21 * sc, 2.5 * sc, 0.1, Math.PI - 0.1);
+    ctx.stroke();
+
+    // Eyes (looking at Wylli)
+    ctx.fillStyle = '#2c1810';
+    ctx.fillRect(-3 * sc, -24 * sc, 2 * sc, 2 * sc);
+    ctx.fillRect(2 * sc, -24 * sc, 2 * sc, 2 * sc);
+
+    // Blush
+    ctx.fillStyle = 'rgba(255, 150, 150, 0.3)';
+    ctx.beginPath();
+    ctx.arc(-3 * sc, -21 * sc, 2 * sc, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(3 * sc, -21 * sc, 2 * sc, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Wavy hair
+    ctx.fillStyle = '#442a1b';
+    ctx.beginPath();
+    ctx.arc(0, -24 * sc, 6 * sc, Math.PI, 0);
+    ctx.fill();
+    ctx.fillRect(-6 * sc, -24 * sc, 2.5 * sc, 8 * sc);
+    ctx.fillRect(3.5 * sc, -24 * sc, 2.5 * sc, 8 * sc);
+    ctx.beginPath();
+    ctx.moveTo(-6 * sc, -16 * sc);
+    ctx.quadraticCurveTo(-7 * sc, -13 * sc, -5.5 * sc, -10 * sc);
+    ctx.quadraticCurveTo(-4 * sc, -13 * sc, -3.5 * sc, -16 * sc);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(3.5 * sc, -16 * sc);
+    ctx.quadraticCurveTo(4 * sc, -13 * sc, 5.5 * sc, -10 * sc);
+    ctx.quadraticCurveTo(7 * sc, -13 * sc, 6 * sc, -16 * sc);
+    ctx.fill();
+
+    // Cup in hand
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-10 * sc, -10 * sc, 5 * sc, 4 * sc);
+    ctx.fillStyle = '#ffd166';
+    ctx.fillRect(-9 * sc, -11 * sc, 3 * sc, 1 * sc);
+    // Steam
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 3; i++) {
+      const sx = (-9 + i) * sc;
+      const sy = -13 * sc - Math.sin(time + i) * 3;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.quadraticCurveTo(sx + Math.sin(time + i * 2) * 2, sy - 4, sx, sy - 7);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+
+    // Floating heart
+    const midX = (this.player.x + this.companion.x) / 2;
+    const midY = Math.min(this.player.y, this.companion.y) - 70;
+    ctx.save();
+    ctx.font = '16px sans-serif';
+    ctx.textAlign = 'center';
+    const bob = Math.sin(time * 2) * 3;
+    ctx.globalAlpha = 0.8 + 0.2 * Math.sin(time * 1.5);
+    ctx.fillText('❤️', midX, midY + bob);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // Speech bubble
+    if (this.companion.bubbleTimer > 0) {
+      this.drawSpeechBubble(ctx, this.companion.bubbleText, this.companion.x, this.companion.y - 80);
     }
   }
 
@@ -878,42 +1116,41 @@ export class VirtualWorldGame {
     }
     if (currentLine) lines.push(currentLine);
 
-    const lineHeight = 15;
-    const bubbleW = maxWidth + 20;
-    const bubbleH = lines.length * lineHeight + 14;
-    const bx = cx - bubbleW / 2;
-    const by = cy - bubbleH;
+    const lineH = 15;
+    const boxW = maxWidth + 20;
+    const boxH = lines.length * lineH + 14;
+    const bx = cx - boxW / 2;
+    const by = cy - boxH;
 
     ctx.fillStyle = 'rgba(43, 27, 36, 0.92)';
     ctx.strokeStyle = '#f5c538';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(bx, by, bubbleW, bubbleH, 10);
+    ctx.roundRect(bx, by, boxW, boxH, 10);
     ctx.fill();
     ctx.stroke();
 
     // Arrow
-    ctx.beginPath();
-    ctx.moveTo(cx - 5, by + bubbleH);
-    ctx.lineTo(cx, by + bubbleH + 8);
-    ctx.lineTo(cx + 5, by + bubbleH);
     ctx.fillStyle = 'rgba(43, 27, 36, 0.92)';
+    ctx.beginPath();
+    ctx.moveTo(cx - 5, by + boxH);
+    ctx.lineTo(cx, by + boxH + 8);
+    ctx.lineTo(cx + 5, by + boxH);
     ctx.fill();
 
     ctx.fillStyle = '#ffd447';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     for (let i = 0; i < lines.length; i++) {
-      ctx.fillText(lines[i], cx, by + 7 + i * lineHeight);
+      ctx.fillText(lines[i], cx, by + 7 + i * lineH);
     }
     ctx.restore();
   }
 
-  // --- CAPA 1/3: FLOWERS ---
+  // --- FLOWER RENDERING ---
   private renderFlower(ctx: CanvasRenderingContext2D, f: VirtualFlower) {
     ctx.save();
     ctx.translate(f.x, f.y);
-
     const time = performance.now() * 0.001;
     const sway = Math.sin(time * f.swaySpeed + f.swayPhase) * 0.08;
     ctx.rotate(f.rotation + sway);
@@ -941,10 +1178,9 @@ export class VirtualWorldGame {
     ctx.translate(0, -f.stemHeight);
 
     if (f.type === 'sunflower') {
-      const petalCount = 12;
       ctx.fillStyle = '#f5c538';
-      for (let i = 0; i < petalCount; i++) {
-        const angle = (i / petalCount) * Math.PI * 2;
+      for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2;
         ctx.save();
         ctx.rotate(angle);
         ctx.beginPath();
@@ -961,10 +1197,9 @@ export class VirtualWorldGame {
       ctx.arc(0, 0, 5, 0, Math.PI * 2);
       ctx.fill();
     } else if (f.type === 'daisy') {
-      const petalCount = 8;
       ctx.fillStyle = '#fffdf0';
-      for (let i = 0; i < petalCount; i++) {
-        const angle = (i / petalCount) * Math.PI * 2;
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
         ctx.save();
         ctx.rotate(angle);
         ctx.beginPath();
@@ -992,18 +1227,15 @@ export class VirtualWorldGame {
       ctx.arc(0, 0, 5, 0, Math.PI * 2);
       ctx.fill();
     }
-
     ctx.restore();
   }
 
-  // --- CAPA 4: PARTICLES ---
+  // --- PARTICLES ---
   private renderParticles(ctx: CanvasRenderingContext2D) {
     for (const p of this.particles) {
       ctx.save();
       ctx.globalAlpha = Math.max(0, p.alpha);
-
       if (p.type === 'sparkle') {
-        // Four-pointed star
         ctx.fillStyle = '#ffd166';
         ctx.translate(p.x, p.y);
         ctx.rotate(performance.now() * 0.003);
@@ -1028,12 +1260,11 @@ export class VirtualWorldGame {
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
       }
-
       ctx.restore();
     }
   }
 
-  // --- CAPA 4b: FLOATING PETALS ---
+  // --- FLOATING PETALS ---
   private renderFloatingPetals(ctx: CanvasRenderingContext2D, _w: number, _h: number) {
     for (const petal of this.floatingPetals) {
       ctx.save();
@@ -1048,14 +1279,13 @@ export class VirtualWorldGame {
     }
   }
 
-  // --- CAPA 5: DIALOGUE ---
+  // --- DIALOGUE ---
   private renderDialogue(ctx: CanvasRenderingContext2D, w: number, h: number) {
     if (this.dialogueAlpha <= 0) return;
-
     ctx.save();
     ctx.globalAlpha = this.dialogueAlpha;
 
-    const text = 'Wylli: «Gracias por traerme de vuelta, Gaby... Feliz 21 de Septiembre. Este jardín es todo tuyo ❤️»';
+    const text = 'Wylli: «Desperté... pero este no es el final. Hay un lugar secreto detrás del jardín que preparé para ti. Ven conmigo ❤️»';
     ctx.font = 'bold 13px Nunito, sans-serif';
     const maxWidth = Math.min(400, w - 40);
     const words = text.split(' ');
@@ -1092,7 +1322,6 @@ export class VirtualWorldGame {
     for (let i = 0; i < lines.length; i++) {
       ctx.fillText(lines[i], w / 2, by + 10 + i * lineH);
     }
-
     ctx.restore();
   }
 
@@ -1100,7 +1329,7 @@ export class VirtualWorldGame {
   private renderScreenVignette(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const vig = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.7);
     vig.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    vig.addColorStop(1, 'rgba(43, 27, 36, 0.45)');
+    vig.addColorStop(1, 'rgba(43, 27, 36, 0.35)');
     ctx.fillStyle = vig;
     ctx.fillRect(0, 0, w, h);
   }

@@ -663,10 +663,7 @@
           </div>
         </div>
         <div class="vw-actions">
-          <button class="vw-pill-btn" id="btnVwLetter"><span>💌</span> Carta de Wylli</button>
-          <button class="vw-pill-btn" id="btnVwPlantMore"><span>🌻</span> Plantar más</button>
-          <span class="vw-flower-count">🌻 <span id="vwFlowerCount">0</span></span>
-          <button class="vw-pill-btn close" id="btnVwClose" title="Volver a la cabaña"><span>🏡</span> Volver</button>
+          <button class="vw-pill-btn close" id="btnVwClose" title="Volver a la cabaña"><span>🏡</span> Volver a la Cabaña</button>
         </div>
       </div>
 
@@ -676,8 +673,6 @@
 
         <!-- Controls Helper -->
         <div class="vw-controls-hint">
-          <span>⌨️ <strong>WASD</strong> para caminar</span>
-          <span>·</span>
           <span>🖱️ <strong>Clic</strong> para plantar flores</span>
           <span>·</span>
           <span>🌻 <strong>Espacio</strong> para brotar</span>
@@ -692,6 +687,49 @@
             <button class="vw-dpad-btn right" data-dir="right">▶</button>
           </div>
           <button class="vw-dpad-btn down" data-dir="down">▼</button>
+        </div>
+      </div>
+
+      <!-- LETTER OVERLAY (inside virtual world) -->
+      <div id="vwLetterOverlay" class="vw-letter-overlay">
+        <div class="envelope-3d-scene">
+          <!-- Fase A: Sobre cerrado -->
+          <div class="envelope-3d" id="vwEnvelope3D">
+            <div class="envelope-body">
+              <div class="envelope-letter-preview">
+                <div class="letter-mini-line"></div>
+                <div class="letter-mini-line short"></div>
+                <div class="letter-mini-line"></div>
+              </div>
+            </div>
+            <div class="envelope-flap" id="vwEnvelopeFlap">
+              <div class="wax-seal-3d" id="vwWaxSealBtn">
+                <span>🐰</span>
+              </div>
+            </div>
+            <div class="envelope-shadow"></div>
+          </div>
+          <p class="envelope-instruction" id="vwEnvelopeInstruction">
+            ✨ Toca el sello de cera para abrir tu carta ✨
+          </p>
+
+          <!-- Fase B: Carta desplegada -->
+          <div class="letter-unfolded" id="vwLetterUnfolded">
+            <div class="letter-paper">
+              <div class="letter-salutation">Para mi amada detective Gaby,</div>
+              <div class="letter-body">
+                Si estás leyendo estas líneas en nuestro jardín secreto, es porque tu agudeza, tu paciencia y tu amor iluminaron cada rincón de esta cabaña de madera.
+                <br><br>
+                En el mundo de la ciberseguridad aprendemos que los secretos más valiosos se guardan bajo llaves impenetrables. Pero en mi vida, no existe mayor certeza ni mayor refugio que tú: <strong>sos mi sol</strong> que calienta cada mañana, <strong>mi constelación</strong> en las noches inciertas y el más <strong>dulce despertar</strong> que jamás soñé tener.
+                <br><br>
+                Hoy, 21 de septiembre, la niebla del valle se disipa por completo para ti... ¡Asómate y contempla lo que floreció en tu honor!
+              </div>
+              <div class="letter-farewell">Con todo mi amor para siempre, tu novio Wylli ❤️</div>
+            </div>
+            <button class="btn-magic-spiral" id="btnStayInGarden">
+              <span>✨</span> Quedarnos en Nuestro Jardín
+            </button>
+          </div>
         </div>
       </div>
     </div>
