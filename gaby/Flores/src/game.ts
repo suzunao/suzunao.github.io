@@ -790,13 +790,21 @@ export class GameController {
       card.id = `chapterCard-${ch.id}`;
 
       if (!isUnlocked) {
+        const classifiedTitles: Record<number, {title: string; subtitle: string}> = {
+          1: { title: 'Capítulo I: [CONFIDENCIAL — ???]', subtitle: '████████████████████████████████████████████' },
+          2: { title: 'Capítulo II: [CONFIDENCIAL — ???]', subtitle: '████████████████████████████████████████████' },
+          3: { title: 'Capítulo III: [CONFIDENCIAL — ???]', subtitle: '████████████████████████████████████████████' },
+          4: { title: 'Epílogo: [ARCHIVO CLASIFICADO]', subtitle: '████████████████████████████████████████████' },
+        };
+        const censored = classifiedTitles[ch.id] || { title: 'Capítulo: [CLASSIFICADO]', subtitle: '████████████████████████████████████████████' };
+
         card.className = 'novel-chapter-card locked-card';
         card.innerHTML = `
-          <div class="chapter-badge">🔒 Capítulo Bloqueado</div>
-          <h4 class="chapter-title">${ch.title}</h4>
-          <div class="chapter-subtitle">${ch.subtitle}</div>
+          <div class="chapter-badge locked">🔒 ARCHIVO CLASIFICADO</div>
+          <h4 class="chapter-title locked">${censored.title}</h4>
+          <div class="chapter-subtitle locked">${censored.subtitle}</div>
           <div class="chapter-locked" style="padding: 24px; text-align: center; color: #7f5539; font-weight: 600; background: #faedcd; border-radius: 8px; margin-top: 16px;">
-            🔒 Capítulo Bloqueado — Completa el objetivo anterior en la libreta para desbloquear.
+            Completa el objetivo activo para desclasificar este capítulo.
           </div>
         `;
         list.appendChild(card);
@@ -1058,6 +1066,8 @@ export class GameController {
     const act2 = document.getElementById('activeContent2');
     const sum3 = document.getElementById('archivedSummary3');
     const act3 = document.getElementById('activeContent3');
+    const title2 = document.getElementById('flagTitle2');
+    const title3 = document.getElementById('flagTitle3');
 
     // Case 1: Always available initially
     if (this.state.flags.flag1) {
@@ -1101,6 +1111,7 @@ export class GameController {
         tag2.className = 'flag-state-tag';
         tag2.textContent = '✅ Resuelto & Archivado';
       }
+      if (title2) title2.innerHTML = '<span>🃏</span> 2. El As Esteganográfico del Michi';
       if (sum2) sum2.style.display = 'flex';
       if (act2) act2.style.display = 'none';
       if (lockNotice2) lockNotice2.style.display = 'none';
@@ -1114,6 +1125,7 @@ export class GameController {
         tag2.className = 'flag-state-tag';
         tag2.textContent = this.state.investigated.bedroom ? '🔮 Evidencia en Análisis' : '⏳ En Campo';
       }
+      if (title2) title2.innerHTML = '<span>🔮</span> 2. El As Esteganográfico del Michi';
       if (sum2) sum2.style.display = 'none';
       if (act2) act2.style.display = 'block';
       if (lockNotice2) lockNotice2.style.display = 'none';
@@ -1137,6 +1149,7 @@ export class GameController {
         tag2.className = 'flag-state-tag locked';
         tag2.textContent = '🔒 Bloqueado (Caso #1)';
       }
+      if (title2) title2.innerHTML = '<span>🔒</span> 2. [Diligencia Clasificada ???]';
       if (sum2) sum2.style.display = 'none';
       if (act2) act2.style.display = 'none';
       if (lockNotice2) lockNotice2.style.display = 'flex';
@@ -1157,6 +1170,7 @@ export class GameController {
         tag3.className = 'flag-state-tag';
         tag3.textContent = '✅ Resuelto & Archivado';
       }
+      if (title3) title3.innerHTML = '<span>⚙️</span> 3. El Parámetro Barista de Wylli';
       if (sum3) sum3.style.display = 'flex';
       if (act3) act3.style.display = 'none';
       if (lockNotice3) lockNotice3.style.display = 'none';
@@ -1170,6 +1184,7 @@ export class GameController {
         tag3.className = 'flag-state-tag';
         tag3.textContent = this.state.investigated.kitchen ? '☕ Evidencia en Análisis' : '⏳ En Campo';
       }
+      if (title3) title3.innerHTML = '<span>☕</span> 3. El Parámetro Barista de Wylli';
       if (sum3) sum3.style.display = 'none';
       if (act3) act3.style.display = 'block';
       if (lockNotice3) lockNotice3.style.display = 'none';
@@ -1193,6 +1208,7 @@ export class GameController {
         tag3.className = 'flag-state-tag locked';
         tag3.textContent = '🔒 Bloqueado (Caso #2)';
       }
+      if (title3) title3.innerHTML = '<span>🔒</span> 3. [Protocolo de Cierre Clasificado ???]';
       if (sum3) sum3.style.display = 'none';
       if (act3) act3.style.display = 'none';
       if (lockNotice3) lockNotice3.style.display = 'flex';
@@ -1209,11 +1225,11 @@ export class GameController {
       if (this.state.flags.flag1 && this.state.flags.flag2 && this.state.flags.flag3) {
         statusEl.textContent = '¡Todos los casos resueltos! Prepara el café ✨';
       } else if (this.state.flags.flag2) {
-        statusEl.textContent = 'Caso 3 de 3: El Parámetro Barista';
+        statusEl.textContent = 'Caso 3 de 3 en investigación';
       } else if (this.state.flags.flag1) {
-        statusEl.textContent = 'Caso 2 de 3: El As Esteganográfico';
+        statusEl.textContent = 'Caso 2 de 3 en investigación';
       } else {
-        statusEl.textContent = 'Caso 1 de 3: La Servilleta ROT-3';
+        statusEl.textContent = 'Caso 1 de 3 en investigación';
       }
     }
   }
@@ -1789,43 +1805,54 @@ export class GameController {
       nextBtn.textContent = isLast ? 'Primer indicio ↩️' : 'Siguiente indicio ➡️';
     }
 
-    // Deduction hypothesis
-    if (promptEl) {
-      promptEl.innerHTML = `💡 <em>Deduce junto a Nolan: ${advice.connectingQuestion}</em>`;
-    }
+    // Deduction hypothesis — ONLY show when scene has been investigated
+    const deductionSection = document.getElementById('nolanDeductionSection');
+    if (!isInvestigated && !isAll) {
+      if (deductionSection) deductionSection.style.display = 'none';
+      if (prevBtn) prevBtn.disabled = true;
+      if (nextBtn) nextBtn.disabled = true;
+    } else {
+      if (deductionSection) deductionSection.style.display = 'block';
+      if (prevBtn) prevBtn.disabled = this.nolanStepIndex === 0;
+      if (nextBtn) nextBtn.disabled = false;
 
-    if (replyEl) {
-      replyEl.style.display = 'none';
-      replyEl.textContent = '';
-    }
+      if (promptEl) {
+        promptEl.innerHTML = `💡 <em>Deduce junto a Nolan: ${advice.connectingQuestion}</em>`;
+      }
 
-    if (optionsContainer) {
-      optionsContainer.innerHTML = '';
-      if (advice.quickOptions && advice.quickOptions.length > 0) {
-        advice.quickOptions.forEach((opt) => {
-          const btn = document.createElement('button');
-          btn.className = 'hypothesis-choice-btn';
-          btn.textContent = opt.text;
-          btn.addEventListener('click', () => {
-            audio.playRadioClick();
-            if (replyEl) {
-              replyEl.style.display = 'block';
-              if (opt.correct) {
-                replyEl.style.borderColor = '#55ef82';
-                replyEl.style.background = 'rgba(85, 239, 130, 0.15)';
-                replyEl.innerHTML = `👮‍♂️ <strong>Oficial Nolan:</strong> «${opt.response}»`;
-                audio.playChime(660);
-                this.showToast('✨ Deducción acertada con Nolan. ¡Regístrala en la libreta!');
-              } else {
-                replyEl.style.borderColor = '#f5c538';
-                replyEl.style.background = 'rgba(245, 197, 56, 0.15)';
-                replyEl.innerHTML = `👮‍♂️ <strong>Oficial Nolan:</strong> «${opt.response}»`;
-                audio.playChime(300);
+      if (replyEl) {
+        replyEl.style.display = 'none';
+        replyEl.textContent = '';
+      }
+
+      if (optionsContainer) {
+        optionsContainer.innerHTML = '';
+        if (advice.quickOptions && advice.quickOptions.length > 0) {
+          advice.quickOptions.forEach((opt) => {
+            const btn = document.createElement('button');
+            btn.className = 'hypothesis-choice-btn';
+            btn.textContent = opt.text;
+            btn.addEventListener('click', () => {
+              audio.playRadioClick();
+              if (replyEl) {
+                replyEl.style.display = 'block';
+                if (opt.correct) {
+                  replyEl.style.borderColor = '#55ef82';
+                  replyEl.style.background = 'rgba(85, 239, 130, 0.15)';
+                  replyEl.innerHTML = `👮‍♂️ <strong>Oficial Nolan:</strong> «${opt.response}»`;
+                  audio.playChime(660);
+                  this.showToast('✨ Deducción acertada con Nolan. ¡Regístrala en la libreta!');
+                } else {
+                  replyEl.style.borderColor = '#f5c538';
+                  replyEl.style.background = 'rgba(245, 197, 56, 0.15)';
+                  replyEl.innerHTML = `👮‍♂️ <strong>Oficial Nolan:</strong> «${opt.response}»`;
+                  audio.playChime(300);
+                }
               }
-            }
+            });
+            optionsContainer.appendChild(btn);
           });
-          optionsContainer.appendChild(btn);
-        });
+        }
       }
     }
   }

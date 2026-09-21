@@ -332,10 +332,25 @@ html, body {
   color: #f7eedf;
   line-height: 1.25;
 }
+.chapter-title.locked {
+  color: #64748b;
+  font-style: italic;
+  letter-spacing: 1px;
+}
 .chapter-subtitle {
   font-size: 11px;
   color: #b9a896;
   font-style: italic;
+}
+.chapter-subtitle.locked {
+  color: #475569;
+  letter-spacing: 2px;
+}
+.chapter-badge.locked {
+  background: #1a1025;
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  letter-spacing: 1px;
 }
 .chapter-prose {
   font-family: "Crimson Pro", serif;
@@ -548,6 +563,15 @@ html, body {
   opacity: 0.45;
   cursor: not-allowed;
   pointer-events: none;
+}
+.censored-text {
+  background: #1a1025;
+  color: #64748b;
+  letter-spacing: 3px;
+  font-family: monospace;
+  padding: 2px 4px;
+  border-radius: 3px;
+  user-select: none;
 }
 .flag-state-tag.locked {
   background: #221a2d;
