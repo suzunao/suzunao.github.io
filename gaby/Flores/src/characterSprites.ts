@@ -1,4 +1,4 @@
-// Pixel Art Sprites fieles a las referencias fotográficas reales de Gaby, El Novio y Oficial John Nolan
+// Pixel Art Sprites fieles a las referencias fotográficas reales de Gaby, Willy y Oficial John Nolan
 
 export interface SpriteOptions {
   size?: number;
@@ -60,9 +60,10 @@ export function getGabySpriteSVG(options: SpriteOptions = {}): string {
  * - Auriculares de diadema negros alrededor del cuello
  * - Camiseta blanca básica
  * - Recostado en el sofá verde con laptop ThinkPad negra llena de stickers de hacking
+ * WYLLI (El Ciberinvestigador)
  * - Soporta estado dormido o despierto/enamorado
  */
-export function getNovioSpriteSVG(options: SpriteOptions = {}): string {
+export function getWillySpriteSVG(options: SpriteOptions = {}): string {
   const size = options.size || 32;
   const cls = options.className ? ` class="${options.className}"` : '';
   const awakened = options.awakened || false;
@@ -126,7 +127,7 @@ export function getNovioSpriteSVG(options: SpriteOptions = {}): string {
  * - Camiseta blanca / sudadera con detalles ciber
  * - Jeans azul marino oscuro y zapatillas deportivas
  */
-export function getWylliStandingSpriteSVG(options: SpriteOptions & { facingLeft?: boolean; step?: number } = {}): string {
+export function getWillyStandingSpriteSVG(options: SpriteOptions & { facingLeft?: boolean; step?: number } = {}): string {
   const size = options.size || 32;
   const cls = options.className ? ` class="${options.className}"` : '';
   const facingLeft = options.facingLeft || false;
@@ -150,7 +151,7 @@ export function getWylliStandingSpriteSVG(options: SpriteOptions & { facingLeft?
       <path d="M10,12 C10,15 22,15 22,12" stroke="#111111" stroke-width="1.8" fill="none"/>
       <rect x="9" y="11" width="2" height="3" fill="#111111"/>
       <rect x="21" y="11" width="2" height="3" fill="#111111"/>
-      <!-- Rostro sonriente despierto de Wylli -->
+      <!-- Rostro sonriente despierto de Willy -->
       <rect x="12" y="5" width="8" height="6.5" fill="#fcdbcf"/>
       <circle cx="14" cy="7.5" r="0.9" fill="#2b1a0e"/>
       <circle cx="18" cy="7.5" r="0.9" fill="#2b1a0e"/>
@@ -277,7 +278,7 @@ export function getCoupleTogetherSVG(size = 96): string {
       <path d="M13,10 C13,4 27,4 27,10 L30,12 L27,13 L13,13 Z" fill="#ffffff"/>
       <!-- Silueta del tiburón en la gorra -->
       <path d="M19,7 Q21,6 23,7 Q22,8 20,8 Z" fill="#4a90e2"/>
-      <!-- Rostro sonriente despierto de Wylli -->
+      <!-- Rostro sonriente despierto de Willy -->
       <rect x="15" y="10" width="10" height="7.5" fill="#fcdbcf"/>
       <circle cx="17.5" cy="13" r="1" fill="#2b1a0e"/>
       <circle cx="22.5" cy="13" r="1" fill="#2b1a0e"/>
@@ -316,7 +317,7 @@ export function getCoupleTogetherSVG(size = 96): string {
       <rect x="45.5" y="14" width="2" height="1" fill="#ff758f" opacity="0.75"/>
 
       <!-- === MANOS ENTRELAZADAS EN EL CENTRO ❤️ === -->
-      <!-- Brazo derecho de Wylli hacia el centro -->
+      <!-- Brazo derecho de Willy hacia el centro -->
       <rect x="27" y="23" width="5" height="4" rx="1.5" fill="#f8f9fa"/>
       <!-- Brazo izquierdo de Gaby hacia el centro -->
       <rect x="32" y="23" width="5" height="4" rx="1.5" fill="#f4ccd5"/>
@@ -339,8 +340,8 @@ export function getSpeakerAvatarHTML(speaker: string, size = 32, awakened = fals
   switch (speaker) {
     case 'gaby':
       return getGabySpriteSVG({ size });
-    case 'novio':
-      return getNovioSpriteSVG({ size, awakened });
+    case 'willy':
+      return getWillySpriteSVG({ size, awakened });
     case 'nolan':
       return getNolanSpriteSVG({ size });
     case 'michi':

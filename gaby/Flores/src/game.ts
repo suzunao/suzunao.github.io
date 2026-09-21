@@ -1,7 +1,7 @@
 import { GameState, Hotspot } from './types';
 import { audio } from './audio';
 import { STORY_CHAPTERS, HOTSPOT_DIALOGUES, ACCEPTED_ANSWERS, NOLAN_RADIO_ADVICES, PROLOGUE_STEPS } from './story';
-import { getSpeakerAvatarHTML, getNovioSpriteSVG, getCoupleTogetherSVG, getGabySpriteSVG, getNolanSpriteSVG } from './characterSprites';
+import { getSpeakerAvatarHTML, getWillySpriteSVG, getCoupleTogetherSVG, getGabySpriteSVG, getNolanSpriteSVG } from './characterSprites';
 import { virtualWorldGame } from './virtualWorld';
 import Phaser from 'phaser';
 import { PHASER_CONFIG } from './phaserConfig';
@@ -54,8 +54,7 @@ export class GameController {
   private baristaStep: number = 0;
   private caesarCurrentShift: number = 0;
   private caesarSourcePhrase: string = 'Vrv pl vro';
-  private phaserSalaGame: Phaser.Game | null = null;
-  private phaserGardenGame: Phaser.Game | null = null;
+  private phaserGame: Phaser.Game | null = null;
 
   // Hotspots definition based on exact user coordinates
   public hotspots: Hotspot[] = [
@@ -71,14 +70,14 @@ export class GameController {
       storyChapter: 3,
     },
     {
-      id: 'wylli',
-      name: 'Wylli (Sillón de la Sala)',
+      id: 'willy',
+      name: 'Willy (Sillón de la Sala)',
       room: 'Sala de Estar',
       x: 45,
       y: 44,
       radius: 7,
       actionText: 'Inspeccionar taza de té y notas de ciberseguridad',
-      speaker: 'novio',
+      speaker: 'willy',
       storyChapter: 1,
     },
     {
@@ -225,30 +224,25 @@ export class GameController {
     this.openPrologue(0);
   }
 
-  private initPhaserSala(): Phaser.Game {
-    if (this.phaserSalaGame) return this.phaserSalaGame;
+  private initPhaserGame(): Phaser.Game {
+    if (this.phaserGame) return this.phaserGame;
 
     const game = new Phaser.Game({
       ...PHASER_CONFIG,
       parent: 'phaserAwakening',
-      scene: [BootScene, SalaScene],
+      scene: [BootScene, SalaScene, GardenScene],
     });
 
-    this.phaserSalaGame = game;
+    this.phaserGame = game;
     return game;
   }
 
-  private initPhaserGarden(): Phaser.Game {
-    if (this.phaserGardenGame) return this.phaserGardenGame;
-
-    const game = new Phaser.Game({
-      ...PHASER_CONFIG,
-      parent: 'phaserGarden',
-      scene: [BootScene, GardenScene],
-    });
-
-    this.phaserGardenGame = game;
-    return game;
+  private reparentCanvas(parentId: string): void {
+    const canvas = this.phaserGame?.canvas;
+    const parent = document.getElementById(parentId);
+    if (canvas && parent && canvas.parentElement !== parent) {
+      parent.appendChild(canvas);
+    }
   }
 
   private setupMap() {
@@ -283,8 +277,8 @@ export class GameController {
       const el = document.getElementById(
         spot.id === 'barista'
           ? 'hotspotBarista'
-          : spot.id === 'wylli'
-          ? 'hotspotWylli'
+          : spot.id === 'willy'
+          ? 'hotspotWilly'
           : spot.id === 'table'
           ? 'hotspotTable'
           : spot.id === 'michi'
@@ -435,22 +429,22 @@ export class GameController {
     let dialogue = HOTSPOT_DIALOGUES[spot.id] || HOTSPOT_DIALOGUES.cinnamonTea;
 
     // Procedural context-aware dialogues to prevent story clutter & re-investigation
-    if (spot.id === 'wylli') {
+    if (spot.id === 'willy') {
       if (this.state.awakened) {
         dialogue = {
-          speaker: 'novio',
-          speakerName: 'Wylli (¡Tu Novio Despierto!)',
+          speaker: 'willy',
+          speakerName: 'Willy (¡Willy Despierto!)',
           avatar: '💻',
-          atmosphere: 'Wylli te sonríe con infinita ternura sosteniendo tu mano...',
+          atmosphere: 'Willy te sonríe con infinita ternura sosteniendo tu mano...',
           text: '«—¡Gaby, mi amada detective! Desperté con el Café Supremo y tu amor. Pero la verdadera sorpresa de este 21 de septiembre te espera en nuestro portal interactivo: he programado un <strong>Mundo Virtual que se crea y florece solo a tu paso</strong>, lleno de flores amarillas infinitas. ¡Ven conmigo a explorarlo!»',
         };
       } else if (this.state.flags.flag1) {
         dialogue = {
-          speaker: 'novio',
+          speaker: 'willy',
           speakerName: 'Sala de Estar (Expediente #1 Archivado)',
           avatar: '💻',
-          atmosphere: 'Wylli descansa con un sueño dulce y reparador sobre los cojines verdes...',
-          text: '«Wylli duerme con una sonrisa apacible. La servilleta ROT-3 ya fue descifrada con éxito: <strong>«SOS MI SOL»</strong>. El indicio está resuelto y archivado en tu libreta. Ya no es necesario volver a investigarlo.»',
+          atmosphere: 'Willy descansa con un sueño dulce y reparador sobre los cojines verdes...',
+          text: '«Willy duerme con una sonrisa apacible. La servilleta ROT-3 ya fue descifrada con éxito: <strong>«SOS MI SOL»</strong>. El indicio está resuelto y archivado en tu libreta. Ya no es necesario volver a investigarlo.»',
         };
       }
     } else if (spot.id === 'michi') {
@@ -460,7 +454,7 @@ export class GameController {
           speakerName: 'Dormitorio (Indicio Sellado 🔒)',
           avatar: '🐱',
           atmosphere: 'El Michi blanco duerme plácidamente sobre el edredón...',
-          text: '«Acaricias con cariño al Michi blanco sin despertarlo. 🔒 <em>Indicio Sellado:</em> Para no alarmarlo, debes resolver primero el <strong>Caso #1 (La Servilleta ROT-3)</strong> junto a Wylli en la sala. Una vez resuelto, podrás acceder al naipe bajo su patita.»',
+          text: '«Acaricias con cariño al Michi blanco sin despertarlo. 🔒 <em>Indicio Sellado:</em> Para no alarmarlo, debes resolver primero el <strong>Caso #1 (La Servilleta ROT-3)</strong> junto a Willy en la sala. Una vez resuelto, podrás acceder al naipe bajo su patita.»',
         };
       } else if (this.state.flags.flag2) {
         dialogue = {
@@ -486,7 +480,7 @@ export class GameController {
           speakerName: 'Cocina & Cafetera (Expediente #3 Archivado)',
           avatar: '☕',
           atmosphere: 'El aroma a canela y espresso recién extraído inunda la barra...',
-          text: '«La extracción del Café Supremo ha finalizado con la fórmula maestra: <strong>«DULCE DESPERTAR»</strong>. El caso #3 está completado y archivado. La taza está humeante y lista para Wylli.»',
+          text: '«La extracción del Café Supremo ha finalizado con la fórmula maestra: <strong>«DULCE DESPERTAR»</strong>. El caso #3 está completado y archivado. La taza está humeante y lista para Willy.»',
         };
       }
     }
@@ -494,7 +488,7 @@ export class GameController {
     if (!dialogue) return;
 
     // Mark scene as physically investigated by Gaby
-    if (spot.id === 'wylli') {
+    if (spot.id === 'willy') {
       if (!this.state.investigated.living) {
         this.state.investigated.living = true;
         this.renderChapters();
@@ -518,7 +512,7 @@ export class GameController {
     }
 
     // Play thematic audio
-    if (spot.id === 'wylli') audio.playChime(440);
+    if (spot.id === 'willy') audio.playChime(440);
     else if (spot.id === 'michi') audio.playPurr();
     else if (spot.id === 'barista') audio.playSteam();
     else if (spot.id === 'nolan') audio.playRadioBeep();
@@ -553,7 +547,7 @@ export class GameController {
     actionsEl.innerHTML = '';
 
     // Action 1: Forensic Tools or Procedural Navigation
-    if (spot && spot.id === 'wylli') {
+    if (spot && spot.id === 'willy') {
       if (this.state.awakened) {
         const btnVw = document.createElement('button');
         btnVw.className = 'vn-choice-btn primary';
@@ -615,7 +609,7 @@ export class GameController {
         } else {
           const btnServe = document.createElement('button');
           btnServe.className = 'vn-choice-btn primary';
-          btnServe.innerHTML = '<span>☕</span> Preparar y Servir el Café Supremo a Wylli';
+          btnServe.innerHTML = '<span>☕</span> Preparar y Servir el Café Supremo a Willy';
           btnServe.onclick = () => {
             this.closeNovelDialogue();
             document.getElementById('btnServeCoffee')?.click();
@@ -640,7 +634,7 @@ export class GameController {
         btnGoLiving.onclick = () => {
           this.closeNovelDialogue();
           this.walkTo(58, 42, () => {
-            const lSpot = this.hotspots.find((s) => s.id === 'wylli');
+            const lSpot = this.hotspots.find((s) => s.id === 'willy');
             if (lSpot) this.triggerHotspotDialogue(lSpot);
           });
         };
@@ -674,7 +668,7 @@ export class GameController {
         } else {
           const btnServe = document.createElement('button');
           btnServe.className = 'vn-choice-btn primary';
-          btnServe.innerHTML = '<span>☕</span> Ir a la Sala a servir el Café a Wylli';
+          btnServe.innerHTML = '<span>☕</span> Ir a la Sala a servir el Café a Willy';
           btnServe.onclick = () => {
             this.closeNovelDialogue();
             this.walkTo(58, 42, () => {
@@ -723,7 +717,7 @@ export class GameController {
         if (!this.state.awakened) {
           const btnServe = document.createElement('button');
           btnServe.className = 'vn-choice-btn primary';
-          btnServe.innerHTML = '<span>☕</span> Llevar Café Supremo a Wylli en la Sala';
+          btnServe.innerHTML = '<span>☕</span> Llevar Café Supremo a Willy en la Sala';
           btnServe.onclick = () => {
             this.closeNovelDialogue();
             this.walkTo(58, 42, () => {
@@ -769,7 +763,7 @@ export class GameController {
       btnNolan.innerHTML = '<span>📻</span> Pedir Consejo por Radio a Nolan';
       btnNolan.onclick = () => {
         this.closeNovelDialogue();
-        const flagTarget: 1 | 2 | 3 = spot.id === 'wylli' ? 1 : spot.id === 'michi' ? 2 : 3;
+        const flagTarget: 1 | 2 | 3 = spot.id === 'willy' ? 1 : spot.id === 'michi' ? 2 : 3;
         this.openNolanRadioModal(flagTarget);
       };
       actionsEl.appendChild(btnNolan);
@@ -932,14 +926,14 @@ export class GameController {
         // Action shortcuts for active unsolved chapter
         let actionsHTML = '';
         if (!ch.solved && ch.id > 0) {
-          const roomKey = ch.roomTarget as 'wylli' | 'michi' | 'barista';
-          const isInvestigated = this.state.investigated[roomKey];
+          const roomKey = ch.roomTarget as 'willy' | 'michi' | 'barista';
+          const isInvestigated = this.state.investigated[roomKey as keyof typeof this.state.investigated];
 
           if (!isInvestigated) {
             actionsHTML = `
               <div class="novel-mission-box">
                 <strong>🕵️‍♀️ Fase 1: Recopilación de Campo</strong><br>
-                El indicio físico aún no ha sido recogido de la escena. Camina hasta <em>${ch.roomLabel || 'la estancia'}</em> e inspecciona el lugar para descubrir la pista de Wylli.
+                El indicio físico aún no ha sido recogido de la escena. Camina hasta <em>${ch.roomLabel || 'la estancia'}</em> e inspecciona el lugar para descubrir la pista de Willy.
               </div>
               <div class="novel-actions-row">
                 ${
@@ -1013,7 +1007,7 @@ export class GameController {
             if (action === 'goto-room') {
               const room = btn.getAttribute('data-room');
               const coords: Record<string, { x: number; y: number; spotId: string }> = {
-                wylli: { x: 45, y: 44, spotId: 'wylli' },
+                willy: { x: 45, y: 44, spotId: 'willy' },
                 barista: { x: 31, y: 33, spotId: 'barista' },
                 michi: { x: 68, y: 56, spotId: 'michi' },
                 nolan: { x: 18, y: 68, spotId: 'nolan' },
@@ -1053,7 +1047,7 @@ export class GameController {
     item.className = 'chronicle-item';
 
     let avatarHTML = '';
-    const key = speakerKey || (['gaby', 'novio', 'nolan', 'michi', 'narrator'].includes(avatar) ? avatar : null);
+    const key = speakerKey || (['gaby', 'willy', 'nolan', 'michi', 'narrator'].includes(avatar) ? avatar : null);
     if (key) {
       avatarHTML = getSpeakerAvatarHTML(key as any, 22, this.state.awakened);
     } else if (avatar.includes('<svg')) {
@@ -1110,7 +1104,7 @@ export class GameController {
 
       // Update hotspot visual status
       if (num === 1) {
-        const spotEl = document.getElementById('hotspotWylli');
+        const spotEl = document.getElementById('hotspotWilly');
         const statusEl = document.getElementById('statusLiving');
         spotEl?.classList.add('completed');
         if (statusEl) statusEl.textContent = '✅';
@@ -1285,7 +1279,7 @@ export class GameController {
         tag3.className = 'flag-state-tag';
         tag3.textContent = '✅ Resuelto & Archivado';
       }
-      if (title3) title3.innerHTML = '<span>⚙️</span> 3. El Parámetro Barista de Wylli';
+      if (title3) title3.innerHTML = '<span>⚙️</span> 3. El Parámetro Barista de Willy';
       if (sum3) sum3.style.display = 'flex';
       if (act3) act3.style.display = 'none';
       if (lockNotice3) lockNotice3.style.display = 'none';
@@ -1299,7 +1293,7 @@ export class GameController {
         tag3.className = 'flag-state-tag';
         tag3.textContent = this.state.investigated.kitchen ? '☕ Evidencia en Análisis' : '⏳ En Campo';
       }
-      if (title3) title3.innerHTML = '<span>☕</span> 3. El Parámetro Barista de Wylli';
+      if (title3) title3.innerHTML = '<span>☕</span> 3. El Parámetro Barista de Willy';
       if (sum3) sum3.style.display = 'none';
       if (act3) act3.style.display = 'block';
       if (lockNotice3) lockNotice3.style.display = 'none';
@@ -1529,7 +1523,7 @@ export class GameController {
     if (count === 3 && btnServe) {
       btnServe.removeAttribute('disabled');
       btnServe.classList.add('unlocked');
-      btnServe.innerHTML = '<span>☕</span> ¡Servir Café Supremo y Despertar al Novio!';
+      btnServe.innerHTML = '<span>☕</span> ¡Servir Café Supremo y Despertar a Willy!';
       audio.playVictoryWaltz();
       this.showToast('🎉 ¡Los 3 sellos han sido descifrados! Las flores amarillas comienzan a brotar.');
 
@@ -1538,19 +1532,22 @@ export class GameController {
 
       this.addChronicleEntry(
         'Oficial John Nolan',
-        '¡Brillante deducción, Detective Gaby! Supo unir cada indicio con maestría. La cabaña vibra con flores amarillas y el aroma a canela. Es hora de llevarle el Café Supremo a Wylli.',
+        '¡Brillante deducción, Detective Gaby! Supo unir cada indicio con maestría. La cabaña vibra con flores amarillas y el aroma a canela. Es hora de llevarle el Café Supremo a Willy.',
         '👮‍♂️',
         'nolan'
       );
     }
   }
 
+  private toastTimeout: ReturnType<typeof setTimeout> | null = null;
+
   public showToast(msg: string) {
     const toast = document.getElementById('cozyToast');
     if (!toast) return;
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
     toast.textContent = msg;
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2800);
+    this.toastTimeout = setTimeout(() => toast.classList.remove('show'), 2800);
   }
 
   // --- FORENSIC MODALS & INVESTIGATION SYSTEM ---
@@ -1705,7 +1702,7 @@ export class GameController {
           <circle cx="160" cy="50" r="12" fill="#ffea75" opacity="0.35"/>
           <circle cx="160" cy="50" r="6" fill="#ffffff" opacity="0.8"/>
           <g transform="translate(110, 70)">
-            ${getNovioSpriteSVG({ size: 90, awakened: false })}
+            ${getWillySpriteSVG({ size: 90, awakened: false })}
           </g>
           <rect x="210" y="110" width="85" height="45" rx="2" fill="#523927" stroke="#38251a" stroke-width="2"/>
           <polygon points="230,105 270,105 278,125 222,125" fill="#1b1b1b"/>
@@ -2007,7 +2004,7 @@ export class GameController {
     }
 
     modal.classList.add('active');
-    this.showToast('🌸 Bienvenidos al Jardín Secreto de Wylli & Gaby.');
+    this.showToast('🌸 Bienvenidos al Jardín Secreto de Willy & Gaby.');
   }
 
   public closeSecretGardenScenario() {
@@ -2047,7 +2044,7 @@ export class GameController {
         </div>
         <div style="background:var(--bg-deep);border-left:3px solid var(--accent-gold);padding:12px 14px;border-radius:6px;margin-bottom:16px;line-height:1.6;color:var(--text-primary);font-family:var(--font-prose);">
           <em>«Signos vitales al 100%. Mi patrulla concluyó, excelente trabajo en equipo, Detective.</em><br><br>
-          <em>Los dejo a solas... Wylli tiene algo muy especial para usted.»</em>
+          <em>Los dejo a solas... Willy tiene algo muy especial para usted.»</em>
         </div>
         <div style="display:flex;justify-content:center;">
           <button id="btnAcknowledgeFarewell" class="btn-primary" style="background:var(--accent-gold);color:var(--bg-deep);font-weight:600;padding:10px 28px;border-radius:8px;border:none;cursor:pointer;font-size:0.95rem;">
@@ -2079,13 +2076,17 @@ export class GameController {
     if (overlay) overlay.classList.add('active');
     this.state.currentScene = 'sala';
 
-    const game = this.initPhaserSala();
+    this.reparentCanvas('phaserAwakening');
+    const game = this.initPhaserGame();
+    game.scene.start('BootScene', { nextScene: 'SalaScene' });
+
     const checkReady = () => {
       const scene = game.scene.getScene('SalaScene') as SalaScene;
       if (scene && scene.sys.isActive()) {
         scene.onSalaComplete = () => {
           if (overlay) overlay.classList.remove('active');
           this.state.currentScene = null;
+          game.scene.stop('SalaScene');
           document.getElementById('verdictModal')?.classList.add('active');
         };
       } else {
@@ -2100,11 +2101,9 @@ export class GameController {
     if (vwModal) vwModal.classList.add('active');
     this.state.currentScene = 'garden';
 
-    if (this.phaserGardenGame) {
-      this.phaserGardenGame.destroy(true);
-      this.phaserGardenGame = null;
-    }
-    this.initPhaserGarden();
+    this.reparentCanvas('phaserGarden');
+    const game = this.initPhaserGame();
+    game.scene.start('BootScene', { nextScene: 'GardenScene' });
   }
 
   public bloomGardenYellowFlowers() {
@@ -2116,10 +2115,10 @@ export class GameController {
   public openRot3Modal() {
     if (!this.state.investigated.living) {
       audio.playChime(220);
-      this.showToast('🕵️‍♀️ Evidencia no asegurada: Camina a la mesa de la Sala e inspecciona la servilleta junto a Wylli.');
+      this.showToast('🕵️‍♀️ Evidencia no asegurada: Camina a la mesa de la Sala e inspecciona la servilleta junto a Willy.');
       this.switchTab('novel');
       this.walkTo(58, 42, () => {
-        const spot = this.hotspots.find((s) => s.id === 'wylli');
+        const spot = this.hotspots.find((s) => s.id === 'willy');
         if (spot) this.triggerHotspotDialogue(spot);
       });
       return;
@@ -2325,7 +2324,7 @@ export class GameController {
     });
     document.getElementById('secretGardenScenicView')?.addEventListener('click', (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (target.closest('.garden-wylli-dialogue') || target.closest('button')) return;
+      if (target.closest('.garden-willy-dialogue') || target.closest('button')) return;
       const rect = (document.getElementById('secretGardenScenicView') as HTMLElement).getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const clickY = e.clientY - rect.top;
@@ -2341,10 +2340,10 @@ export class GameController {
           this.switchTab('novel');
           this.showDestinationMarker(58, 42);
           this.walkTo(58, 42, () => {
-            const spot = this.hotspots.find((s) => s.id === 'wylli');
+            const spot = this.hotspots.find((s) => s.id === 'willy');
             if (spot) this.triggerHotspotDialogue(spot);
           });
-          this.showToast('🚶‍♀️ Caminando a la Sala a examinar la servilleta de Wylli...');
+          this.showToast('🚶‍♀️ Caminando a la Sala a examinar la servilleta de Willy...');
         } else {
           this.openRot3Modal();
         }
@@ -2539,12 +2538,12 @@ export class GameController {
       if (btn3) { btn3.disabled = true; btn3.textContent = '✓ Café Supremo Listo'; }
       result?.classList.add('visible');
 
-      this.showToast('☕ ¡El Café Supremo está listo y humeante para Wylli!');
+      this.showToast('☕ ¡El Café Supremo está listo y humeante para Willy!');
     });
 
     document.getElementById('btnFinishBarista')?.addEventListener('click', () => {
       this.closeBaristaModal();
-      // Auto walk to Wylli at the sofa
+      // Auto walk to Willy at the sofa
       this.walkTo(58, 42, () => {
         const btnServe = document.getElementById('btnServeCoffee');
         if (btnServe) btnServe.click();
@@ -2559,13 +2558,13 @@ export class GameController {
         audio.playSteam();
         this.state.awakened = true;
 
-        const novioFigure = document.getElementById('novioSceneFigure');
-        if (novioFigure) {
-          novioFigure.innerHTML = getNovioSpriteSVG({ size: 44, awakened: true });
+        const willyFigure = document.getElementById('willySceneFigure');
+        if (willyFigure) {
+          willyFigure.innerHTML = getWillySpriteSVG({ size: 44, awakened: true });
         }
-        const livingLabel = document.getElementById('wylliLabel');
+        const livingLabel = document.getElementById('willyLabel');
         const statusLiving = document.getElementById('statusLiving');
-        if (livingLabel) livingLabel.textContent = '¡El Novio Despierto! ❤️';
+        if (livingLabel) livingLabel.textContent = '¡Willy Despierto! ❤️';
         if (statusLiving) statusLiving.textContent = '💖';
 
         const chapterPill = document.getElementById('storyChapterPill');
@@ -2576,10 +2575,10 @@ export class GameController {
         }
 
         this.addChronicleEntry(
-          'El Novio Despierto',
+          'Willy Despierto',
           '¡Mmm, qué aroma tan delicioso de canela y café supremo! Abre los ojos sonriendo y contempla a Gaby con infinita ternura: «¡Sabía que lo lograrías, amor! Eres mi detective favorita.»',
           '💻',
-          'novio'
+          'willy'
         );
 
         if (STORY_CHAPTERS[4]) {
@@ -2656,7 +2655,7 @@ export class GameController {
         chip.classList.add('active');
         const target = chip.getAttribute('data-target');
         const coords: Record<string, { x: number; y: number; spotId?: string }> = {
-          wylli: { x: 45, y: 44, spotId: 'wylli' },
+          willy: { x: 45, y: 44, spotId: 'willy' },
           barista: { x: 31, y: 33, spotId: 'barista' },
           michi: { x: 68, y: 56, spotId: 'michi' },
           nolan: { x: 18, y: 68, spotId: 'nolan' },

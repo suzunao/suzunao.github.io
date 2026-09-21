@@ -152,13 +152,13 @@ function drawIdle(
 
   /* Arms */
   ctx.fillStyle = s.shirtColor;
-  ctx.fillRect(-s.shirtW / 2 - 3, -armH + bob, 3, armH);
-  ctx.fillRect(s.shirtW / 2, -armH + bob, 3, armH);
+  ctx.fillRect(-s.shirtW / 2 - 5, -armH + bob, 5, armH);
+  ctx.fillRect(s.shirtW / 2, -armH + bob, 5, armH);
 
   /* Hands */
   ctx.fillStyle = s.skinColor;
-  ctx.fillRect(-s.shirtW / 2 - 3, -armH + bob + armH - 3, 3, 3);
-  ctx.fillRect(s.shirtW / 2, -armH + bob + armH - 3, 3, 3);
+  ctx.fillRect(-s.shirtW / 2 - 5, -armH + bob + armH - 3, 5, 3);
+  ctx.fillRect(s.shirtW / 2, -armH + bob + armH - 3, 5, 3);
 
   /* Held item */
   if (s.held) {
@@ -203,11 +203,12 @@ function drawWalking(
   s: CharSpec,
   time: number,
 ): void {
-  const bob = Math.sin(time * 0.008) * 2;
-  const legPhase = Math.sin(time * 0.008);
+  const sinVal = Math.sin(time * 0.008);
+  const bob = sinVal * 2;
+  const legPhase = sinVal;
   const legH = s.pantsH;
   const legSpread = 1;
-  const armSwing = Math.sin(time * 0.008) * 3;
+  const armSwing = sinVal * 3;
 
   /* Shadow */
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
@@ -237,13 +238,13 @@ function drawWalking(
 
   /* Arms (swinging) */
   ctx.fillStyle = s.shirtColor;
-  ctx.fillRect(-s.shirtW / 2 - 3, -s.shirtH + 4 + bob + armSwing, 3, s.shirtH - 4);
-  ctx.fillRect(s.shirtW / 2, -s.shirtH + 4 + bob - armSwing, 3, s.shirtH - 4);
+  ctx.fillRect(-s.shirtW / 2 - 5, -s.shirtH + 4 + bob + armSwing, 5, s.shirtH - 4);
+  ctx.fillRect(s.shirtW / 2, -s.shirtH + 4 + bob - armSwing, 5, s.shirtH - 4);
 
   /* Hands */
   ctx.fillStyle = s.skinColor;
-  ctx.fillRect(-s.shirtW / 2 - 3, -s.shirtH + 4 + bob + armSwing + s.shirtH - 7, 3, 3);
-  ctx.fillRect(s.shirtW / 2, -s.shirtH + 4 + bob - armSwing + s.shirtH - 7, 3, 3);
+  ctx.fillRect(-s.shirtW / 2 - 5, -s.shirtH + 4 + bob + armSwing + s.shirtH - 7, 5, 3);
+  ctx.fillRect(s.shirtW / 2, -s.shirtH + 4 + bob - armSwing + s.shirtH - 7, 5, 3);
 
   /* Held item */
   if (s.held) {
@@ -318,13 +319,13 @@ function drawSitting(
 
   /* Arms (resting at sides) */
   ctx.fillStyle = s.shirtColor;
-  ctx.fillRect(-s.shirtW / 2 - 3, -s.shirtH + 4, 3, s.shirtH - 4);
-  ctx.fillRect(s.shirtW / 2, -s.shirtH + 4, 3, s.shirtH - 4);
+  ctx.fillRect(-s.shirtW / 2 - 5, -s.shirtH + 4, 5, s.shirtH - 4);
+  ctx.fillRect(s.shirtW / 2, -s.shirtH + 4, 5, s.shirtH - 4);
 
   /* Hands */
   ctx.fillStyle = s.skinColor;
-  ctx.fillRect(-s.shirtW / 2 - 3, -s.shirtH + 4 + s.shirtH - 7, 3, 3);
-  ctx.fillRect(s.shirtW / 2, -s.shirtH + 4 + s.shirtH - 7, 3, 3);
+  ctx.fillRect(-s.shirtW / 2 - 5, -s.shirtH + 4 + s.shirtH - 7, 5, 3);
+  ctx.fillRect(s.shirtW / 2, -s.shirtH + 4 + s.shirtH - 7, 5, 3);
 
   /* Held item */
   if (s.held) {

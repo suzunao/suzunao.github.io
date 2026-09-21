@@ -6,7 +6,7 @@ export interface Hotspot {
   y: number;
   radius: number;
   actionText: string;
-  speaker: 'gaby' | 'novio' | 'nolan' | 'michi' | 'narrator';
+  speaker: 'gaby' | 'willy' | 'nolan' | 'michi' | 'narrator';
   storyChapter: number;
 }
 
@@ -20,7 +20,7 @@ export interface StoryChapter {
   solved: boolean;
   requiredFlag?: 'none' | 'flag1' | 'flag2' | 'flag3' | 'all';
   lockedSummary?: string;
-  roomTarget?: 'wylli' | 'michi' | 'barista' | 'nolan';
+  roomTarget?: 'willy' | 'michi' | 'barista' | 'nolan';
   roomLabel?: string;
   toolTarget?: 'rot3' | 'uv' | 'barista';
   toolName?: string;
@@ -33,7 +33,7 @@ export interface DialogueOption {
 }
 
 export interface StoryDialogue {
-  speaker: 'gaby' | 'novio' | 'nolan' | 'michi' | 'narrator';
+  speaker: 'gaby' | 'willy' | 'nolan' | 'michi' | 'narrator';
   speakerName: string;
   avatar: string;
   text: string;

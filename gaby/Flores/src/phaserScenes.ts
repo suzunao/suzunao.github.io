@@ -17,12 +17,18 @@ import type { CharState } from './characters';
    ══════════════════════════════════════════════════════════════ */
 
 export class BootScene extends Phaser.Scene {
+  private nextScene = 'SalaScene';
+
   constructor() {
     super('BootScene');
   }
 
+  init(data: { nextScene?: string }) {
+    this.nextScene = data?.nextScene || 'SalaScene';
+  }
+
   create(): void {
-    this.scene.start('SalaScene');
+    this.scene.start(this.nextScene);
   }
 }
 
@@ -62,6 +68,8 @@ export class SalaScene extends Phaser.Scene {
   private heartsStartTime = 0;
   private dialogueText = '';
   private dialogueAlpha = 0;
+  private completed = false;
+  private dialogueTextObj!: Phaser.GameObjects.Text;
 
   public onSalaComplete: (() => void) | null = null;
 
@@ -75,8 +83,20 @@ export class SalaScene extends Phaser.Scene {
     this.heartsActive = false;
     this.dialogueText = '';
     this.dialogueAlpha = 0;
+    this.completed = false;
 
     this.graphics = this.add.graphics();
+
+    /* Dialogue text object */
+    this.dialogueTextObj = this.add.text(0, 0, '', {
+      fontSize: '13px',
+      fontFamily: 'monospace',
+      color: '#f5e6d3',
+      align: 'center',
+    });
+    this.dialogueTextObj.setOrigin(0.5, 0.5);
+    this.dialogueTextObj.setDepth(10);
+    this.dialogueTextObj.setVisible(false);
 
     /* Initial positions (bottom-centre origin) */
     this.gaby = {
@@ -159,7 +179,7 @@ export class SalaScene extends Phaser.Scene {
 
       case 'makingCoffee':
         if (this.phaseTimer > 3000) {
-          this.showDialogue('Un Caf\u00E9 Supremo, justo como le gusta a mi Wylli...');
+          this.showDialogue('Un Caf\u00E9 Supremo, justo como le gusta a mi Willy...');
           this.startPhase('returnToSofa');
         }
         break;
@@ -203,9 +223,7 @@ export class SalaScene extends Phaser.Scene {
           this.nolan.state = 'walk';
           this.nolan.dir = 'left';
         }
-        if (this.phaseTimer > 4500) {
-          this.nolan.state = 'idle';
-          this.nolan.y = -100;
+        if (this.phaseTimer > 4500 && this.isAtTarget(this.nolan)) {
           this.startPhase('walkToExit');
         }
         break;
@@ -217,7 +235,8 @@ export class SalaScene extends Phaser.Scene {
         break;
 
       case 'fadeOut':
-        if (this.phaseTimer > 1500) {
+        if (this.phaseTimer > 1500 && !this.completed) {
+          this.completed = true;
           if (this.onSalaComplete) this.onSalaComplete();
         }
         break;
@@ -277,7 +296,10 @@ export class SalaScene extends Phaser.Scene {
       case 'fadeOut':
         this.cameras.main.fadeOut(1500, 0, 0, 0);
         this.cameras.main.once('camerafadeoutcomplete', () => {
-          if (this.onSalaComplete) this.onSalaComplete();
+          if (!this.completed) {
+            this.completed = true;
+            if (this.onSalaComplete) this.onSalaComplete();
+          }
         });
         break;
     }
@@ -345,8 +367,11 @@ export class SalaScene extends Phaser.Scene {
     g.fillRect(GAME_WIDTH * 0.52, GAME_HEIGHT * 0.93, 3, 3);
   }
 
-  private renderDialogue(t: number): void {
-    if (this.dialogueAlpha <= 0 || !this.dialogueText) return;
+  private renderDialogue(_t: number): void {
+    if (this.dialogueAlpha <= 0 || !this.dialogueText) {
+      this.dialogueTextObj.setVisible(false);
+      return;
+    }
     const g = this.graphics;
     const alpha = Math.min(1, this.dialogueAlpha);
     const textW = this.dialogueText.length * 5.5 + 40;
@@ -359,6 +384,11 @@ export class SalaScene extends Phaser.Scene {
     g.fillRoundedRect(boxX, boxY, boxW, boxH, 8);
     g.lineStyle(1, 0xf5c538, alpha * 0.6);
     g.strokeRoundedRect(boxX, boxY, boxW, boxH, 8);
+
+    this.dialogueTextObj.setText(this.dialogueText);
+    this.dialogueTextObj.setPosition(boxX + boxW / 2, boxY + boxH / 2);
+    this.dialogueTextObj.setAlpha(alpha);
+    this.dialogueTextObj.setVisible(true);
   }
 
   /* ── Helpers ────────────────────────────────────────────── */
@@ -413,6 +443,7 @@ export class GardenScene extends Phaser.Scene {
   private bloomIndex = 0;
   private enteredBench = false;
   private benchFlowersActive = false;
+  private autoBloomTimer = 0;
 
   public onGardenReady: (() => void) | null = null;
 
@@ -438,7 +469,7 @@ export class GardenScene extends Phaser.Scene {
       dir: 'right',
     };
 
-    /* Wylli at bench */
+    /* Willy at bench */
     this.willy = {
       x: GAME_WIDTH * 0.55,
       y: GAME_HEIGHT * 0.6,
@@ -529,7 +560,16 @@ export class GardenScene extends Phaser.Scene {
     const count = 12;
     const radius = 50;
 
-    for (let i = 0; i < count; i++) {
+    /* Auto-bloom: add one flower every 300ms after bench */
+    if (this.benchFlowersActive && this.bloomIndex < count) {
+      this.autoBloomTimer += this.game.loop.delta;
+      if (this.autoBloomTimer > 300) {
+        this.autoBloomTimer = 0;
+        this.bloomIndex++;
+      }
+    }
+
+    for (let i = 0; i < this.bloomIndex; i++) {
       const angle = (i / count) * Math.PI * 2;
       const fx = cx + Math.cos(angle) * radius;
       const fy = cy + Math.sin(angle) * radius * 0.5;
@@ -607,8 +647,10 @@ export class GardenScene extends Phaser.Scene {
   }
 
   private bloomNext(): void {
-    if (this.bloomIndex >= this.flowers.length) return;
+    if (this.bloomIndex >= 12) return;
     this.bloomIndex++;
+    /* Auto-bloom remaining flowers with delay */
+    this.time.delayedCall(400, () => this.bloomNext());
   }
 
   /* ── Movement ──────────────────────────────────────────── */
