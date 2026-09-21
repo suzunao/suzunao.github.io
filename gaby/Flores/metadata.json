@@ -1,0 +1,6 @@
+{
+  "name": "El Enigma de la Cabaña de los Tres Suspiros 🌲",
+  "description": "Novela interactiva de misterio y fantasía para Gaby el 21 de septiembre.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
