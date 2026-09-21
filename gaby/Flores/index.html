@@ -587,6 +587,15 @@
       </div>
     </div>
 
+    <!-- CINEMÁTICA DE DESPERTAR DE WYLLI -->
+    <div class="awakening-overlay" id="awakeningOverlay">
+      <canvas id="awakeningCanvas"></canvas>
+      <div class="awakening-dialogue" id="awakeningDialogue">
+        <div class="awakening-avatar">💻</div>
+        <p id="awakeningText"></p>
+      </div>
+    </div>
+
     <!-- ESCENARIO DEDICADO: EL JARDÍN SECRETO DE LAS FLORES AMARILLAS -->
     <div class="modal-overlay" id="secretGardenScenario">
       <div class="secret-garden-stage-card">
@@ -605,79 +614,38 @@
         </div>
 
         <div class="secret-garden-scenic-view" id="secretGardenScenicView">
-          <!-- Sky and atmospheric elements -->
           <div class="garden-twilight-sky">
             <div class="garden-stars-field"></div>
             <div class="garden-moon-glow"></div>
             <div class="garden-lanterns-glow"></div>
           </div>
 
-          <!-- Terrace with Couple Sprites -->
           <div class="garden-terrace-platform">
-            <!-- Couple Pixels Standing Together -->
             <div class="garden-couple-figure" id="gardenCoupleFigure">
               <div class="couple-together-svg" id="coupleTogetherSvg"></div>
               <div class="couple-heart-balloon">❤️ 21 de Septiembre</div>
             </div>
-
-            <!-- Pedestal with Wax Sealed Envelope -->
-            <div class="garden-pedestal" id="gardenPedestal">
-              <div class="pedestal-stone"></div>
-              <button class="pedestal-envelope-btn" id="btnPedestalLetter" title="Abrir Carta Confidencial de Wylli">
-                <span class="pedestal-env-icon">💌</span>
-                <span class="pedestal-seal-ring">🐰</span>
-              </button>
-              <div class="pedestal-label">Carta de Wylli con Sello de Cera</div>
-            </div>
           </div>
 
-          <!-- Wylli's Voice in the Secret Garden -->
           <div class="garden-wylli-dialogue" id="gardenWylliDialogue">
             <div class="garden-avatar-circle">💻</div>
             <div class="garden-dialogue-content">
               <strong style="color: #f5c538; font-size: 13px;">Wylli (Despierto & Conmovido):</strong>
               <p id="gardenDialogueText" style="margin: 3px 0 0 0; font-size: 12.5px; color: #fdf6ec; line-height: 1.45;">
-                «—Gaby... desperté gracias a tu Café Supremo y a tu brillante ingenio. Este rincón entre las cumbres lo preparé para ti en secreto. Toca la carta con el sello de cera del conejito en el pedestal...»
+                «—Gaby... desperté gracias a tu Café Supremo y a tu brillante ingenio. Este rincón entre las cumbres lo preparé para ti en secreto. La carta ha sido revelada... ¡el Campo de Flores Amarillas es tuyo!»
               </p>
             </div>
           </div>
         </div>
 
-        <!-- Letter View inside Secret Garden -->
+        <!-- Letter revealed message -->
         <div class="secret-garden-letter-container" id="secretGardenLetterContainer" style="display: none;">
-          <div class="letter-paper">
-            <div class="letter-salutation">Para mi amada detective Gaby,</div>
-            <div class="letter-body">
-              Si estás leyendo estas líneas en nuestro jardín secreto, es porque tu agudeza, tu paciencia y tu amor iluminaron cada rincón de esta cabaña de madera.
-              <br><br>
-              En el mundo de la ciberseguridad aprendemos que los secretos más valiosos se guardan bajo llaves impenetrables. Pero en mi vida, no existe mayor certeza ni mayor refugio que tú: <strong>sos mi sol</strong> que calienta cada mañana, <strong>mi constelación</strong> en las noches inciertas y el más <strong>dulce despertar</strong> que jamás soñé tener.
-              <br><br>
-              Hoy, 21 de septiembre, la niebla del valle se disipa por completo para ti... ¡Asómate a la terraza y contempla lo que floreció en tu honor!
-            </div>
-            <div class="letter-farewell">Con todo mi amor para siempre, tu novio Wylli ❤️</div>
+          <div class="letter-revealed-msg">
+            ✉️ La carta de Wylli ha sido revelada. El Campo de Flores Amarillas espera.
           </div>
-
-          <div class="garden-letter-actions">
-            <button class="btn-enter-garden pulse-gold" id="btnBloomGardenYellowFlowers">
-              <span>🌻</span> ¡Hacer Florecer el Campo de Flores Amarillas!
-            </button>
-            <button class="btn-enter-garden" id="btnOpenVirtualWorldFromLetter" style="background: linear-gradient(135deg, #7b2cbf, #9d4edd); border-color: #e0aaff; margin-top: 8px;">
-              <span>🌐</span> Explorar Mundo Virtual de Wylli & Gaby (Juego Interactivo)
-            </button>
-          </div>
-        </div>
-
-        <!-- Floating Controls when bloomed -->
-        <div class="garden-bloomed-controls" id="gardenBloomedControls" style="display: none;">
-          <div class="garden-bloomed-tag">🌻 Valle en Plena Floración Amarilla · Toca la pantalla para brotar más flores</div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
-            <button class="vn-choice-btn primary" id="btnReplayGardenCelebration">
-              <span>✨</span> Vals de Flores Amarillas
-            </button>
-            <button class="vn-choice-btn" id="btnOpenVirtualWorldFromGarden" style="background: linear-gradient(135deg, #7b2cbf, #5a189a); border-color: #ffd447; color: #fff;">
-              <span>🌐</span> Jugar en el Mundo Virtual
-            </button>
-          </div>
+          <button class="btn-magic-spiral" id="btnBloomGardenYellowFlowers">
+            <span>🌻</span> Ir al Campo de Flores Amarillas
+          </button>
         </div>
       </div>
     </div>
@@ -727,26 +695,35 @@
       </div>
     </div>
 
-    <!-- WAX SEALED ENVELOPE MODAL (THE GRAND CLIMAX) -->
+    <!-- WAX SEALED ENVELOPE MODAL (3D) -->
     <div class="modal-overlay" id="verdictModal">
-      <div class="verdict-envelope-card">
-        <div class="sealed-view" id="sealedEnvelopeView">
-          <div class="envelope-icon-big">💌</div>
-          <div class="envelope-tag">DOCUMENTO CONFIDENCIAL · 21 DE SEPTIEMBRE</div>
-          <p style="font-size: 13.5px; color: #eeddf8; line-height: 1.5;">
-            Has desentrañado cada enigma de la cabaña y servido el Café Supremo. Tu novio ha despertado y te lleva al Jardín Secreto.
-          </p>
-          <button class="wax-seal-btn" id="waxSealBtn" title="Romper sello de cera">
-            <span>🐰</span>
-          </button>
-          <div class="wax-hint">Toca el sello del conejito blanco para ir al Jardín Secreto</div>
+      <div class="envelope-3d-scene">
+        <!-- Fase A: Sobre cerrado -->
+        <div class="envelope-3d" id="envelope3D">
+          <div class="envelope-body">
+            <div class="envelope-letter-preview">
+              <div class="letter-mini-line"></div>
+              <div class="letter-mini-line short"></div>
+              <div class="letter-mini-line"></div>
+            </div>
+          </div>
+          <div class="envelope-flap" id="envelopeFlap">
+            <div class="wax-seal-3d" id="waxSealBtn">
+              <span>🐰</span>
+            </div>
+          </div>
+          <div class="envelope-shadow"></div>
         </div>
+        <p class="envelope-instruction" id="envelopeInstruction">
+          ✨ Toca el sello de cera para abrir tu carta ✨
+        </p>
 
-        <div class="opened-letter-view" id="openedLetterView">
+        <!-- Fase B: Carta desplegada -->
+        <div class="letter-unfolded" id="letterUnfolded">
           <div class="letter-paper">
             <div class="letter-salutation">Para mi amada detective Gaby,</div>
             <div class="letter-body">
-              Si estás leyendo estas líneas, es porque tu agudeza, tu paciencia y tu amor iluminaron cada rincón de esta cabaña de madera.
+              Si estás leyendo estas líneas en nuestro jardín secreto, es porque tu agudeza, tu paciencia y tu amor iluminaron cada rincón de esta cabaña de madera.
               <br><br>
               En el mundo de la ciberseguridad aprendemos que los secretos más valiosos se guardan bajo llaves impenetrables. Pero en mi vida, no existe mayor certeza ni mayor refugio que tú: <strong>sos mi sol</strong> que calienta cada mañana, <strong>mi constelación</strong> en las noches inciertas y el más <strong>dulce despertar</strong> que jamás soñé tener.
               <br><br>
@@ -754,12 +731,8 @@
             </div>
             <div class="letter-farewell">Con todo mi amor para siempre, tu novio Wylli ❤️</div>
           </div>
-
-          <button class="btn-enter-garden" id="btnEnterGarden">
-            <span>🌻</span> ¡Ir al Jardín Secreto y Revelar las Flores Amarillas!
-          </button>
-          <button class="btn-enter-garden" id="btnOpenVirtualWorldFromVerdict" style="background: linear-gradient(135deg, #7b2cbf, #9d4edd); border-color: #e0aaff; margin-top: 8px;">
-            <span>🌐</span> Explorar Mundo Virtual de Wylli & Gaby (Juego Interactivo)
+          <button class="btn-magic-spiral" id="btnGoToMeadow">
+            <span>🌻</span> Ir al Campo de Flores Amarillas
           </button>
         </div>
       </div>

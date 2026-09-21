@@ -216,6 +216,25 @@ export class CozyAudio {
       osc.stop(this.ctx.currentTime + idx * 0.14 + 0.45);
     });
   }
+
+  public playSealBreak() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+    [440, 660, 880].forEach((freq, i) => {
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime + i * 0.08);
+      gain.gain.setValueAtTime(0.15, this.ctx.currentTime + i * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.08 + 0.3);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(this.ctx.currentTime + i * 0.08);
+      osc.stop(this.ctx.currentTime + i * 0.08 + 0.35);
+    });
+  }
 }
 
 export const audio = new CozyAudio();

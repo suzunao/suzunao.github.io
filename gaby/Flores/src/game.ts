@@ -1908,16 +1908,260 @@ export class GameController {
     }
   }
 
+  public playAwakeningCinematic() {
+    const overlay = document.getElementById('awakeningOverlay');
+    const canvas = document.getElementById('awakeningCanvas') as HTMLCanvasElement;
+    const dialogueEl = document.getElementById('awakeningDialogue');
+    const textEl = document.getElementById('awakeningText');
+    if (!overlay || !canvas || !dialogueEl || !textEl) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    overlay.classList.add('active');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const W = canvas.width;
+    const H = canvas.height;
+    const dialogue = '«Desperté... gracias a ti, mi detective favorita. Te estuve preparando esto todo este tiempo... es para ti ❤️»';
+    let charIdx = 0;
+    let typewriterInterval: ReturnType<typeof setInterval> | null = null;
+
+    // Animation state
+    let wylliX = W * 0.3;
+    const wylliY = H * 0.55;
+    const gabyX = W * 0.6;
+    const gabyY = H * 0.55;
+    let hearts: { x: number; y: number; vy: number; alpha: number }[] = [];
+    let zzZ: { x: number; y: number; alpha: number }[] = [];
+    let awake = false;
+    let stretchDone = false;
+    let walkPhase = 0;
+    let frameCount = 0;
+
+    // Generate zzz
+    for (let i = 0; i < 3; i++) {
+      zzZ.push({ x: wylliX + 15, y: wylliY - 50 - i * 14, alpha: 0.8 - i * 0.2 });
+    }
+
+    const drawFrame = () => {
+      if (!overlay.classList.contains('active')) return;
+      frameCount++;
+      ctx.clearRect(0, 0, W, H);
+
+      // Background: cabin interior
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+      bgGrad.addColorStop(0, '#1a120d');
+      bgGrad.addColorStop(0.6, '#2b1b24');
+      bgGrad.addColorStop(1, '#3a2518');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Sofa (green)
+      ctx.fillStyle = '#2d5a37';
+      ctx.beginPath();
+      ctx.roundRect(W * 0.15, H * 0.48, W * 0.3, H * 0.22, 12);
+      ctx.fill();
+      ctx.fillStyle = '#22452a';
+      ctx.fillRect(W * 0.12, H * 0.52, W * 0.04, H * 0.16);
+      ctx.fillRect(W * 0.44, H * 0.52, W * 0.04, H * 0.16);
+
+      // Draw Gaby (standing, always visible)
+      this.drawMiniCharacter(ctx, gabyX, gabyY, 'gaby', true, 0);
+
+      // Draw Wylli (on sofa, then walking)
+      if (!awake) {
+        // Sleeping on sofa
+        this.drawMiniCharacter(ctx, wylliX, wylliY - 10, 'wylli', false, 0);
+        // ZZZ
+        zzZ.forEach((z, i) => {
+          const bob = Math.sin(frameCount * 0.03 + i) * 3;
+          ctx.globalAlpha = z.alpha;
+          ctx.fillStyle = '#ffd447';
+          ctx.font = `${12 + i * 3}px sans-serif`;
+          ctx.fillText('z', z.x, z.y + bob);
+        });
+        ctx.globalAlpha = 1;
+      } else {
+        // Awakened + walking
+        const step = Math.sin(frameCount * 0.12) * 3;
+        this.drawMiniCharacter(ctx, wylliX, wylliY, 'wylli', true, step);
+      }
+
+      // Hearts floating up
+      hearts.forEach((h) => {
+        h.y += h.vy;
+        h.alpha -= 0.008;
+        ctx.globalAlpha = Math.max(0, h.alpha);
+        ctx.font = '14px sans-serif';
+        ctx.fillText('❤️', h.x, h.y);
+      });
+      ctx.globalAlpha = 1;
+
+      // Phase timing
+      if (frameCount === 60) {
+        // Awaken at 1s
+        awake = true;
+        zzZ = [];
+      }
+
+      if (frameCount > 60 && frameCount < 140) {
+        // Walk towards Gaby
+        wylliX += (gabyX - 60 - wylliX) * 0.025;
+      }
+
+      if (frameCount === 140) {
+        stretchDone = true;
+      }
+
+      if (frameCount === 150 && !dialogueEl.classList.contains('visible')) {
+        // Show dialogue
+        dialogueEl.classList.add('visible');
+        typewriterInterval = setInterval(() => {
+          if (charIdx < dialogue.length) {
+            textEl.innerHTML = dialogue.substring(0, charIdx + 1) + '<span class="cursor"></span>';
+            charIdx++;
+          } else {
+            textEl.innerHTML = dialogue;
+            if (typewriterInterval) clearInterval(typewriterInterval);
+          }
+        }, 50);
+      }
+
+      // Spawn hearts after dialogue starts
+      if (frameCount > 155 && frameCount % 20 === 0) {
+        hearts.push({
+          x: (wylliX + gabyX) / 2 + (Math.random() - 0.5) * 30,
+          y: wylliY - 60,
+          vy: -0.8,
+          alpha: 1,
+        });
+      }
+
+      // End: fade out after dialogue finishes
+      if (frameCount > 350) {
+        overlay.style.transition = 'opacity 1s ease';
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+          overlay.classList.remove('active');
+          overlay.style.opacity = '';
+          overlay.style.transition = '';
+          document.getElementById('verdictModal')?.classList.add('active');
+        }, 1000);
+        return;
+      }
+
+      requestAnimationFrame(drawFrame);
+    };
+
+    audio.playVictoryWaltz();
+    requestAnimationFrame(drawFrame);
+  }
+
+  private drawMiniCharacter(ctx: CanvasRenderingContext2D, x: number, y: number, who: 'gaby' | 'wylli', awake: boolean, step: number) {
+    ctx.save();
+    ctx.translate(x, y);
+    const sc = 1.8;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(10, 6, 16, 0.3)';
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 14, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (who === 'gaby') {
+      // Legs
+      ctx.fillStyle = '#1e1e1e';
+      ctx.fillRect(-5 * sc, -12 * sc + step, 4 * sc, 12 * sc - step);
+      ctx.fillRect(1 * sc, -12 * sc - step, 4 * sc, 12 * sc + step);
+      // Pink sweater
+      ctx.fillStyle = '#f4ccd5';
+      ctx.fillRect(-7 * sc, -22 * sc, 14 * sc, 11 * sc);
+      // Head
+      ctx.fillStyle = '#fcdbcf';
+      ctx.fillRect(-4 * sc, -30 * sc, 8 * sc, 8 * sc);
+      // Hair
+      ctx.fillStyle = '#442a1b';
+      ctx.beginPath();
+      ctx.arc(0, -28 * sc, 6 * sc, Math.PI, 0);
+      ctx.fill();
+      ctx.fillRect(-6 * sc, -28 * sc, 2.5 * sc, 8 * sc);
+      ctx.fillRect(3.5 * sc, -28 * sc, 2.5 * sc, 8 * sc);
+      // Eyes
+      ctx.fillStyle = '#2c1810';
+      ctx.fillRect(-2.5 * sc, -27 * sc, 1.5 * sc, 1.5 * sc);
+      ctx.fillRect(1 * sc, -27 * sc, 1.5 * sc, 1.5 * sc);
+      // Smile
+      ctx.strokeStyle = '#c9846a';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(0, -25 * sc, 2 * sc, 0.1, Math.PI - 0.1);
+      ctx.stroke();
+      // Cup
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(6 * sc, -20 * sc, 4 * sc, 3.5 * sc);
+      ctx.fillStyle = '#ffd166';
+      ctx.fillRect(7 * sc, -21 * sc, 2 * sc, 1 * sc);
+    } else {
+      // Legs
+      ctx.fillStyle = '#1b2838';
+      ctx.fillRect(-5 * sc, -12 * sc + step, 4 * sc, 12 * sc - step);
+      ctx.fillRect(1 * sc, -12 * sc - step, 4 * sc, 12 * sc + step);
+      // White shirt
+      ctx.fillStyle = '#f8f9fa';
+      ctx.fillRect(-7 * sc, -22 * sc, 14 * sc, 11 * sc);
+      // Head
+      ctx.fillStyle = '#fcdbcf';
+      ctx.fillRect(-4 * sc, -30 * sc, 8 * sc, 8 * sc);
+      // Cap
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-5.5 * sc, -33 * sc, 11 * sc, 3.5 * sc);
+      ctx.fillStyle = '#385a7c';
+      ctx.fillRect(-1.5 * sc, -32.5 * sc, 3 * sc, 1.5 * sc);
+      // Eyes
+      if (awake) {
+        ctx.fillStyle = '#2c1810';
+        ctx.fillRect(-2.5 * sc, -27 * sc, 1.5 * sc, 1.5 * sc);
+        ctx.fillRect(1 * sc, -27 * sc, 1.5 * sc, 1.5 * sc);
+        // Smile
+        ctx.strokeStyle = '#c9846a';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, -25 * sc, 2 * sc, 0.1, Math.PI - 0.1);
+        ctx.stroke();
+        // Blush
+        ctx.fillStyle = '#ff758f';
+        ctx.globalAlpha = 0.6;
+        ctx.fillRect(-4 * sc, -25 * sc, 1.5 * sc, 1 * sc);
+        ctx.fillRect(2.5 * sc, -25 * sc, 1.5 * sc, 1 * sc);
+        ctx.globalAlpha = 1;
+      } else {
+        // Sleeping eyes
+        ctx.strokeStyle = '#4a3e3d';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-3 * sc, -26 * sc);
+        ctx.lineTo(-1 * sc, -26 * sc);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(1 * sc, -26 * sc);
+        ctx.lineTo(3 * sc, -26 * sc);
+        ctx.stroke();
+      }
+      // Headphones
+      ctx.fillStyle = '#111';
+      ctx.fillRect(-8 * sc, -23 * sc, 2 * sc, 3 * sc);
+      ctx.fillRect(6 * sc, -23 * sc, 2 * sc, 3 * sc);
+    }
+
+    ctx.restore();
+  }
+
   public bloomGardenYellowFlowers() {
     audio.playVictoryWaltz();
-    const bloomedControls = document.getElementById('gardenBloomedControls');
-    if (bloomedControls) {
-      bloomedControls.style.display = 'flex';
-    }
-    // Launch full-screen upward emerging yellow flowers!
-    this.bloomFullscreenYellowFlowersMeadow();
-    this.bloomMeadowInCabinStage();
-    this.showToast('🌻 ¡El Valle entero ha florecido en un manto de flores amarillas para ti!');
+    this.closeSecretGardenScenario();
+    virtualWorldGame.open();
   }
 
   public openRot3Modal() {
@@ -2101,20 +2345,6 @@ export class GameController {
       });
     });
 
-    // Virtual World Game Launchers
-    document.getElementById('btnOpenVirtualWorldFromLetter')?.addEventListener('click', () => {
-      this.closeSecretGardenScenario();
-      virtualWorldGame.open();
-    });
-    document.getElementById('btnOpenVirtualWorldFromGarden')?.addEventListener('click', () => {
-      this.closeSecretGardenScenario();
-      virtualWorldGame.open();
-    });
-    document.getElementById('btnOpenVirtualWorldFromVerdict')?.addEventListener('click', () => {
-      document.getElementById('verdictModal')?.classList.remove('active');
-      virtualWorldGame.open();
-    });
-
     // Nolan Radio buttons
     document.getElementById('btnHeaderRadio')?.addEventListener('click', () => this.openNolanRadioModal());
     document.getElementById('btnNolanFlag1')?.addEventListener('click', () => this.openNolanRadioModal(1));
@@ -2139,12 +2369,14 @@ export class GameController {
     // Secret Garden Scenario buttons
     document.getElementById('btnReturnToCabin')?.addEventListener('click', () => this.closeSecretGardenScenario());
     document.getElementById('btnCloseGardenModal')?.addEventListener('click', () => this.closeSecretGardenScenario());
-    document.getElementById('btnPedestalLetter')?.addEventListener('click', () => this.openSecretGardenLetter());
-    document.getElementById('btnBloomGardenYellowFlowers')?.addEventListener('click', () => this.bloomGardenYellowFlowers());
-    document.getElementById('btnReplayGardenCelebration')?.addEventListener('click', () => this.bloomGardenYellowFlowers());
+    document.getElementById('btnBloomGardenYellowFlowers')?.addEventListener('click', () => {
+      this.closeSecretGardenScenario();
+      audio.playVictoryWaltz();
+      virtualWorldGame.open();
+    });
     document.getElementById('secretGardenScenicView')?.addEventListener('click', (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (target.closest('.pedestal-envelope-btn') || target.closest('.garden-wylli-dialogue') || target.closest('button')) return;
+      if (target.closest('.garden-wylli-dialogue') || target.closest('button')) return;
       const rect = (document.getElementById('secretGardenScenicView') as HTMLElement).getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const clickY = e.clientY - rect.top;
@@ -2370,21 +2602,14 @@ export class GameController {
       });
     });
 
-    // Close Meadow button
-    document.getElementById('btnCloseMeadow')?.addEventListener('click', () => {
-      document.getElementById('fullscreenBloomingMeadow')?.classList.remove('active');
-    });
-
     // Serve Coffee Button
     document.getElementById('btnServeCoffee')?.addEventListener('click', () => {
       if (!this.state.flags.flag1 || !this.state.flags.flag2 || !this.state.flags.flag3) return;
 
-      // Walk to boyfriend at living room sofas (x: 58%, y: 42%)
       this.walkTo(58, 42, () => {
         audio.playSteam();
         this.state.awakened = true;
 
-        // Awaken boyfriend icon and label
         const novioFigure = document.getElementById('novioSceneFigure');
         if (novioFigure) {
           novioFigure.innerHTML = getNovioSpriteSVG({ size: 44, awakened: true });
@@ -2394,7 +2619,6 @@ export class GameController {
         if (livingLabel) livingLabel.textContent = '¡El Novio Despierto! ❤️';
         if (statusLiving) statusLiving.textContent = '💖';
 
-        // Update header chapter badge
         const chapterPill = document.getElementById('storyChapterPill');
         const chapterText = document.getElementById('chapterStatusText');
         if (chapterPill && chapterText) {
@@ -2402,51 +2626,78 @@ export class GameController {
           chapterText.textContent = '✨ ¡Epílogo: La Gran Revelación!';
         }
 
-        audio.playVictoryWaltz();
-
         this.addChronicleEntry(
           'El Novio Despierto',
-          '¡Mmm, qué aroma tan delicioso de canela y café supremo! Abre los ojos sonriendo y contempla a Gaby con infinita ternura: «¡Sabía que lo lograrías, amor! Eres mi detective favorita. Ven conmigo al Jardín Secreto que preparé para ti...»',
+          '¡Mmm, qué aroma tan delicioso de canela y café supremo! Abre los ojos sonriendo y contempla a Gaby con infinita ternura: «¡Sabía que lo lograrías, amor! Eres mi detective favorita.»',
           '💻',
           'novio'
         );
 
-        // Add Epilogue to Novel Chapters
         if (STORY_CHAPTERS[4]) {
           STORY_CHAPTERS[4].solved = true;
           this.activeNovelViewChapter = 4;
           this.renderChapters();
         }
 
-        // Open Secret Garden Scenario with Wylli & Gaby
         setTimeout(() => {
-          this.openSecretGardenScenario();
-        }, 900);
+          this.playAwakeningCinematic();
+        }, 600);
       });
     });
 
-    // Wax seal break
+    // Wax seal break — 3D envelope animation
     document.getElementById('waxSealBtn')?.addEventListener('click', () => {
-      audio.playVictoryWaltz();
-      document.getElementById('verdictModal')?.classList.remove('active');
-      this.openSecretGardenScenario();
-      this.openSecretGardenLetter();
+      audio.playSealBreak();
+      const seal = document.getElementById('waxSealBtn');
+      const flap = document.getElementById('envelopeFlap');
+      const envelope3D = document.getElementById('envelope3D');
+      const instruction = document.getElementById('envelopeInstruction');
+      const letterUnfolded = document.getElementById('letterUnfolded');
+      if (!seal || !flap || !envelope3D || !instruction || !letterUnfolded) return;
+
+      // Phase 1: Break the seal
+      seal.classList.add('broken');
+
+      // Spawn particles
+      const sealRect = seal.getBoundingClientRect();
+      const sceneRect = (seal.closest('.envelope-3d-scene') as HTMLElement)?.getBoundingClientRect();
+      if (sceneRect) {
+        for (let i = 0; i < 12; i++) {
+          const p = document.createElement('div');
+          p.className = 'seal-particle';
+          p.style.background = i % 2 === 0 ? '#c0392b' : '#f5c538';
+          p.style.left = `${sealRect.left - sceneRect.left + sealRect.width / 2}px`;
+          p.style.top = `${sealRect.top - sceneRect.top + sealRect.height / 2}px`;
+          const angle = (i / 12) * Math.PI * 2;
+          const dist = 40 + Math.random() * 30;
+          p.style.setProperty('--px', `${Math.cos(angle) * dist}px`);
+          p.style.setProperty('--py', `${Math.sin(angle) * dist}px`);
+          sceneRect as unknown as HTMLElement;
+          (seal.closest('.envelope-3d-scene') as HTMLElement).appendChild(p);
+          setTimeout(() => p.remove(), 800);
+        }
+      }
+
+      instruction.textContent = '';
+
+      // Phase 2: Open the flap
+      setTimeout(() => {
+        flap.classList.add('opened');
+      }, 500);
+
+      // Phase 3: Show the letter
+      setTimeout(() => {
+        envelope3D.style.display = 'none';
+        letterUnfolded.classList.add('visible');
+      }, 1400);
     });
 
-    // Accept Letter & Revel in Sunflowers (Grand Climax: Emerging yellow flowers meadow)
-    document.getElementById('btnEnterGarden')?.addEventListener('click', () => {
+    // Go to Meadow from letter
+    document.getElementById('btnGoToMeadow')?.addEventListener('click', () => {
       document.getElementById('verdictModal')?.classList.remove('active');
       this.state.gardenRevealed = true;
-      this.openSecretGardenScenario();
-      this.openSecretGardenLetter();
-
-      this.showToast('🌻 ¡Feliz 21 de Septiembre, Gaby! Bienvenidos al Jardín Secreto.');
-
-      // Add Epilogue to Novel Chapters
-      if (STORY_CHAPTERS[4]) {
-        STORY_CHAPTERS[4].solved = true;
-        this.renderChapters();
-      }
+      audio.playVictoryWaltz();
+      virtualWorldGame.open();
     });
 
     // Fast Room Navigation Chips
@@ -2558,53 +2809,6 @@ export class GameController {
     for (let j = 0; j < 10; j++) {
       stageContainer.appendChild(this.createRisingSpore());
     }
-  }
-
-  public bloomFullscreenYellowFlowersMeadow() {
-    const fullscreenMeadow = document.getElementById('fullscreenBloomingMeadow');
-    if (!fullscreenMeadow) return;
-    fullscreenMeadow.innerHTML = `
-      <div class="meadow-header-badge">
-        <span>🌻</span>
-        <span>¡El Valle de Flores Amarillas para Gaby! (21 de Septiembre)</span>
-        <button id="btnCloseMeadowDynamic" class="meadow-close-btn" title="Cerrar vista de flores">✕</button>
-      </div>
-    `;
-    fullscreenMeadow.classList.add('active');
-
-    document.getElementById('btnCloseMeadowDynamic')?.addEventListener('click', () => {
-      fullscreenMeadow.classList.remove('active');
-    });
-
-    // Generate 42 vibrant yellow flowers of varied heights emerging upwards from the bottom of the screen!
-    const flowerTypes: ('sunflower' | 'daisy' | 'blossom')[] = ['sunflower', 'daisy', 'blossom', 'sunflower', 'daisy'];
-    for (let i = 0; i < 44; i++) {
-      const left = Math.round((i / 43) * 97 + (Math.random() * 3 - 1.5));
-      const height = 180 + Math.floor(Math.random() * 210);
-      const type = flowerTypes[i % flowerTypes.length];
-      const delay = (i % 8) * 0.22 + Math.random() * 0.4;
-      const flower = this.createYellowFlowerSprout(height, type, left, delay, false);
-      fullscreenMeadow.appendChild(flower);
-    }
-
-    // Generate 28 ascending golden pollen/spores rising towards the sky
-    for (let k = 0; k < 28; k++) {
-      fullscreenMeadow.appendChild(this.createRisingSpore());
-    }
-
-    // Clicking anywhere in the meadow makes a new flower sprout from below to where the user clicked!
-    fullscreenMeadow.addEventListener('click', (e: MouseEvent) => {
-      if ((e.target as HTMLElement).closest('.meadow-header-badge')) return;
-      const rect = fullscreenMeadow.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const clickY = e.clientY - rect.top;
-      const leftPercent = (clickX / rect.width) * 100;
-      const targetHeight = Math.max(120, rect.height - clickY);
-      const type = flowerTypes[Math.floor(Math.random() * flowerTypes.length)];
-      const sprout = this.createYellowFlowerSprout(targetHeight, type, leftPercent, 0, false);
-      fullscreenMeadow.appendChild(sprout);
-      audio.playChime(620 + Math.random() * 200);
-    });
   }
 
   private createYellowFlowerSprout(
@@ -2738,12 +2942,6 @@ export class GameController {
       flower.classList.add('fading');
       setTimeout(() => flower.remove(), 800);
     }, 4500);
-  }
-
-  // Grand Garden Finale Petals and Upward Blooming Meadow
-  private startGardenCelebration() {
-    this.bloomFullscreenYellowFlowersMeadow();
-    audio.playVictoryWaltz();
   }
 }
 
