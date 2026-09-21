@@ -2140,7 +2140,11 @@ export class GameController {
 
     // Set background
     const bg = document.getElementById('gardenBg');
-    if (bg) bg.style.backgroundImage = "url('flores.jpeg')";
+    if (bg) bg.style.backgroundImage = "url('./flores.jpeg')";
+
+    // Hide the cabin board completely
+    const app = document.getElementById('appContainer');
+    if (app) app.style.display = 'none';
 
     // Place couple on bench (Willy left, Gaby right — sitting pose with awakened: true)
     const willyEl = document.getElementById('gardenWilly');
@@ -2811,6 +2815,9 @@ export class GameController {
       const overlay = document.getElementById('gardenCinematic');
       if (overlay) overlay.classList.remove('active');
       this.state.currentScene = null;
+      // Restore the cabin board
+      const app = document.getElementById('appContainer');
+      if (app) app.style.display = '';
       this.showToast('🏡 Has regresado a la cabaña.');
     });
 
