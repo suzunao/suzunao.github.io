@@ -2034,6 +2034,7 @@ export class GameController {
 
     audio.playSteam();
     this.baristaStep = 0;
+    this.isGrinderCalibrated = false;
     this.resetBaristaUI();
     const feedback = document.getElementById('baristaFeedbackMsg');
     if (feedback) {
@@ -2041,8 +2042,14 @@ export class GameController {
       feedback.className = 'forensic-feedback-msg';
     }
     const input = document.getElementById('baristaModeInput') as HTMLInputElement;
-    if (input && this.state.flags.flag3) {
-      input.value = 'DULCE DESPERTAR';
+    if (input) {
+      input.value = '';
+      input.disabled = false;
+    }
+    const btnCalibrate = document.getElementById('btnVerifyBaristaMode') as HTMLButtonElement;
+    if (btnCalibrate) {
+      btnCalibrate.disabled = false;
+      btnCalibrate.innerHTML = '<span>⚙️</span> Calibrar Máquina';
     }
     document.getElementById('baristaStationModal')?.classList.add('active');
   }
@@ -2062,13 +2069,12 @@ export class GameController {
     step3?.classList.remove('completed', 'active');
     result?.classList.remove('visible');
 
-    step1?.classList.add('active');
     const btn1 = document.getElementById('btnActionGrind') as HTMLButtonElement;
     const btn2 = document.getElementById('btnActionExtract') as HTMLButtonElement;
     const btn3 = document.getElementById('btnActionSteam') as HTMLButtonElement;
-    if (btn1) btn1.disabled = false;
-    if (btn2) btn2.disabled = true;
-    if (btn3) btn3.disabled = true;
+    if (btn1) { btn1.disabled = true; btn1.textContent = 'Moler Granos'; }
+    if (btn2) { btn2.disabled = true; btn2.textContent = 'Extraer Espresso'; }
+    if (btn3) { btn3.disabled = true; btn3.textContent = 'Verter con Amor'; }
   }
 
   private setupListeners() {
@@ -2268,6 +2274,7 @@ export class GameController {
     document.getElementById('btnCloseBaristaModal')?.addEventListener('click', () => this.closeBaristaModal());
 
     const verifyBaristaMode = () => {
+      if (this.baristaStep !== 0) return;
       const input = document.getElementById('baristaModeInput') as HTMLInputElement;
       const feedback = document.getElementById('baristaFeedbackMsg');
       if (!input) return;
@@ -2275,29 +2282,27 @@ export class GameController {
       const isCorrect = (ACCEPTED_ANSWERS.flag3 as unknown as string[]).some((ans) => val === normalizeStr(ans));
       if (isCorrect) {
         this.isGrinderCalibrated = true;
+        this.baristaStep = 1;
+        audio.playChime(800);
         if (feedback) {
           feedback.className = 'forensic-feedback-msg success';
-          feedback.textContent = '⚙️ ¡Calibración exitosa! Modo «DULCE DESPERTAR» activo en la cafetera.';
+          feedback.textContent = 'SCRIPT: ./wake_boyfriend.sh --mode DULCE DESPERTAR [CALIBRADO OK]';
         }
-        audio.playChime(800);
+        input.disabled = true;
+        const btnCalibrate = document.getElementById('btnVerifyBaristaMode') as HTMLButtonElement;
+        if (btnCalibrate) { btnCalibrate.disabled = true; btnCalibrate.innerHTML = '<span>✓</span> Calibrado'; }
+        const btn1 = document.getElementById('btnActionGrind') as HTMLButtonElement;
+        const step1 = document.getElementById('stepGrind');
+        if (btn1) { btn1.disabled = false; }
+        step1?.classList.add('active');
         const nbInput = document.getElementById('flagInput3') as HTMLInputElement;
         if (nbInput) nbInput.value = 'DULCE DESPERTAR';
         this.validateFlag(3);
-        const btnExtract = document.getElementById('btnActionExtract') as HTMLButtonElement;
-        const btnSteam = document.getElementById('btnActionSteam') as HTMLButtonElement;
-        if (btnExtract && this.baristaStep >= 1) {
-          btnExtract.disabled = false;
-        }
-        if (btnSteam) {
-          btnSteam.removeAttribute('disabled');
-          btnSteam.classList.remove('btn-locked');
-          btnSteam.classList.add('btn-ready');
-        }
       } else {
         audio.playChime(220);
         if (feedback) {
           feedback.className = 'forensic-feedback-msg error';
-          feedback.textContent = '❌ Modo desconocido. Pista de Nolan: Es el antónimo de amargo + abrir los ojos por la mañana.';
+          feedback.textContent = '❌ Modo no reconocido. Pista: combina lo opuesto a amargo con el acto de abrir los ojos por la mañana.';
         }
       }
     };
@@ -2307,8 +2312,9 @@ export class GameController {
     });
 
     document.getElementById('btnActionGrind')?.addEventListener('click', () => {
+      if (this.baristaStep !== 1) return;
       audio.playChime(420);
-      this.baristaStep = 1;
+      this.baristaStep = 2;
       const step1 = document.getElementById('stepGrind');
       const step2 = document.getElementById('stepExtract');
       const btn1 = document.getElementById('btnActionGrind') as HTMLButtonElement;
@@ -2317,14 +2323,15 @@ export class GameController {
       step1?.classList.add('completed');
       step1?.classList.remove('active');
       step2?.classList.add('active');
-      if (btn1) btn1.disabled = true;
-      if (btn2) btn2.disabled = false;
+      if (btn1) { btn1.disabled = true; btn1.textContent = '✓ Granos Molidos'; }
+      if (btn2) { btn2.disabled = false; }
       this.showToast('🌰 Granos molidos finamente con notas aromáticas de canela.');
     });
 
     document.getElementById('btnActionExtract')?.addEventListener('click', () => {
+      if (this.baristaStep !== 2) return;
       audio.playSteam();
-      this.baristaStep = 2;
+      this.baristaStep = 3;
       const step2 = document.getElementById('stepExtract');
       const step3 = document.getElementById('stepSteam');
       const btn2 = document.getElementById('btnActionExtract') as HTMLButtonElement;
@@ -2333,27 +2340,22 @@ export class GameController {
       step2?.classList.add('completed');
       step2?.classList.remove('active');
       step3?.classList.add('active');
-      if (btn2) btn2.disabled = true;
-      if (btn3) btn3.disabled = false;
+      if (btn2) { btn2.disabled = true; btn2.textContent = '✓ Espresso Extraído (9 bares)'; }
+      if (btn3) { btn3.disabled = false; }
       this.showToast('⚙️ Espresso doble extraído a 9 bares de presión con densa crema dorada.');
     });
 
     document.getElementById('btnActionSteam')?.addEventListener('click', () => {
-      if (!this.isGrinderCalibrated) {
-        audio.playChime(220);
-        this.showToast('⚠️ Error: El molino manual está trabado. Debes calibrar la molienda ingresando la clave exacta en la pizarra antes de poder accionar la palanca.');
-        return;
-      }
-
+      if (this.baristaStep !== 3) return;
       audio.playVictoryWaltz();
-      this.baristaStep = 3;
+      this.baristaStep = 4;
       const step3 = document.getElementById('stepSteam');
       const btn3 = document.getElementById('btnActionSteam') as HTMLButtonElement;
       const result = document.getElementById('supremeCoffeeResult');
 
       step3?.classList.add('completed');
       step3?.classList.remove('active');
-      if (btn3) btn3.disabled = true;
+      if (btn3) { btn3.disabled = true; btn3.textContent = '✓ Café Supremo Listo'; }
       result?.classList.add('visible');
 
       this.showToast('☕ ¡El Café Supremo está listo y humeante para Wylli!');
