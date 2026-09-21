@@ -1,5 +1,6 @@
-/* ── Virtual World — Phaser 3 migration ──────────────────────── */
-/* Rendering moved to src/phaserScenes.ts (GardenScene).          */
+/* ── Virtual World — CSS Cinematic System ───────────────────── */
+/* Rendering now handled by CSS cinematics in game.ts             */
+/* (playSalaCinematic / playGardenCinematic).                     */
 /* Interfaces kept for type compatibility.                        */
 
 export interface VirtualFlower {
@@ -30,7 +31,7 @@ export interface VirtualParticle {
 }
 
 /**
- * Stub class — all rendering is now handled by Phaser 3 GardenScene.
+ * Stub class — all rendering is now handled by CSS cinematics.
  * Kept so existing `virtualWorldGame.init()` / `.open()` calls compile.
  */
 export class VirtualWorldGame {

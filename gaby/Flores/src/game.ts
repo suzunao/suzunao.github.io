@@ -3,9 +3,6 @@ import { audio } from './audio';
 import { STORY_CHAPTERS, HOTSPOT_DIALOGUES, ACCEPTED_ANSWERS, NOLAN_RADIO_ADVICES, PROLOGUE_STEPS } from './story';
 import { getSpeakerAvatarHTML, getWillySpriteSVG, getCoupleTogetherSVG, getGabySpriteSVG, getNolanSpriteSVG } from './characterSprites';
 import { virtualWorldGame } from './virtualWorld';
-import Phaser from 'phaser';
-import { PHASER_CONFIG } from './phaserConfig';
-import { BootScene, SalaScene, GardenScene } from './phaserScenes';
 
 function normalizeStr(str: string): string {
   return str
@@ -54,7 +51,6 @@ export class GameController {
   private baristaStep: number = 0;
   private caesarCurrentShift: number = 0;
   private caesarSourcePhrase: string = 'Vrv pl vro';
-  private phaserGame: Phaser.Game | null = null;
 
   // Hotspots definition based on exact user coordinates
   public hotspots: Hotspot[] = [
@@ -222,22 +218,6 @@ export class GameController {
     this.updateGabyElement();
     this.checkProximity();
     this.openPrologue(0);
-  }
-
-  private createPhaserGame(parentId: string): Phaser.Game {
-    if (this.phaserGame) {
-      this.phaserGame.destroy(true);
-      this.phaserGame = null;
-    }
-
-    const game = new Phaser.Game({
-      ...PHASER_CONFIG,
-      parent: parentId,
-      scene: [BootScene, SalaScene, GardenScene],
-    });
-
-    this.phaserGame = game;
-    return game;
   }
 
   private setupMap() {
@@ -2015,92 +1995,246 @@ export class GameController {
     }
   }
 
-  public playAwakeningCinematic() {
-    // Step 0: Show Nolan farewell radio before canvas animation
-    this.showNolanFarewell();
-  }
+  // ============================================================
+  // ACTO II — CINEMÁTICA DE LA SALA (sala.jpeg)
+  // ============================================================
 
-  private showNolanFarewell() {
-    // Create a temporary radio farewell modal
-    const existingModal = document.getElementById('nolanFarewellModal');
-    if (existingModal) existingModal.remove();
+  private salaSteps: Array<{ speaker: string; name: string; sub: string; text: string; avatar: string }> = [
+    {
+      speaker: 'nolan',
+      name: 'Oficial Nolan',
+      sub: 'LAPD · Frecuencia Táctica',
+      text: '«Detective Gaby, signos vitales estables. Acerque el Café Supremo al sujeto.»',
+      avatar: getNolanSpriteSVG({ size: 44 }),
+    },
+    {
+      speaker: 'narrator',
+      name: 'Narrador',
+      sub: '',
+      text: 'Gaby acerca la taza humeante de Café Supremo calibrado a "DULCE DESPERTAR". El aroma a canela y café recién tostado inunda la sala.',
+      avatar: '☕',
+    },
+    {
+      speaker: 'willy',
+      name: 'Willy',
+      sub: 'Despertando...',
+      text: '«...Gaby... ¿mi detective? Tu café me trajo de vuelta...»',
+      avatar: getWillySpriteSVG({ size: 44, awakened: true }),
+    },
+    {
+      speaker: 'nolan',
+      name: 'Oficial Nolan',
+      sub: 'Cerrando Frecuencia',
+      text: '«Nolan a Central: Sujeto despierto y a salvo. Caso 21-09 concluido con honores. Me retiro, 10-4 y cambio.»',
+      avatar: getNolanSpriteSVG({ size: 44 }),
+    },
+    {
+      speaker: 'willy',
+      name: 'Willy',
+      sub: 'Conmovido',
+      text: '«Antes de salir de aquí, Gaby... resolviste cada enigma. Toma este sobre confidencial. Feliz 21 de septiembre... la verdadera sorpresa no está entre estas cuatro paredes. Ven conmigo ❤️»',
+      avatar: getWillySpriteSVG({ size: 44, awakened: true }),
+    },
+  ];
 
-    const modal = document.createElement('div');
-    modal.id = 'nolanFarewellModal';
-    modal.className = 'modal-overlay active';
-    modal.innerHTML = `
-      <div class="modal-box nolan-radio-modal" style="max-width:440px;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <span style="font-size:1.6rem;">👮‍♂️</span>
-          <div>
-            <strong style="color:var(--accent-gold);">Oficial John Nolan</strong>
-            <div style="font-size:0.75rem;color:var(--text-muted);">LAPD · Radio Perimetral · Frecuencia Privada</div>
-          </div>
-        </div>
-        <div style="background:var(--bg-deep);border-left:3px solid var(--accent-gold);padding:12px 14px;border-radius:6px;margin-bottom:16px;line-height:1.6;color:var(--text-primary);font-family:var(--font-prose);">
-          <em>«Signos vitales al 100%. Mi patrulla concluyó, excelente trabajo en equipo, Detective.</em><br><br>
-          <em>Los dejo a solas... Willy tiene algo muy especial para usted.»</em>
-        </div>
-        <div style="display:flex;justify-content:center;">
-          <button id="btnAcknowledgeFarewell" class="btn-primary" style="background:var(--accent-gold);color:var(--bg-deep);font-weight:600;padding:10px 28px;border-radius:8px;border:none;cursor:pointer;font-size:0.95rem;">
-            🌸 Entendido, Oficial
-          </button>
-        </div>
-        <div style="text-align:center;margin-top:10px;font-size:0.7rem;color:var(--text-muted);">
-          ── FIN DE COMUNICACIÓN ──
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
+  private playSalaCinematic(): void {
+    const overlay = document.getElementById('salaCinematic');
+    if (!overlay) return;
 
-    audio.playRadioBeep();
+    const bg = document.getElementById('salaBg');
+    if (bg) bg.style.backgroundImage = "url('sala.jpeg')";
 
-    const btnAck = document.getElementById('btnAcknowledgeFarewell');
-    if (btnAck) {
-      btnAck.addEventListener('click', () => {
-        modal.classList.remove('active');
-        setTimeout(() => modal.remove(), 300);
-        // Proceed to canvas awakening animation
-        this.startAwakeningCanvas();
-      });
+    const avatarEl = document.getElementById('salaSpeakerAvatar');
+    const nameEl = document.getElementById('salaSpeakerName');
+    const subEl = document.getElementById('salaSpeakerSub');
+    const textEl = document.getElementById('salaText');
+    const indicator = document.getElementById('salaStepIndicator');
+    const btnNext = document.getElementById('btnSalaNext');
+
+    let step = 0;
+    let nextBound = false;
+
+    const showStep = () => {
+      if (step >= this.salaSteps.length) {
+        overlay.classList.remove('active');
+        // Show verdictModal with the wax-sealed envelope
+        document.getElementById('verdictModal')?.classList.add('active');
+        return;
+      }
+
+      const s = this.salaSteps[step];
+      if (avatarEl) {
+        if (s.speaker === 'narrator') {
+          avatarEl.innerHTML = `<span style="font-size:28px;">${s.avatar}</span>`;
+        } else {
+          avatarEl.innerHTML = s.avatar;
+        }
+      }
+      if (nameEl) nameEl.textContent = s.name;
+      if (subEl) subEl.textContent = s.sub;
+      if (textEl) textEl.textContent = s.text;
+      if (indicator) indicator.textContent = `${step + 1} / ${this.salaSteps.length}`;
+      step++;
+    };
+
+    overlay.classList.add('active');
+    showStep();
+
+    if (!nextBound && btnNext) {
+      nextBound = true;
+      btnNext.addEventListener('click', showStep);
     }
   }
 
-  private startAwakeningCanvas() {
-    const overlay = document.getElementById('awakeningOverlay');
-    if (overlay) overlay.classList.add('active');
-    this.state.currentScene = 'sala';
+  // ============================================================
+  // ACTO III — CINEMÁTICA DEL JARDÍN (flores.jpeg)
+  // ============================================================
 
-    const game = this.createPhaserGame('phaserAwakening');
+  private gardenSteps: Array<{ speaker: string; name: string; sub: string; text: string; avatar: string }> = [
+    {
+      speaker: 'willy',
+      name: 'Willy',
+      sub: 'En nuestro rincón secreto',
+      text: '«Bienvenida a nuestro rincón secreto, mi sol. Preparé este campo entero de flores amarillas solo para ti.»',
+      avatar: getWillySpriteSVG({ size: 44 }),
+    },
+    {
+      speaker: 'gaby',
+      name: 'Gaby',
+      sub: 'Conmovida',
+      text: '«Willy... es hermoso. ¿Todo esto por el 21 de septiembre?»',
+      avatar: getGabySpriteSVG({ size: 44 }),
+    },
+    {
+      speaker: 'willy',
+      name: 'Willy',
+      sub: 'Agradecido',
+      text: '«Por el 21 de septiembre, por cada amanecer que compartimos y por cada enigma que resolvemos juntos. Sos mi constelación favorita en el cielo más oscuro y mi más dulce despertar.»',
+      avatar: getWillySpriteSVG({ size: 44 }),
+    },
+    {
+      speaker: 'willy',
+      name: 'Willy',
+      sub: 'Te amo',
+      text: '«Feliz día, mi amor. Gracias por ser mi detective favorita y la dueña de mi corazón. Te amo con toda mi alma ❤️»',
+      avatar: getWillySpriteSVG({ size: 44 }),
+    },
+  ];
 
-    const checkReady = () => {
-      const scene = game.scene.getScene('SalaScene') as SalaScene;
-      if (scene && scene.sys.isActive()) {
-        scene.onSalaComplete = () => {
-          if (overlay) overlay.classList.remove('active');
-          this.state.currentScene = null;
-          game.scene.stop('SalaScene');
-          document.getElementById('verdictModal')?.classList.add('active');
-        };
-      } else {
-        setTimeout(checkReady, 100);
+  private playGardenCinematic(): void {
+    const overlay = document.getElementById('gardenCinematic');
+    if (!overlay) return;
+
+    const bg = document.getElementById('gardenBg');
+    if (bg) bg.style.backgroundImage = "url('flores.jpeg')";
+
+    // Place couple on bench
+    const coupleScene = document.getElementById('gardenCoupleScene');
+    if (coupleScene) {
+      coupleScene.innerHTML = `
+        <div style="display:flex;align-items:flex-end;gap:6px;">
+          <div>${getWillySpriteSVG({ size: 72 })}</div>
+          <div>${getGabySpriteSVG({ size: 72 })}</div>
+        </div>
+      `;
+    }
+
+    // Spawn flower bloom ring
+    this.spawnGardenFlowers();
+
+    // Spawn sparkles after flowers bloom
+    setTimeout(() => this.spawnGardenSparkles(), 4000);
+
+    const avatarEl = document.getElementById('gardenSpeakerAvatar');
+    const nameEl = document.getElementById('gardenSpeakerName');
+    const subEl = document.getElementById('gardenSpeakerSub');
+    const textEl = document.getElementById('gardenText');
+    const indicator = document.getElementById('gardenStepIndicator');
+    const btnNext = document.getElementById('btnGardenNext');
+    const dialogueBox = document.getElementById('gardenDialogueBox');
+    const actionsEl = document.getElementById('gardenActions');
+
+    let step = 0;
+    let nextBound = false;
+
+    const showStep = () => {
+      if (step >= this.gardenSteps.length) {
+        // Hide dialogue, show free-mode actions
+        if (dialogueBox) dialogueBox.style.display = 'none';
+        if (actionsEl) actionsEl.style.display = 'flex';
+        return;
       }
+
+      const s = this.gardenSteps[step];
+      if (avatarEl) avatarEl.innerHTML = s.avatar;
+      if (nameEl) nameEl.textContent = s.name;
+      if (subEl) subEl.textContent = s.sub;
+      if (textEl) textEl.textContent = s.text;
+      if (indicator) indicator.textContent = `${step + 1} / ${this.gardenSteps.length}`;
+      step++;
     };
-    checkReady();
+
+    overlay.classList.add('active');
+    showStep();
+
+    if (!nextBound && btnNext) {
+      nextBound = true;
+      btnNext.addEventListener('click', showStep);
+    }
   }
 
-  private openGardenScene(): void {
-    const vwModal = document.getElementById('virtualWorldModal');
-    if (vwModal) vwModal.classList.add('active');
-    this.state.currentScene = 'garden';
+  private spawnGardenFlowers(): void {
+    const field = document.getElementById('gardenFlowerField');
+    if (!field) return;
+    field.innerHTML = '';
 
-    this.createPhaserGame('phaserGarden');
+    let count = 0;
+    const total = 40;
+    const interval = setInterval(() => {
+      if (count >= total) {
+        clearInterval(interval);
+        return;
+      }
+
+      const flower = document.createElement('div');
+      flower.className = 'flower-bloom';
+      const angle = (count / total) * Math.PI * 2;
+      // Elliptical ring around bench area (left:35%, top:54%)
+      const rx = 22; // horizontal radius %
+      const ry = 14; // vertical radius %
+      const cx = 35 + Math.cos(angle) * rx;
+      const cy = 54 + Math.sin(angle) * ry;
+      flower.style.left = `${cx}%`;
+      flower.style.top = `${cy}%`;
+      field.appendChild(flower);
+      count++;
+    }, 90);
+  }
+
+  private spawnGardenSparkles(): void {
+    const field = document.getElementById('gardenSparkleField');
+    if (!field) return;
+    field.innerHTML = '';
+
+    for (let i = 0; i < 30; i++) {
+      const sparkle = document.createElement('div');
+      sparkle.className = 'cinematic-sparkle';
+      sparkle.style.left = `${10 + Math.random() * 80}%`;
+      sparkle.style.top = `${10 + Math.random() * 40}%`;
+      sparkle.style.setProperty('--dur', `${1.5 + Math.random() * 2}s`);
+      sparkle.style.setProperty('--delay', `${Math.random() * 2}s`);
+      field.appendChild(sparkle);
+    }
+  }
+
+  public openGardenScene(): void {
+    this.playGardenCinematic();
   }
 
   public bloomGardenYellowFlowers() {
     audio.playVictoryWaltz();
     this.closeSecretGardenScenario();
-    this.openGardenScene();
+    this.playGardenCinematic();
   }
 
   public openRot3Modal() {
@@ -2579,7 +2713,7 @@ export class GameController {
         }
 
         setTimeout(() => {
-          this.playAwakeningCinematic();
+          this.playSalaCinematic();
         }, 600);
       });
     });
@@ -2637,6 +2771,53 @@ export class GameController {
       this.state.gardenRevealed = true;
       audio.playVictoryWaltz();
       this.openGardenScene();
+    });
+
+    // Garden Cinematic — free mode buttons
+    document.getElementById('btnReleerCarta')?.addEventListener('click', () => {
+      document.getElementById('verdictModal')?.classList.add('active');
+    });
+    document.getElementById('btnVolverCabina')?.addEventListener('click', () => {
+      const overlay = document.getElementById('gardenCinematic');
+      if (overlay) overlay.classList.remove('active');
+      this.state.currentScene = null;
+      this.showToast('🏡 Has regresado a la cabaña.');
+    });
+
+    // Garden Cinematic — click to plant free flowers
+    document.getElementById('gardenCinematic')?.addEventListener('click', (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Ignore clicks on buttons, dialogue box, or couple scene
+      if (
+        target.closest('.cinematic-dialogue-box') ||
+        target.closest('.cinematic-actions') ||
+        target.closest('.cinematic-couple-scene') ||
+        target.closest('button')
+      ) return;
+
+      const field = document.getElementById('gardenFlowerField');
+      if (!field) return;
+
+      const rect = (document.getElementById('gardenCinematic') as HTMLElement).getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+      // Plant a procedural flower
+      const flower = document.createElement('div');
+      flower.className = 'free-flower';
+      flower.style.left = `${x}%`;
+      flower.style.top = `${y}%`;
+      field.appendChild(flower);
+
+      // Add sparkle at same position
+      const sparkle = document.createElement('div');
+      sparkle.className = 'cinematic-sparkle';
+      sparkle.style.left = `${x + 0.5}%`;
+      sparkle.style.top = `${y - 1}%`;
+      sparkle.style.setProperty('--dur', '1.5s');
+      sparkle.style.setProperty('--delay', '0s');
+      const sparkleField = document.getElementById('gardenSparkleField');
+      if (sparkleField) sparkleField.appendChild(sparkle);
     });
 
     // Fast Room Navigation Chips

@@ -588,12 +588,50 @@
       </div>
     </div>
 
-    <!-- CINEMÁTICA DE DESPERTAR DE WYLLI -->
-    <div class="awakening-overlay" id="awakeningOverlay">
-      <div id="phaserAwakening" style="width:100%;height:100%;"></div>
-      <div class="awakening-dialogue" id="awakeningDialogue">
-        <div class="awakening-avatar">💻</div>
-        <p id="awakeningText"></p>
+    <!-- CINEMÁTICA ACTO II: LA SALA (sala.jpeg) -->
+    <div class="cinematic-overlay" id="salaCinematic">
+      <div class="cinematic-bg" id="salaBg"></div>
+      <div class="cinematic-vignette"></div>
+      <div class="cinematic-dialogue-box">
+        <div class="cinematic-speaker-row">
+          <div class="cinematic-avatar" id="salaSpeakerAvatar"></div>
+          <div class="cinematic-speaker-meta">
+            <div class="cinematic-speaker-name" id="salaSpeakerName"></div>
+            <div class="cinematic-speaker-sub" id="salaSpeakerSub"></div>
+          </div>
+        </div>
+        <div class="cinematic-text" id="salaText"></div>
+        <div class="cinematic-footer">
+          <span class="cinematic-step-indicator" id="salaStepIndicator"></span>
+          <button class="cinematic-next-btn" id="btnSalaNext">Siguiente ➡️</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CINEMÁTICA ACTO III: EL JARDÍN (flores.jpeg) -->
+    <div class="cinematic-overlay" id="gardenCinematic">
+      <div class="cinematic-bg" id="gardenBg"></div>
+      <div class="cinematic-vignette"></div>
+      <div class="cinematic-couple-scene" id="gardenCoupleScene"></div>
+      <div class="cinematic-flower-field" id="gardenFlowerField"></div>
+      <div class="cinematic-sparkle-field" id="gardenSparkleField"></div>
+      <div class="cinematic-dialogue-box" id="gardenDialogueBox">
+        <div class="cinematic-speaker-row">
+          <div class="cinematic-avatar" id="gardenSpeakerAvatar"></div>
+          <div class="cinematic-speaker-meta">
+            <div class="cinematic-speaker-name" id="gardenSpeakerName"></div>
+            <div class="cinematic-speaker-sub" id="gardenSpeakerSub"></div>
+          </div>
+        </div>
+        <div class="cinematic-text" id="gardenText"></div>
+        <div class="cinematic-footer">
+          <span class="cinematic-step-indicator" id="gardenStepIndicator"></span>
+          <button class="cinematic-next-btn" id="btnGardenNext">Siguiente ➡️</button>
+        </div>
+      </div>
+      <div class="cinematic-actions" id="gardenActions" style="display:none">
+        <button class="cinematic-ghost-btn" id="btnReleerCarta">💌 Releer la Carta</button>
+        <button class="cinematic-ghost-btn" id="btnVolverCabina">🏡 Volver a la Cabaña</button>
       </div>
     </div>
 
@@ -651,88 +689,7 @@
       </div>
     </div>
 
-    <!-- ESCENARIO PRINCIPAL: MUNDO VIRTUAL DE FLORES AMARILLAS (JUEGO INTERACTIVO) -->
-    <div class="virtual-world-modal" id="virtualWorldModal">
-      <!-- Minimal top bar -->
-      <div class="vw-top-bar">
-        <div class="vw-brand">
-          <span class="vw-pulse-icon">🌻</span>
-          <div class="vw-meta">
-            <h2 class="vw-title">El Gran Campo de Flores Amarillas</h2>
-            <span class="vw-subtitle">21 de Septiembre · Para Gaby ❤️</span>
-          </div>
-        </div>
-        <div class="vw-actions">
-          <button class="vw-pill-btn close" id="btnVwClose" title="Volver a la cabaña"><span>🏡</span> Volver a la Cabaña</button>
-        </div>
-      </div>
-
-      <!-- Canvas Container -->
-      <div class="vw-canvas-container" id="vwCanvasContainer">
-        <div id="phaserGarden" style="width:100%;height:100%;"></div>
-
-        <!-- Controls Helper -->
-        <div class="vw-controls-hint">
-          <span>🖱️ <strong>Clic</strong> para plantar flores</span>
-          <span>·</span>
-          <span>🌻 <strong>Espacio</strong> para brotar</span>
-        </div>
-
-        <!-- Touch D-Pad -->
-        <div class="vw-touch-dpad">
-          <button class="vw-dpad-btn up" data-dir="up">▲</button>
-          <div class="vw-dpad-middle">
-            <button class="vw-dpad-btn left" data-dir="left">◀</button>
-            <div class="vw-dpad-center">💖</div>
-            <button class="vw-dpad-btn right" data-dir="right">▶</button>
-          </div>
-          <button class="vw-dpad-btn down" data-dir="down">▼</button>
-        </div>
-      </div>
-
-      <!-- LETTER OVERLAY (inside virtual world) -->
-      <div id="vwLetterOverlay" class="vw-letter-overlay">
-        <div class="envelope-3d-scene">
-          <!-- Fase A: Sobre cerrado -->
-          <div class="envelope-3d" id="vwEnvelope3D">
-            <div class="envelope-body">
-              <div class="envelope-letter-preview">
-                <div class="letter-mini-line"></div>
-                <div class="letter-mini-line short"></div>
-                <div class="letter-mini-line"></div>
-              </div>
-            </div>
-            <div class="envelope-flap" id="vwEnvelopeFlap">
-              <div class="wax-seal-3d" id="vwWaxSealBtn">
-                <span>🐰</span>
-              </div>
-            </div>
-            <div class="envelope-shadow"></div>
-          </div>
-          <p class="envelope-instruction" id="vwEnvelopeInstruction">
-            ✨ Toca el sello de cera para abrir tu carta ✨
-          </p>
-
-          <!-- Fase B: Carta desplegada -->
-          <div class="letter-unfolded" id="vwLetterUnfolded">
-            <div class="letter-paper">
-              <div class="letter-salutation">Para mi amada detective Gaby,</div>
-              <div class="letter-body">
-                Si estás leyendo estas líneas en nuestro jardín secreto, es porque tu agudeza, tu paciencia y tu amor iluminaron cada rincón de esta cabaña de madera.
-                <br><br>
-                En el mundo de la ciberseguridad aprendemos que los secretos más valiosos se guardan bajo llaves impenetrables. Pero en mi vida, no existe mayor certeza ni mayor refugio que tú: <strong>sos mi sol</strong> que calienta cada mañana, <strong>mi constelación</strong> en las noches inciertas y el más <strong>dulce despertar</strong> que jamás soñé tener.
-                <br><br>
-                Hoy, 21 de septiembre, la niebla del valle se disipa por completo para ti... ¡Asómate y contempla lo que floreció en tu honor!
-              </div>
-              <div class="letter-farewell">Con todo mi amor para siempre, Willy ❤️</div>
-            </div>
-            <button class="btn-magic-spiral" id="btnStayInGarden">
-              <span>✨</span> Quedarnos en Nuestro Jardín
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- (Phaser virtual world modal eliminado — reemplazado por cinemática CSS #gardenCinematic) -->
 
     <!-- WAX SEALED ENVELOPE MODAL (3D) -->
     <div class="modal-overlay" id="verdictModal">
