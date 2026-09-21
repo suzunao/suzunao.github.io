@@ -1996,98 +1996,104 @@ export class GameController {
   }
 
   // ============================================================
-  // ACTO II — CINEMÁTICA DE LA SALA (sala.jpeg)
+  // CIERRE — Diálogo sobre mapa.png (Nolan + Willy)
   // ============================================================
 
-  private salaSteps: Array<{ speaker: string; name: string; sub: string; text: string; avatar: string }> = [
+  private closingSteps: Array<{ speaker: string; name: string; sub: string; text: string; avatar: string }> = [
     {
       speaker: 'nolan',
       name: 'Oficial Nolan',
-      sub: 'LAPD · Frecuencia Táctica',
-      text: '«Detective Gaby, signos vitales estables. Acerque el Café Supremo al sujeto.»',
+      sub: 'LAPD · Radio Perimetral',
+      text: '«10-4, Detective Gaby. Constantes vitales del sujeto normalizadas tras la infusión. Excelente trabajo de deducción forense en la cabaña.»',
       avatar: getNolanSpriteSVG({ size: 44 }),
-    },
-    {
-      speaker: 'narrator',
-      name: 'Narrador',
-      sub: '',
-      text: 'Gaby acerca la taza humeante de Café Supremo calibrado a "DULCE DESPERTAR". El aroma a canela y café recién tostado inunda la sala.',
-      avatar: '☕',
-    },
-    {
-      speaker: 'willy',
-      name: 'Willy',
-      sub: 'Despertando...',
-      text: '«...Gaby... ¿mi detective? Tu café me trajo de vuelta...»',
-      avatar: getWillySpriteSVG({ size: 44, awakened: true }),
     },
     {
       speaker: 'nolan',
       name: 'Oficial Nolan',
       sub: 'Cerrando Frecuencia',
-      text: '«Nolan a Central: Sujeto despierto y a salvo. Caso 21-09 concluido con honores. Me retiro, 10-4 y cambio.»',
+      text: '«Nolan a Central: Caso #21-09 concluido con honores. La detective tiene la situación bajo control. Me retiro a patrullar el valle, 10-4 y cambio.»',
       avatar: getNolanSpriteSVG({ size: 44 }),
     },
     {
       speaker: 'willy',
       name: 'Willy',
-      sub: 'Conmovido',
-      text: '«Antes de salir de aquí, Gaby... resolviste cada enigma. Toma este sobre confidencial. Feliz 21 de septiembre... la verdadera sorpresa no está entre estas cuatro paredes. Ven conmigo ❤️»',
+      sub: 'Despierto y Conmovido',
+      text: '«Gaby... gracias por rescatarme con tu Café Supremo. Cada pista en esta cabaña te pertenecía. Toma este sobre... Feliz 21 de septiembre, mi detective. Pero la verdadera sorpresa nos espera afuera.»',
       avatar: getWillySpriteSVG({ size: 44, awakened: true }),
     },
   ];
 
-  private playSalaCinematic(): void {
-    const overlay = document.getElementById('salaCinematic');
-    if (!overlay) return;
+  private showClosingDialogue(): void {
+    // Create temporary modal over the mapa.png (cabin stays visible)
+    const existing = document.getElementById('closingDialogueModal');
+    if (existing) existing.remove();
 
-    const bg = document.getElementById('salaBg');
-    if (bg) bg.style.backgroundImage = "url('sala.jpeg')";
+    const modal = document.createElement('div');
+    modal.id = 'closingDialogueModal';
+    modal.className = 'modal-overlay active';
+    modal.innerHTML = `
+      <div class="modal-box nolan-radio-modal" style="max-width:480px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;" id="closingSpeakerHeader">
+          <span style="font-size:1.6rem;" id="closingSpeakerEmoji"></span>
+          <div>
+            <strong style="color:var(--accent-gold);" id="closingSpeakerName"></strong>
+            <div style="font-size:0.75rem;color:var(--text-muted);" id="closingSpeakerSub"></div>
+          </div>
+        </div>
+        <div style="background:var(--bg-deep);border-left:3px solid var(--accent-gold);padding:12px 14px;border-radius:6px;margin-bottom:16px;line-height:1.6;color:var(--text-primary);font-family:var(--font-prose);min-height:60px;" id="closingText"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.7rem;color:var(--text-muted);" id="closingIndicator"></span>
+          <button id="btnClosingNext" class="btn-primary" style="background:var(--accent-gold);color:var(--bg-deep);font-weight:600;padding:10px 28px;border-radius:8px;border:none;cursor:pointer;font-size:0.95rem;">
+            Siguiente ➡️
+          </button>
+        </div>
+        <div style="text-align:center;margin-top:10px;font-size:0.7rem;color:var(--text-muted);">
+          ── FIN DE COMUNICACIÓN ──
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
 
-    const avatarEl = document.getElementById('salaSpeakerAvatar');
-    const nameEl = document.getElementById('salaSpeakerName');
-    const subEl = document.getElementById('salaSpeakerSub');
-    const textEl = document.getElementById('salaText');
-    const indicator = document.getElementById('salaStepIndicator');
-    const btnNext = document.getElementById('btnSalaNext');
+    audio.playRadioBeep();
 
     let step = 0;
-    let nextBound = false;
-
     const showStep = () => {
-      if (step >= this.salaSteps.length) {
-        overlay.classList.remove('active');
-        // Show verdictModal with the wax-sealed envelope
+      if (step >= this.closingSteps.length) {
+        modal.classList.remove('active');
+        setTimeout(() => modal.remove(), 300);
+        // Open the 3D envelope
         document.getElementById('verdictModal')?.classList.add('active');
         return;
       }
 
-      const s = this.salaSteps[step];
-      if (avatarEl) {
-        if (s.speaker === 'narrator') {
-          avatarEl.innerHTML = `<span style="font-size:28px;">${s.avatar}</span>`;
-        } else {
-          avatarEl.innerHTML = s.avatar;
-        }
-      }
+      const s = this.closingSteps[step];
+      const emojiEl = document.getElementById('closingSpeakerEmoji');
+      const nameEl = document.getElementById('closingSpeakerName');
+      const subEl = document.getElementById('closingSpeakerSub');
+      const textEl = document.getElementById('closingText');
+      const indicator = document.getElementById('closingIndicator');
+
+      if (emojiEl) emojiEl.textContent = s.speaker === 'nolan' ? '👮‍♂️' : '💻';
       if (nameEl) nameEl.textContent = s.name;
       if (subEl) subEl.textContent = s.sub;
       if (textEl) textEl.textContent = s.text;
-      if (indicator) indicator.textContent = `${step + 1} / ${this.salaSteps.length}`;
+      if (indicator) indicator.textContent = `${step + 1} / ${this.closingSteps.length}`;
+
+      // Play radio sound for Nolan steps
+      if (s.speaker === 'nolan' && step === 1) {
+        audio.playRadioClick();
+      }
+
       step++;
     };
 
-    overlay.classList.add('active');
     showStep();
 
-    if (!nextBound && btnNext) {
-      nextBound = true;
-      btnNext.addEventListener('click', showStep);
-    }
+    document.getElementById('btnClosingNext')?.addEventListener('click', showStep);
   }
 
   // ============================================================
-  // ACTO III — CINEMÁTICA DEL JARDÍN (flores.jpeg)
+  // ACTO III — JARDÍN FULL-SCREEN (flores.jpeg)
   // ============================================================
 
   private gardenSteps: Array<{ speaker: string; name: string; sub: string; text: string; avatar: string }> = [
@@ -2095,56 +2101,129 @@ export class GameController {
       speaker: 'willy',
       name: 'Willy',
       sub: 'En nuestro rincón secreto',
-      text: '«Bienvenida a nuestro rincón secreto, mi sol. Preparé este campo entero de flores amarillas solo para ti.»',
-      avatar: getWillySpriteSVG({ size: 44 }),
+      text: '«Bienvenida a nuestro rincón secreto, mi detective favorita. Este prado entero de flores amarillas floreció para ti.»',
+      avatar: getWillySpriteSVG({ size: 44, awakened: true }),
     },
     {
       speaker: 'gaby',
       name: 'Gaby',
       sub: 'Conmovida',
-      text: '«Willy... es hermoso. ¿Todo esto por el 21 de septiembre?»',
+      text: '«Willy... es precioso. ¿Todo este misterio para traerme aquí un 21 de septiembre?»',
       avatar: getGabySpriteSVG({ size: 44 }),
     },
     {
       speaker: 'willy',
       name: 'Willy',
       sub: 'Agradecido',
-      text: '«Por el 21 de septiembre, por cada amanecer que compartimos y por cada enigma que resolvemos juntos. Sos mi constelación favorita en el cielo más oscuro y mi más dulce despertar.»',
-      avatar: getWillySpriteSVG({ size: 44 }),
+      text: '«Por el 21 de septiembre, por cada amanecer que compartimos y por cada enigma que desciframos juntos. Sos mi sol, mi constelación y mi más dulce despertar.»',
+      avatar: getWillySpriteSVG({ size: 44, awakened: true }),
     },
     {
       speaker: 'willy',
       name: 'Willy',
       sub: 'Te amo',
-      text: '«Feliz día, mi amor. Gracias por ser mi detective favorita y la dueña de mi corazón. Te amo con toda mi alma ❤️»',
-      avatar: getWillySpriteSVG({ size: 44 }),
+      text: '«Feliz día de las flores amarillas, mi amor. Gracias por estar siempre a mi lado. Te amo con todo mi corazón ❤️»',
+      avatar: getWillySpriteSVG({ size: 44, awakened: true }),
     },
   ];
 
-  private playGardenCinematic(): void {
+  // Exclusion zone for flowers (couple on bench)
+  private readonly EXCLUSION = { left: 31, right: 39, top: 48, bottom: 54 };
+
+  public openGardenScene(): void {
     const overlay = document.getElementById('gardenCinematic');
     if (!overlay) return;
 
+    // Hide any active modals
+    document.getElementById('verdictModal')?.classList.remove('active');
+    document.getElementById('secretGardenScenario')?.classList.remove('active');
+
+    // Set background
     const bg = document.getElementById('gardenBg');
     if (bg) bg.style.backgroundImage = "url('flores.jpeg')";
 
-    // Place couple on bench
-    const coupleScene = document.getElementById('gardenCoupleScene');
-    if (coupleScene) {
-      coupleScene.innerHTML = `
-        <div style="display:flex;align-items:flex-end;gap:6px;">
-          <div>${getWillySpriteSVG({ size: 72 })}</div>
-          <div>${getGabySpriteSVG({ size: 72 })}</div>
-        </div>
-      `;
+    // Place couple on bench (Willy left, Gaby right — sitting pose with awakened: true)
+    const willyEl = document.getElementById('gardenWilly');
+    const gabyEl = document.getElementById('gardenGaby');
+    if (willyEl) willyEl.innerHTML = getWillySpriteSVG({ size: 64, awakened: true });
+    if (gabyEl) gabyEl.innerHTML = getGabySpriteSVG({ size: 64 });
+
+    // Show overlay
+    overlay.classList.add('active');
+    this.state.currentScene = 'garden';
+
+    // Reset dialogue box and actions
+    const dialogueBox = document.getElementById('gardenDialogueBox');
+    const actionsEl = document.getElementById('gardenActions');
+    if (dialogueBox) dialogueBox.style.display = '';
+    if (actionsEl) actionsEl.style.display = 'none';
+
+    // Spawn perimeter flowers
+    this.spawnPerimeterFlowers();
+
+    // Spawn sparkles after flowers finish (40 * 80ms = 3.2s)
+    setTimeout(() => this.spawnGardenSparkles(), 3400);
+
+    // Start dialogue after flowers + sparkles settle
+    setTimeout(() => this.startGardenDialogue(), 3800);
+  }
+
+  private spawnPerimeterFlowers(): void {
+    const field = document.getElementById('gardenFlowerField');
+    if (!field) return;
+    field.innerHTML = '';
+
+    const total = 40;
+    let count = 0;
+
+    const interval = setInterval(() => {
+      if (count >= total) {
+        clearInterval(interval);
+        return;
+      }
+
+      const angle = (count / total) * Math.PI * 2;
+      // Elliptical ring: rx 60-140px, ry 30-80px from bench center
+      const rx = 60 + Math.random() * 80;
+      const ry = 30 + Math.random() * 50;
+
+      // Convert px offsets to % relative to viewport
+      const xPct = 35 + (Math.cos(angle) * rx / window.innerWidth) * 100;
+      const yPct = 54 + (Math.sin(angle) * ry / window.innerHeight) * 100;
+
+      // Skip if inside exclusion zone (couple on bench)
+      if (xPct > this.EXCLUSION.left && xPct < this.EXCLUSION.right &&
+          yPct > this.EXCLUSION.top && yPct < this.EXCLUSION.bottom) {
+        count++;
+        return;
+      }
+
+      const flower = document.createElement('div');
+      flower.className = 'flower-bloom-mini';
+      flower.style.left = `${xPct}%`;
+      flower.style.top = `${yPct}%`;
+      field.appendChild(flower);
+      count++;
+    }, 80);
+  }
+
+  private spawnGardenSparkles(): void {
+    const field = document.getElementById('gardenSparkleField');
+    if (!field) return;
+    field.innerHTML = '';
+
+    for (let i = 0; i < 25; i++) {
+      const sparkle = document.createElement('div');
+      sparkle.className = 'garden-sparkle';
+      sparkle.style.left = `${5 + Math.random() * 90}%`;
+      sparkle.style.top = `${5 + Math.random() * 35}%`;
+      sparkle.style.setProperty('--dur', `${1.5 + Math.random() * 2}s`);
+      sparkle.style.setProperty('--delay', `${Math.random() * 2}s`);
+      field.appendChild(sparkle);
     }
+  }
 
-    // Spawn flower bloom ring
-    this.spawnGardenFlowers();
-
-    // Spawn sparkles after flowers bloom
-    setTimeout(() => this.spawnGardenSparkles(), 4000);
-
+  private startGardenDialogue(): void {
     const avatarEl = document.getElementById('gardenSpeakerAvatar');
     const nameEl = document.getElementById('gardenSpeakerName');
     const subEl = document.getElementById('gardenSpeakerSub');
@@ -2174,7 +2253,6 @@ export class GameController {
       step++;
     };
 
-    overlay.classList.add('active');
     showStep();
 
     if (!nextBound && btnNext) {
@@ -2183,58 +2261,10 @@ export class GameController {
     }
   }
 
-  private spawnGardenFlowers(): void {
-    const field = document.getElementById('gardenFlowerField');
-    if (!field) return;
-    field.innerHTML = '';
-
-    let count = 0;
-    const total = 40;
-    const interval = setInterval(() => {
-      if (count >= total) {
-        clearInterval(interval);
-        return;
-      }
-
-      const flower = document.createElement('div');
-      flower.className = 'flower-bloom';
-      const angle = (count / total) * Math.PI * 2;
-      // Elliptical ring around bench area (left:35%, top:54%)
-      const rx = 22; // horizontal radius %
-      const ry = 14; // vertical radius %
-      const cx = 35 + Math.cos(angle) * rx;
-      const cy = 54 + Math.sin(angle) * ry;
-      flower.style.left = `${cx}%`;
-      flower.style.top = `${cy}%`;
-      field.appendChild(flower);
-      count++;
-    }, 90);
-  }
-
-  private spawnGardenSparkles(): void {
-    const field = document.getElementById('gardenSparkleField');
-    if (!field) return;
-    field.innerHTML = '';
-
-    for (let i = 0; i < 30; i++) {
-      const sparkle = document.createElement('div');
-      sparkle.className = 'cinematic-sparkle';
-      sparkle.style.left = `${10 + Math.random() * 80}%`;
-      sparkle.style.top = `${10 + Math.random() * 40}%`;
-      sparkle.style.setProperty('--dur', `${1.5 + Math.random() * 2}s`);
-      sparkle.style.setProperty('--delay', `${Math.random() * 2}s`);
-      field.appendChild(sparkle);
-    }
-  }
-
-  public openGardenScene(): void {
-    this.playGardenCinematic();
-  }
-
   public bloomGardenYellowFlowers() {
     audio.playVictoryWaltz();
     this.closeSecretGardenScenario();
-    this.playGardenCinematic();
+    this.openGardenScene();
   }
 
   public openRot3Modal() {
@@ -2713,7 +2743,7 @@ export class GameController {
         }
 
         setTimeout(() => {
-          this.playSalaCinematic();
+          this.showClosingDialogue();
         }, 600);
       });
     });
@@ -2784,14 +2814,14 @@ export class GameController {
       this.showToast('🏡 Has regresado a la cabaña.');
     });
 
-    // Garden Cinematic — click to plant free flowers
+    // Garden — click to plant free flowers on grass
     document.getElementById('gardenCinematic')?.addEventListener('click', (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // Ignore clicks on buttons, dialogue box, or couple scene
+      // Ignore clicks on UI elements
       if (
         target.closest('.cinematic-dialogue-box') ||
-        target.closest('.cinematic-actions') ||
-        target.closest('.cinematic-couple-scene') ||
+        target.closest('.garden-free-actions') ||
+        target.closest('.garden-couple') ||
         target.closest('button')
       ) return;
 
@@ -2811,7 +2841,7 @@ export class GameController {
 
       // Add sparkle at same position
       const sparkle = document.createElement('div');
-      sparkle.className = 'cinematic-sparkle';
+      sparkle.className = 'garden-sparkle';
       sparkle.style.left = `${x + 0.5}%`;
       sparkle.style.top = `${y - 1}%`;
       sparkle.style.setProperty('--dur', '1.5s');
