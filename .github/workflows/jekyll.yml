@@ -21,6 +21,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: gaby/Flores/package-lock.json
+
+      - name: Build Flores (Vite)
+        working-directory: gaby/Flores
+        run: |
+          npm install --legacy-peer-deps
+          npm run build
+
+      - name: Copy Flores build to static directory
+        run: |
+          mkdir -p gaby/flores
+          cp -r gaby/Flores/dist/* gaby/flores/
+
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
