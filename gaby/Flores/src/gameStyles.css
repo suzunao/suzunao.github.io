@@ -1981,18 +1981,13 @@ html, body {
 /* --- Garden: Couple on Bench --- */
 .garden-couple {
   position: absolute;
-  left: 35%;
-  top: 54%;
-  transform: translate(-50%, -100%);
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
+  inset: 0;
   z-index: 5;
   pointer-events: none;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
 }
 
 .garden-char {
+  position: absolute;
   display: flex;
   align-items: flex-end;
 }
@@ -2003,11 +1998,19 @@ html, body {
 }
 
 .garden-willy {
-  transform: translateX(-2px);
+  left: 34.5%;
+  top: 55.5%;
+  transform: translate(-50%, -100%);
+  z-index: 50;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
 }
 
 .garden-gaby {
-  transform: translateX(2px);
+  left: 37.8%;
+  top: 56.5%;
+  transform: translate(-50%, -100%);
+  z-index: 51;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
 }
 
 /* --- Garden: Perimeter Flower Field --- */

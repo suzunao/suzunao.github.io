@@ -2128,7 +2128,7 @@ export class GameController {
   ];
 
   // Exclusion zone for flowers (couple on bench)
-  private readonly EXCLUSION = { left: 31, right: 39, top: 48, bottom: 54 };
+  private readonly EXCLUSION = { left: 33, right: 39, top: 53, bottom: 57.5 };
 
   public openGardenScene(): void {
     const overlay = document.getElementById('gardenCinematic');
