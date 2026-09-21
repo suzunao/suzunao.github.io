@@ -20,7 +20,7 @@ export interface StoryChapter {
   solved: boolean;
   requiredFlag?: 'none' | 'flag1' | 'flag2' | 'flag3' | 'all';
   lockedSummary?: string;
-  roomTarget?: 'living' | 'bedroom' | 'kitchen' | 'gazebo';
+  roomTarget?: 'wylli' | 'michi' | 'barista' | 'nolan';
   roomLabel?: string;
   toolTarget?: 'rot3' | 'uv' | 'barista';
   toolName?: string;

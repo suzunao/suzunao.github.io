@@ -14,7 +14,7 @@ Para romper el sortilegio y revelar el gran misterio que él juró develar este 
     clueHint: 'Inicia tu investigación en la Sala de Estar frente a la chimenea donde descansa Wylli.',
     solved: true,
     requiredFlag: 'none',
-    roomTarget: 'living',
+    roomTarget: 'wylli',
     roomLabel: 'Sala de Estar (Wylli)',
   },
   {
@@ -30,7 +30,7 @@ Una nota de ciberseguridad al pie susurra: —"Aquel que cifra sus sentimientos 
     clueHint: 'Investiga la servilleta junto a la taza en la sala y usa la Lupa Forense para girar el dial del abecedario.',
     solved: false,
     requiredFlag: 'none',
-    roomTarget: 'living',
+    roomTarget: 'wylli',
     roomLabel: 'Sala de Estar (Sofá Verde)',
     toolTarget: 'rot3',
     toolName: 'Lupa Forense ROT-3',
@@ -50,7 +50,7 @@ Bajo una de sus suaves patitas, resalta un naipe de baraja: el As de Corazones (
     solved: false,
     requiredFlag: 'flag1',
     lockedSummary: '🔒 Este capítulo permanece velado en las sombras. Para desbloquearlo, Gaby debe resolver primero el Capítulo I (La Servilleta ROT-3 en la sala).',
-    roomTarget: 'bedroom',
+    roomTarget: 'michi',
     roomLabel: 'Dormitorio (Michi Blanco)',
     toolTarget: 'uv',
     toolName: 'Luz Ultravioleta UV Forense',
@@ -70,7 +70,7 @@ El aroma a granos tostados de especialidad y canela de Ceilán inunda la cocina.
     solved: false,
     requiredFlag: 'flag2',
     lockedSummary: '🔒 La fórmula alquímica de la cafetera de espresso permanece bajo llave. Resuelve el Capítulo II (El As Esteganográfico del Michi) para desbloquear este capítulo.',
-    roomTarget: 'kitchen',
+    roomTarget: 'barista',
     roomLabel: 'Cocina (Barra Barista)',
     toolTarget: 'barista',
     toolName: 'Estación Barista de Café',
@@ -90,46 +90,46 @@ En ese instante, la brisa de la montaña disipa la densa bruma exterior, abriend
     solved: false,
     requiredFlag: 'all',
     lockedSummary: '🔒 El epílogo final y el Jardín Secreto de Wylli solo se revelarán cuando Gaby resuelva los tres enigmas y sirva el Café Supremo para despertarlo.',
-    roomTarget: 'living',
+    roomTarget: 'wylli',
     roomLabel: 'El Sofá de Wylli Despierto',
   },
 ];
 
 export const HOTSPOT_DIALOGUES: Record<string, StoryDialogue> = {
-  kitchen: {
+  barista: {
     speaker: 'narrator',
-    speakerName: 'Cocina & Barra Barista',
+    speakerName: 'Máquina de Espresso y Molinillo',
     avatar: '☕',
     atmosphere: 'El vapor aromático de granos tostados y canela se eleva junto a la cafetera de cobre...',
     text: '«Examinas la barra de espresso. Sobre la pizarra de roble, Wylli programó la calibración del antídoto: <code>wake_boyfriend.sh --mode D____ D________</code>. Descifra las dos palabras del amanecer más dulce o usa la Estación Barista para preparar el Café Supremo.»',
   },
-  living: {
+  wylli: {
     speaker: 'novio',
-    speakerName: 'Sala de Estar (Wylli Dormido)',
+    speakerName: 'Wylli (Sillón de la Sala)',
     avatar: '💻',
     atmosphere: 'Wylli descansa en el sofá verde con su gorra blanca de tiburón y auriculares al cuello...',
     text: '«Wylli duerme plácidamente tras días de programar este misterio para ti. Sobre la mesa baja de roble, junto a una taza tibia de canela, descansa una servilleta de lino con el cifrado: <code>«Vrv pl vro»</code>. Usa tu lupa forense para rotar las letras o consulta a Nolan por radio.»',
   },
-  bedroom: {
+  table: {
+    speaker: 'narrator',
+    speakerName: 'Mesa de Centro con Taza y Servilleta',
+    avatar: '🔍',
+    atmosphere: 'La luz de la chimenea ilumina la servilleta de lino y la taza de porcelana...',
+    text: '«Sobre la mesa de centro descansa la servilleta de Wylli junto a una taza tibia de canela. El mensaje cifrado dice: <code>«Vrv pl vro»</code>. Examina la servilleta para descubrir el ROT-3.»',
+  },
+  michi: {
     speaker: 'michi',
-    speakerName: 'Dormitorio Principal & Michi Blanco',
+    speakerName: 'Michi Blanco & As de Corazones',
     avatar: '🐱',
     atmosphere: 'El Michi blanco ronronea apaciblemente sobre el edredón junto a los naipes de Solitario...',
     text: '«Acaricias al Michi blanco, que ronronea con ternura. Bajo su patita suave reluce el As de Corazones (♥ A). Wylli le aplicó un mensaje esteganográfico invisible a simple vista: <code>«El mapa de estrellas que guía todas mis noches... M_ C___________N»</code>. Usa la luz UV forense para verlo brillar.»',
   },
-  gazebo: {
+  nolan: {
     speaker: 'nolan',
-    speakerName: 'Oficial John Nolan (LAPD)',
+    speakerName: 'Oficial John Nolan (Puesto de Guardia)',
     avatar: '👮‍♂️',
     atmosphere: 'Nolan vigila junto al gazebo con su comunicador policial y placa de plata reluciente...',
     text: '«—¡Buenas noches, Detective Gaby! —saluda el Oficial Nolan con una cálida sonrisa—. He revisado el perímetro y todo está seguro. Wylli preparó cada enigma con devoción antes de caer rendido. Estoy aquí para asesorarla como su oficial de apoyo táctico. ¿En qué pista necesita mi análisis policial?»',
-  },
-  pool: {
-    speaker: 'narrator',
-    speakerName: 'Spa Termal de Piedra',
-    avatar: '♨️',
-    atmosphere: 'Las aguas termales despiden una suave niebla tibia bajo el reflejo de la luna de montaña...',
-    text: '«Te detienes un instante junto al estanque termal de piedra. El rumor del agua tibia y los nenúfares aporta serenidad a tu mente de detective. Respira hondo y continúa resolviendo las pistas de Wylli.»',
   },
   cinnamonTea: {
     speaker: 'narrator',
@@ -137,13 +137,6 @@ export const HOTSPOT_DIALOGUES: Record<string, StoryDialogue> = {
     avatar: '📜',
     atmosphere: 'El fuego de la chimenea proyecta cálidas sombras doradas sobre la servilleta...',
     text: '«Examinas la servilleta doblada junto a la taza de canela. La caligrafía de Wylli dice: <code>«Vrv pl vro»</code> con la anotación: ROT-3 (-3 posiciones en el alfabeto). ¿Qué palabras de amor te dice al despertar?»',
-  },
-  michi: {
-    speaker: 'michi',
-    speakerName: 'Michi Blanco & As de Corazones',
-    avatar: '🐱',
-    atmosphere: 'Un ronroneo vibrante y cálido resuena como un pequeño motor de ternura...',
-    text: '«El gatito blanco entreabre sus ojos almendrados y extiende su patita delantera. Bajo ella reluce el As de Corazones (♥ A). Al activar la luz UV forense, destellan las estrellas doradas y el enigma: <code>«M_ C___________N»</code>.»',
   },
   espresso: {
     speaker: 'narrator',

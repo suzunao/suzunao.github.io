@@ -54,61 +54,138 @@ export class GameController {
   // Hotspots definition based on exact user coordinates
   public hotspots: Hotspot[] = [
     {
-      id: 'kitchen',
-      name: 'Cocina & Barra Barista',
+      id: 'barista',
+      name: 'Máquina de Espresso y Molinillo',
       room: 'Cocina',
-      x: 36,
-      y: 30,
-      radius: 8,
+      x: 31,
+      y: 33,
+      radius: 7,
       actionText: 'Calibrar la molienda del Café Supremo',
       speaker: 'narrator',
       storyChapter: 3,
     },
     {
-      id: 'living',
-      name: 'Sala con Sofás Verdes (El Novio)',
+      id: 'wylli',
+      name: 'Wylli (Sillón de la Sala)',
       room: 'Sala de Estar',
-      x: 58,
-      y: 42,
-      radius: 8,
+      x: 45,
+      y: 44,
+      radius: 7,
       actionText: 'Inspeccionar taza de té y notas de ciberseguridad',
       speaker: 'novio',
       storyChapter: 1,
     },
     {
-      id: 'bedroom',
-      name: 'Dormitorio Principal & Michi Blanco',
+      id: 'table',
+      name: 'Mesa de Centro con Taza y Servilleta',
+      room: 'Sala de Estar',
+      x: 50,
+      y: 42,
+      radius: 6,
+      actionText: '🔍 Inspeccionar la Mesa de Centro',
+      speaker: 'nolan',
+      storyChapter: 1,
+    },
+    {
+      id: 'michi',
+      name: 'Michi Blanco & As de Corazones',
       room: 'Dormitorio',
-      x: 84,
-      y: 60,
-      radius: 8,
+      x: 68,
+      y: 56,
+      radius: 7,
       actionText: 'Acariciar al Michi y ver los naipes de Solitario',
       speaker: 'michi',
       storyChapter: 2,
     },
     {
-      id: 'gazebo',
-      name: 'Oficial John Nolan (LAPD)',
+      id: 'nolan',
+      name: 'Oficial John Nolan (Puesto de Guardia)',
       room: 'Gazebo & Jardín',
-      x: 32,
-      y: 72,
+      x: 18,
+      y: 68,
       radius: 8,
       actionText: 'Hablar por radio con Nolan sobre el perímetro',
       speaker: 'nolan',
       storyChapter: 0,
     },
-    {
-      id: 'pool',
-      name: 'Spa Termal de Piedra',
-      room: 'Exterior',
-      x: 66,
-      y: 78,
-      radius: 7,
-      actionText: 'Escuchar el rumor de las aguas termales',
-      speaker: 'narrator',
-      storyChapter: 0,
-    },
   ];
+
+  // Walkable mask: zones where Gaby can walk (percentage-based polygons)
+  private static WALKABLE_ZONES = [
+    // Camino exterior de tierra
+    { x1: 10, y1: 75, x2: 40, y2: 95 },
+    // Puente de madera y escaleras
+    { x1: 22, y1: 65, x2: 38, y2: 78 },
+    // Planta principal - pasillo central
+    { x1: 25, y1: 25, x2: 75, y2: 70 },
+    // Zona de cocina
+    { x1: 25, y1: 25, x2: 45, y2: 40 },
+    // Sala de estar
+    { x1: 40, y1: 35, x2: 65, y2: 55 },
+    // Dormitorio
+    { x1: 60, y1: 45, x2: 90, y2: 70 },
+    // Gazebo exterior
+    { x1: 10, y1: 60, x2: 30, y2: 80 },
+  ];
+
+  // Blocked zones: obstacles Gaby cannot walk through
+  private static BLOCKED_ZONES = [
+    // Estanque de agua
+    { type: 'ellipse' as const, cx: 55, cy: 82, rx: 10, ry: 6 },
+    // Piscina termal
+    { type: 'ellipse' as const, cx: 70, cy: 80, rx: 8, ry: 5 },
+    // Chimenea
+    { x1: 20, y1: 30, x2: 28, y2: 40 },
+    // Cama
+    { x1: 72, y1: 50, x2: 88, y2: 65 },
+    // Mostrador cocina
+    { x1: 28, y1: 28, x2: 38, y2: 35 },
+  ];
+
+  private isPointInRect(x: number, y: number, zone: { x1: number; y1: number; x2: number; y2: number }): boolean {
+    return x >= zone.x1 && x <= zone.x2 && y >= zone.y1 && y <= zone.y2;
+  }
+
+  private isPointInEllipse(x: number, y: number, zone: { cx: number; cy: number; rx: number; ry: number }): boolean {
+    const dx = (x - zone.cx) / zone.rx;
+    const dy = (y - zone.cy) / zone.ry;
+    return dx * dx + dy * dy <= 1;
+  }
+
+  private isPointInWalkable(x: number, y: number): boolean {
+    for (const zone of GameController.WALKABLE_ZONES) {
+      if (this.isPointInRect(x, y, zone)) return true;
+    }
+    return false;
+  }
+
+  private isPointBlocked(x: number, y: number): boolean {
+    for (const zone of GameController.BLOCKED_ZONES) {
+      if ('type' in zone && zone.type === 'ellipse') {
+        if (this.isPointInEllipse(x, y, zone)) return true;
+      } else if ('x1' in zone) {
+        if (this.isPointInRect(x, y, zone)) return true;
+      }
+    }
+    return false;
+  }
+
+  private findNearestFreePoint(x: number, y: number): { x: number; y: number } {
+    if (this.isPointInWalkable(x, y) && !this.isPointBlocked(x, y)) return { x, y };
+
+    // Search in expanding circles for nearest free point
+    for (let r = 1; r <= 20; r++) {
+      for (let angle = 0; angle < 360; angle += 15) {
+        const rad = (angle * Math.PI) / 180;
+        const testX = x + Math.cos(rad) * r;
+        const testY = y + Math.sin(rad) * r;
+        if (this.isPointInWalkable(testX, testY) && !this.isPointBlocked(testX, testY)) {
+          return { x: testX, y: testY };
+        }
+      }
+    }
+    return { x, y }; // fallback
+  }
 
   // Gaby movement state
   public gaby = {
@@ -158,7 +235,9 @@ export class GameController {
       const clickXPercent = Math.max(12, Math.min(88, ((e.clientX - rect.left) / rect.width) * 100));
       const clickYPercent = Math.max(18, Math.min(84, ((e.clientY - rect.top) / rect.height) * 100));
 
-      this.showDestinationMarker(clickXPercent, clickYPercent);
+      // Show marker at nearest free point
+      const freePoint = this.findNearestFreePoint(clickXPercent, clickYPercent);
+      this.showDestinationMarker(freePoint.x, freePoint.y);
       this.walkTo(clickXPercent, clickYPercent);
 
       // If garden revealed, spawn flowers on click
@@ -170,15 +249,17 @@ export class GameController {
     // Wire up hotspot clicks directly
     this.hotspots.forEach((spot) => {
       const el = document.getElementById(
-        spot.id === 'kitchen'
-          ? 'hotspotKitchen'
-          : spot.id === 'living'
-          ? 'hotspotLiving'
-          : spot.id === 'bedroom'
-          ? 'hotspotBedroom'
-          : spot.id === 'gazebo'
-          ? 'hotspotGazebo'
-          : 'hotspotPool'
+        spot.id === 'barista'
+          ? 'hotspotBarista'
+          : spot.id === 'wylli'
+          ? 'hotspotWylli'
+          : spot.id === 'table'
+          ? 'hotspotTable'
+          : spot.id === 'michi'
+          ? 'hotspotMichi'
+          : spot.id === 'nolan'
+          ? 'hotspotNolan'
+          : ''
       );
 
       if (el) {
@@ -207,8 +288,10 @@ export class GameController {
   }
 
   public walkTo(targetX: number, targetY: number, onArrival?: () => void) {
-    this.gaby.targetX = Math.max(12, Math.min(88, targetX));
-    this.gaby.targetY = Math.max(18, Math.min(84, targetY));
+    // Find nearest free point if target is blocked or outside walkable zones
+    const freePoint = this.findNearestFreePoint(targetX, targetY);
+    this.gaby.targetX = Math.max(12, Math.min(88, freePoint.x));
+    this.gaby.targetY = Math.max(18, Math.min(84, freePoint.y));
     this.onArrivalCallback = onArrival || null;
 
     if (this.gaby.targetX < this.gaby.x) {
@@ -320,7 +403,7 @@ export class GameController {
     let dialogue = HOTSPOT_DIALOGUES[spot.id] || HOTSPOT_DIALOGUES.cinnamonTea;
 
     // Procedural context-aware dialogues to prevent story clutter & re-investigation
-    if (spot.id === 'living') {
+    if (spot.id === 'wylli') {
       if (this.state.awakened) {
         dialogue = {
           speaker: 'novio',
@@ -338,7 +421,7 @@ export class GameController {
           text: '«Wylli duerme con una sonrisa apacible. La servilleta ROT-3 ya fue descifrada con éxito: <strong>«SOS MI SOL»</strong>. El indicio está resuelto y archivado en tu libreta. Ya no es necesario volver a investigarlo.»',
         };
       }
-    } else if (spot.id === 'bedroom') {
+    } else if (spot.id === 'michi') {
       if (!this.state.flags.flag1) {
         dialogue = {
           speaker: 'michi',
@@ -356,7 +439,7 @@ export class GameController {
           text: '«El Michi blanco ronronea con deleite. El As de Corazones esteganográfico ya fue revelado con la luz ultravioleta: <strong>«MI CONSTELACION»</strong>. El caso #2 está resuelto y archivado en tu libreta. Ya no tienes que volver a investigar este indicio.»',
         };
       }
-    } else if (spot.id === 'kitchen') {
+    } else if (spot.id === 'barista') {
       if (!this.state.flags.flag2) {
         dialogue = {
           speaker: 'narrator',
@@ -379,21 +462,21 @@ export class GameController {
     if (!dialogue) return;
 
     // Mark scene as physically investigated by Gaby
-    if (spot.id === 'living') {
+    if (spot.id === 'wylli') {
       if (!this.state.investigated.living) {
         this.state.investigated.living = true;
         this.renderChapters();
         this.updateNotebookProceduralState();
         this.showToast('📜 ¡Indicio recogido! Servilleta con ROT-3 añadida a tus herramientas.');
       }
-    } else if (spot.id === 'bedroom') {
+    } else if (spot.id === 'michi') {
       if (this.state.flags.flag1 && !this.state.investigated.bedroom) {
         this.state.investigated.bedroom = true;
         this.renderChapters();
         this.updateNotebookProceduralState();
         this.showToast('🃏 ¡Indicio descubierto! As de Corazones esteganográfico añadido a tu libreta.');
       }
-    } else if (spot.id === 'kitchen') {
+    } else if (spot.id === 'barista') {
       if (this.state.flags.flag2 && !this.state.investigated.kitchen) {
         this.state.investigated.kitchen = true;
         this.renderChapters();
@@ -403,10 +486,10 @@ export class GameController {
     }
 
     // Play thematic audio
-    if (spot.id === 'living') audio.playChime(440);
-    else if (spot.id === 'bedroom') audio.playPurr();
-    else if (spot.id === 'kitchen') audio.playSteam();
-    else if (spot.id === 'gazebo') audio.playRadioBeep();
+    if (spot.id === 'wylli') audio.playChime(440);
+    else if (spot.id === 'michi') audio.playPurr();
+    else if (spot.id === 'barista') audio.playSteam();
+    else if (spot.id === 'nolan') audio.playRadioBeep();
     else audio.playChime(523);
 
     // Open Visual Novel Dialogue Box
@@ -438,7 +521,7 @@ export class GameController {
     actionsEl.innerHTML = '';
 
     // Action 1: Forensic Tools or Procedural Navigation
-    if (spot && spot.id === 'living') {
+    if (spot && spot.id === 'wylli') {
       if (this.state.awakened) {
         const btnVw = document.createElement('button');
         btnVw.className = 'vn-choice-btn primary';
@@ -480,7 +563,7 @@ export class GameController {
           btnNext.onclick = () => {
             this.closeNovelDialogue();
             this.walkTo(84, 60, () => {
-              const bSpot = this.hotspots.find((s) => s.id === 'bedroom');
+              const bSpot = this.hotspots.find((s) => s.id === 'michi');
               if (bSpot) this.triggerHotspotDialogue(bSpot);
             });
           };
@@ -492,7 +575,7 @@ export class GameController {
           btnNext.onclick = () => {
             this.closeNovelDialogue();
             this.walkTo(36, 30, () => {
-              const kSpot = this.hotspots.find((s) => s.id === 'kitchen');
+              const kSpot = this.hotspots.find((s) => s.id === 'barista');
               if (kSpot) this.triggerHotspotDialogue(kSpot);
             });
           };
@@ -517,7 +600,7 @@ export class GameController {
         };
         actionsEl.appendChild(btnTool);
       }
-    } else if (spot && spot.id === 'bedroom') {
+    } else if (spot && spot.id === 'michi') {
       if (!this.state.flags.flag1) {
         const btnGoLiving = document.createElement('button');
         btnGoLiving.className = 'vn-choice-btn primary';
@@ -525,7 +608,7 @@ export class GameController {
         btnGoLiving.onclick = () => {
           this.closeNovelDialogue();
           this.walkTo(58, 42, () => {
-            const lSpot = this.hotspots.find((s) => s.id === 'living');
+            const lSpot = this.hotspots.find((s) => s.id === 'wylli');
             if (lSpot) this.triggerHotspotDialogue(lSpot);
           });
         };
@@ -551,7 +634,7 @@ export class GameController {
           btnNext.onclick = () => {
             this.closeNovelDialogue();
             this.walkTo(36, 30, () => {
-              const kSpot = this.hotspots.find((s) => s.id === 'kitchen');
+              const kSpot = this.hotspots.find((s) => s.id === 'barista');
               if (kSpot) this.triggerHotspotDialogue(kSpot);
             });
           };
@@ -578,7 +661,7 @@ export class GameController {
         };
         actionsEl.appendChild(btnTool);
       }
-    } else if (spot && spot.id === 'kitchen') {
+    } else if (spot && spot.id === 'barista') {
       if (!this.state.flags.flag2) {
         const btnGoBedroom = document.createElement('button');
         btnGoBedroom.className = 'vn-choice-btn primary';
@@ -586,7 +669,7 @@ export class GameController {
         btnGoBedroom.onclick = () => {
           this.closeNovelDialogue();
           this.walkTo(84, 60, () => {
-            const bSpot = this.hotspots.find((s) => s.id === 'bedroom');
+            const bSpot = this.hotspots.find((s) => s.id === 'michi');
             if (bSpot) this.triggerHotspotDialogue(bSpot);
           });
         };
@@ -636,7 +719,7 @@ export class GameController {
         };
         actionsEl.appendChild(btnTool);
       }
-    } else if (spot && spot.id === 'gazebo') {
+    } else if (spot && spot.id === 'nolan') {
       const btnRadio = document.createElement('button');
       btnRadio.className = 'vn-choice-btn primary';
       btnRadio.innerHTML = '<span>📻</span> Transmisión Táctica LAPD con Nolan';
@@ -648,13 +731,13 @@ export class GameController {
     }
 
     // Action 2: Nolan's advice from anywhere
-    if (spot && spot.id !== 'gazebo') {
+    if (spot && spot.id !== 'nolan') {
       const btnNolan = document.createElement('button');
       btnNolan.className = 'vn-choice-btn';
       btnNolan.innerHTML = '<span>📻</span> Pedir Consejo por Radio a Nolan';
       btnNolan.onclick = () => {
         this.closeNovelDialogue();
-        const flagTarget: 1 | 2 | 3 = spot.id === 'living' ? 1 : spot.id === 'bedroom' ? 2 : 3;
+        const flagTarget: 1 | 2 | 3 = spot.id === 'wylli' ? 1 : spot.id === 'michi' ? 2 : 3;
         this.openNolanRadioModal(flagTarget);
       };
       actionsEl.appendChild(btnNolan);
@@ -817,7 +900,7 @@ export class GameController {
         // Action shortcuts for active unsolved chapter
         let actionsHTML = '';
         if (!ch.solved && ch.id > 0) {
-          const roomKey = ch.roomTarget as 'living' | 'bedroom' | 'kitchen';
+          const roomKey = ch.roomTarget as 'wylli' | 'michi' | 'barista';
           const isInvestigated = this.state.investigated[roomKey];
 
           if (!isInvestigated) {
@@ -898,10 +981,10 @@ export class GameController {
             if (action === 'goto-room') {
               const room = btn.getAttribute('data-room');
               const coords: Record<string, { x: number; y: number; spotId: string }> = {
-                living: { x: 58, y: 42, spotId: 'living' },
-                kitchen: { x: 36, y: 30, spotId: 'kitchen' },
-                bedroom: { x: 84, y: 60, spotId: 'bedroom' },
-                gazebo: { x: 32, y: 72, spotId: 'gazebo' },
+                wylli: { x: 45, y: 44, spotId: 'wylli' },
+                barista: { x: 31, y: 33, spotId: 'barista' },
+                michi: { x: 68, y: 56, spotId: 'michi' },
+                nolan: { x: 18, y: 68, spotId: 'nolan' },
               };
               if (room && coords[room]) {
                 const target = coords[room];
@@ -995,18 +1078,18 @@ export class GameController {
 
       // Update hotspot visual status
       if (num === 1) {
-        const spotEl = document.getElementById('hotspotLiving');
+        const spotEl = document.getElementById('hotspotWylli');
         const statusEl = document.getElementById('statusLiving');
         spotEl?.classList.add('completed');
         if (statusEl) statusEl.textContent = '✅';
       } else if (num === 2) {
-        const spotEl = document.getElementById('hotspotBedroom');
+        const spotEl = document.getElementById('hotspotMichi');
         const statusEl = document.getElementById('statusBedroom');
         spotEl?.classList.add('completed');
         if (statusEl) statusEl.textContent = '✅';
       } else if (num === 3) {
-        const spotEl = document.getElementById('hotspotKitchen');
-        const statusEl = document.getElementById('statusKitchen');
+        const spotEl = document.getElementById('hotspotBarista');
+        const statusEl = document.getElementById('statusBarista');
         spotEl?.classList.add('completed');
         if (statusEl) statusEl.textContent = '✅';
       }
@@ -1909,6 +1992,57 @@ export class GameController {
   }
 
   public playAwakeningCinematic() {
+    // Step 0: Show Nolan farewell radio before canvas animation
+    this.showNolanFarewell();
+  }
+
+  private showNolanFarewell() {
+    // Create a temporary radio farewell modal
+    const existingModal = document.getElementById('nolanFarewellModal');
+    if (existingModal) existingModal.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'nolanFarewellModal';
+    modal.className = 'modal-overlay active';
+    modal.innerHTML = `
+      <div class="modal-box nolan-radio-modal" style="max-width:440px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <span style="font-size:1.6rem;">👮‍♂️</span>
+          <div>
+            <strong style="color:var(--accent-gold);">Oficial John Nolan</strong>
+            <div style="font-size:0.75rem;color:var(--text-muted);">LAPD · Radio Perimetral · Frecuencia Privada</div>
+          </div>
+        </div>
+        <div style="background:var(--bg-deep);border-left:3px solid var(--accent-gold);padding:12px 14px;border-radius:6px;margin-bottom:16px;line-height:1.6;color:var(--text-primary);font-family:var(--font-prose);">
+          <em>«Signos vitales al 100%. Mi patrulla concluyó, excelente trabajo en equipo, Detective.</em><br><br>
+          <em>Los dejo a solas... Wylli tiene algo muy especial para usted.»</em>
+        </div>
+        <div style="display:flex;justify-content:center;">
+          <button id="btnAcknowledgeFarewell" class="btn-primary" style="background:var(--accent-gold);color:var(--bg-deep);font-weight:600;padding:10px 28px;border-radius:8px;border:none;cursor:pointer;font-size:0.95rem;">
+            🌸 Entendido, Oficial
+          </button>
+        </div>
+        <div style="text-align:center;margin-top:10px;font-size:0.7rem;color:var(--text-muted);">
+          ── FIN DE COMUNICACIÓN ──
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    audio.playRadioBeep();
+
+    const btnAck = document.getElementById('btnAcknowledgeFarewell');
+    if (btnAck) {
+      btnAck.addEventListener('click', () => {
+        modal.classList.remove('active');
+        setTimeout(() => modal.remove(), 300);
+        // Proceed to canvas awakening animation
+        this.startAwakeningCanvas();
+      });
+    }
+  }
+
+  private startAwakeningCanvas() {
     const overlay = document.getElementById('awakeningOverlay');
     const canvas = document.getElementById('awakeningCanvas') as HTMLCanvasElement;
     const dialogueEl = document.getElementById('awakeningDialogue');
@@ -2170,7 +2304,7 @@ export class GameController {
       this.showToast('🕵️‍♀️ Evidencia no asegurada: Camina a la mesa de la Sala e inspecciona la servilleta junto a Wylli.');
       this.switchTab('novel');
       this.walkTo(58, 42, () => {
-        const spot = this.hotspots.find((s) => s.id === 'living');
+        const spot = this.hotspots.find((s) => s.id === 'wylli');
         if (spot) this.triggerHotspotDialogue(spot);
       });
       return;
@@ -2208,7 +2342,7 @@ export class GameController {
       this.showToast('🕵️‍♀️ Evidencia no descubierta: Camina al dormitorio y acaricia al Michi Blanco para revelar el As.');
       this.switchTab('novel');
       this.walkTo(84, 60, () => {
-        const spot = this.hotspots.find((s) => s.id === 'bedroom');
+        const spot = this.hotspots.find((s) => s.id === 'michi');
         if (spot) this.triggerHotspotDialogue(spot);
       });
       return;
@@ -2270,7 +2404,7 @@ export class GameController {
       this.showToast('🕵️‍♀️ Máquina no examinada: Camina a la cocina para inspeccionar la cafetera y la pizarra de notas.');
       this.switchTab('novel');
       this.walkTo(36, 30, () => {
-        const spot = this.hotspots.find((s) => s.id === 'kitchen');
+        const spot = this.hotspots.find((s) => s.id === 'barista');
         if (spot) this.triggerHotspotDialogue(spot);
       });
       return;
@@ -2392,7 +2526,7 @@ export class GameController {
           this.switchTab('novel');
           this.showDestinationMarker(58, 42);
           this.walkTo(58, 42, () => {
-            const spot = this.hotspots.find((s) => s.id === 'living');
+            const spot = this.hotspots.find((s) => s.id === 'wylli');
             if (spot) this.triggerHotspotDialogue(spot);
           });
           this.showToast('🚶‍♀️ Caminando a la Sala a examinar la servilleta de Wylli...');
@@ -2404,7 +2538,7 @@ export class GameController {
           this.switchTab('novel');
           this.showDestinationMarker(84, 60);
           this.walkTo(84, 60, () => {
-            const spot = this.hotspots.find((s) => s.id === 'bedroom');
+            const spot = this.hotspots.find((s) => s.id === 'michi');
             if (spot) this.triggerHotspotDialogue(spot);
           });
           this.showToast('🚶‍♀️ Caminando al Dormitorio a descubrir el As bajo el Michi...');
@@ -2416,7 +2550,7 @@ export class GameController {
           this.switchTab('novel');
           this.showDestinationMarker(36, 30);
           this.walkTo(36, 30, () => {
-            const spot = this.hotspots.find((s) => s.id === 'kitchen');
+            const spot = this.hotspots.find((s) => s.id === 'barista');
             if (spot) this.triggerHotspotDialogue(spot);
           });
           this.showToast('🚶‍♀️ Caminando a la Cocina a examinar la cafetera...');
@@ -2614,7 +2748,7 @@ export class GameController {
         if (novioFigure) {
           novioFigure.innerHTML = getNovioSpriteSVG({ size: 44, awakened: true });
         }
-        const livingLabel = document.getElementById('livingLabel');
+        const livingLabel = document.getElementById('wylliLabel');
         const statusLiving = document.getElementById('statusLiving');
         if (livingLabel) livingLabel.textContent = '¡El Novio Despierto! ❤️';
         if (statusLiving) statusLiving.textContent = '💖';
@@ -2707,11 +2841,10 @@ export class GameController {
         chip.classList.add('active');
         const target = chip.getAttribute('data-target');
         const coords: Record<string, { x: number; y: number; spotId?: string }> = {
-          living: { x: 58, y: 42, spotId: 'living' },
-          kitchen: { x: 36, y: 30, spotId: 'kitchen' },
-          bedroom: { x: 84, y: 60, spotId: 'bedroom' },
-          gazebo: { x: 32, y: 72, spotId: 'gazebo' },
-          pool: { x: 66, y: 78, spotId: 'pool' },
+          wylli: { x: 45, y: 44, spotId: 'wylli' },
+          barista: { x: 31, y: 33, spotId: 'barista' },
+          michi: { x: 68, y: 56, spotId: 'michi' },
+          nolan: { x: 18, y: 68, spotId: 'nolan' },
         };
         if (target && coords[target]) {
           const { x, y, spotId } = coords[target];
