@@ -590,7 +590,7 @@
 
     <!-- CINEMÁTICA DE DESPERTAR DE WYLLI -->
     <div class="awakening-overlay" id="awakeningOverlay">
-      <canvas id="awakeningCanvas"></canvas>
+      <div id="phaserAwakening" style="width:100%;height:100%;"></div>
       <div class="awakening-dialogue" id="awakeningDialogue">
         <div class="awakening-avatar">💻</div>
         <p id="awakeningText"></p>
@@ -669,7 +669,7 @@
 
       <!-- Canvas Container -->
       <div class="vw-canvas-container" id="vwCanvasContainer">
-        <canvas id="virtualWorldCanvas"></canvas>
+        <div id="phaserGarden" style="width:100%;height:100%;"></div>
 
         <!-- Controls Helper -->
         <div class="vw-controls-hint">
@@ -1121,6 +1121,7 @@
     <!-- Toast -->
     <div class="cozy-toast" id="cozyToast">Notificación</div>
 
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
     <script type="module" src="/src/game.ts"></script>
   </body>
 </html>

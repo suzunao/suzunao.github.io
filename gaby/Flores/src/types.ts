@@ -63,4 +63,5 @@ export interface GameState {
   awakened: boolean;
   gardenRevealed: boolean;
   muted: boolean;
+  currentScene: 'sala' | 'garden' | null;
 }

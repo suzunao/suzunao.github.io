@@ -3,6 +3,9 @@ import { audio } from './audio';
 import { STORY_CHAPTERS, HOTSPOT_DIALOGUES, ACCEPTED_ANSWERS, NOLAN_RADIO_ADVICES, PROLOGUE_STEPS } from './story';
 import { getSpeakerAvatarHTML, getNovioSpriteSVG, getCoupleTogetherSVG, getGabySpriteSVG, getNolanSpriteSVG } from './characterSprites';
 import { virtualWorldGame } from './virtualWorld';
+import Phaser from 'phaser';
+import { PHASER_CONFIG } from './phaserConfig';
+import { BootScene, SalaScene, GardenScene } from './phaserScenes';
 
 function normalizeStr(str: string): string {
   return str
@@ -36,6 +39,7 @@ export class GameController {
     awakened: false,
     gardenRevealed: false,
     muted: false,
+    currentScene: null,
   };
 
   public readonly CHAPTER_PROGRESS = { PROLOGUE: 0, CHAP_1: 1, CHAP_2: 2, CHAP_3: 3, EPILOGUE: 4 };
@@ -50,6 +54,7 @@ export class GameController {
   private baristaStep: number = 0;
   private caesarCurrentShift: number = 0;
   private caesarSourcePhrase: string = 'Vrv pl vro';
+  private phaserGame: Phaser.Game | null = null;
 
   // Hotspots definition based on exact user coordinates
   public hotspots: Hotspot[] = [
@@ -212,11 +217,20 @@ export class GameController {
     this.updateProgressBadge();
     this.updateNotebookProceduralState();
     this.setupCaesarInteractiveDecoder();
+    this.initPhaser();
     virtualWorldGame.init();
     this.setupListeners();
     this.updateGabyElement();
     this.checkProximity();
     this.openPrologue(0);
+  }
+
+  private initPhaser(): void {
+    if (this.phaserGame) return;
+    this.phaserGame = new Phaser.Game({
+      ...PHASER_CONFIG,
+      scene: [BootScene, SalaScene, GardenScene],
+    });
   }
 
   private setupMap() {
@@ -530,7 +544,7 @@ export class GameController {
         btnVw.innerHTML = '<span>🌐</span> Entrar al Mundo Virtual de Flores Amarillas';
         btnVw.onclick = () => {
           this.closeNovelDialogue();
-          virtualWorldGame.open();
+          this.openGardenScene();
         };
         actionsEl.appendChild(btnVw);
 
@@ -705,7 +719,7 @@ export class GameController {
           btnVw.innerHTML = '<span>🌐</span> Entrar al Mundo Virtual de Flores Amarillas';
           btnVw.onclick = () => {
             this.closeNovelDialogue();
-            virtualWorldGame.open();
+            this.openGardenScene();
           };
           actionsEl.appendChild(btnVw);
         }
@@ -2043,259 +2057,42 @@ export class GameController {
   }
 
   private startAwakeningCanvas() {
+    if (!this.phaserGame) this.initPhaser();
+    if (!this.phaserGame) return;
+
     const overlay = document.getElementById('awakeningOverlay');
-    const canvas = document.getElementById('awakeningCanvas') as HTMLCanvasElement;
-    const dialogueEl = document.getElementById('awakeningDialogue');
-    const textEl = document.getElementById('awakeningText');
-    if (!overlay || !canvas || !dialogueEl || !textEl) return;
+    if (overlay) overlay.classList.add('active');
+    this.state.currentScene = 'sala';
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    overlay.classList.add('active');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const W = canvas.width;
-    const H = canvas.height;
-    const dialogue = '«Desperté... gracias a ti, mi detective favorita. Te estuve preparando esto todo este tiempo... es para ti ❤️»';
-    let charIdx = 0;
-    let typewriterInterval: ReturnType<typeof setInterval> | null = null;
-
-    // Animation state
-    let wylliX = W * 0.3;
-    const wylliY = H * 0.55;
-    const gabyX = W * 0.6;
-    const gabyY = H * 0.55;
-    let hearts: { x: number; y: number; vy: number; alpha: number }[] = [];
-    let zzZ: { x: number; y: number; alpha: number }[] = [];
-    let awake = false;
-    let stretchDone = false;
-    let walkPhase = 0;
-    let frameCount = 0;
-
-    // Generate zzz
-    for (let i = 0; i < 3; i++) {
-      zzZ.push({ x: wylliX + 15, y: wylliY - 50 - i * 14, alpha: 0.8 - i * 0.2 });
+    this.phaserGame.scene.stop('SalaScene');
+    this.phaserGame.scene.start('SalaScene');
+    const scene = this.phaserGame.scene.getScene('SalaScene') as SalaScene;
+    if (scene) {
+      scene.onSalaComplete = () => {
+        if (overlay) overlay.classList.remove('active');
+        this.state.currentScene = null;
+        document.getElementById('verdictModal')?.classList.add('active');
+      };
     }
-
-    const drawFrame = () => {
-      if (!overlay.classList.contains('active')) return;
-      frameCount++;
-      ctx.clearRect(0, 0, W, H);
-
-      // Background: cabin interior
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-      bgGrad.addColorStop(0, '#1a120d');
-      bgGrad.addColorStop(0.6, '#2b1b24');
-      bgGrad.addColorStop(1, '#3a2518');
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, W, H);
-
-      // Sofa (green)
-      ctx.fillStyle = '#2d5a37';
-      ctx.beginPath();
-      ctx.roundRect(W * 0.15, H * 0.48, W * 0.3, H * 0.22, 12);
-      ctx.fill();
-      ctx.fillStyle = '#22452a';
-      ctx.fillRect(W * 0.12, H * 0.52, W * 0.04, H * 0.16);
-      ctx.fillRect(W * 0.44, H * 0.52, W * 0.04, H * 0.16);
-
-      // Draw Gaby (standing, always visible)
-      this.drawMiniCharacter(ctx, gabyX, gabyY, 'gaby', true, 0);
-
-      // Draw Wylli (on sofa, then walking)
-      if (!awake) {
-        // Sleeping on sofa
-        this.drawMiniCharacter(ctx, wylliX, wylliY - 10, 'wylli', false, 0);
-        // ZZZ
-        zzZ.forEach((z, i) => {
-          const bob = Math.sin(frameCount * 0.03 + i) * 3;
-          ctx.globalAlpha = z.alpha;
-          ctx.fillStyle = '#ffd447';
-          ctx.font = `${12 + i * 3}px sans-serif`;
-          ctx.fillText('z', z.x, z.y + bob);
-        });
-        ctx.globalAlpha = 1;
-      } else {
-        // Awakened + walking
-        const step = Math.sin(frameCount * 0.12) * 3;
-        this.drawMiniCharacter(ctx, wylliX, wylliY, 'wylli', true, step);
-      }
-
-      // Hearts floating up
-      hearts.forEach((h) => {
-        h.y += h.vy;
-        h.alpha -= 0.008;
-        ctx.globalAlpha = Math.max(0, h.alpha);
-        ctx.font = '14px sans-serif';
-        ctx.fillText('❤️', h.x, h.y);
-      });
-      ctx.globalAlpha = 1;
-
-      // Phase timing
-      if (frameCount === 60) {
-        // Awaken at 1s
-        awake = true;
-        zzZ = [];
-      }
-
-      if (frameCount > 60 && frameCount < 140) {
-        // Walk towards Gaby
-        wylliX += (gabyX - 60 - wylliX) * 0.025;
-      }
-
-      if (frameCount === 140) {
-        stretchDone = true;
-      }
-
-      if (frameCount === 150 && !dialogueEl.classList.contains('visible')) {
-        // Show dialogue
-        dialogueEl.classList.add('visible');
-        typewriterInterval = setInterval(() => {
-          if (charIdx < dialogue.length) {
-            textEl.innerHTML = dialogue.substring(0, charIdx + 1) + '<span class="cursor"></span>';
-            charIdx++;
-          } else {
-            textEl.innerHTML = dialogue;
-            if (typewriterInterval) clearInterval(typewriterInterval);
-          }
-        }, 50);
-      }
-
-      // Spawn hearts after dialogue starts
-      if (frameCount > 155 && frameCount % 20 === 0) {
-        hearts.push({
-          x: (wylliX + gabyX) / 2 + (Math.random() - 0.5) * 30,
-          y: wylliY - 60,
-          vy: -0.8,
-          alpha: 1,
-        });
-      }
-
-      // End: fade out after dialogue finishes
-      if (frameCount > 350) {
-        overlay.style.transition = 'opacity 1s ease';
-        overlay.style.opacity = '0';
-        setTimeout(() => {
-          overlay.classList.remove('active');
-          overlay.style.opacity = '';
-          overlay.style.transition = '';
-          document.getElementById('verdictModal')?.classList.add('active');
-        }, 1000);
-        return;
-      }
-
-      requestAnimationFrame(drawFrame);
-    };
-
-    audio.playVictoryWaltz();
-    requestAnimationFrame(drawFrame);
   }
 
-  private drawMiniCharacter(ctx: CanvasRenderingContext2D, x: number, y: number, who: 'gaby' | 'wylli', awake: boolean, step: number) {
-    ctx.save();
-    ctx.translate(x, y);
-    const sc = 1.8;
+  private openGardenScene(): void {
+    if (!this.phaserGame) this.initPhaser();
+    if (!this.phaserGame) return;
 
-    // Shadow
-    ctx.fillStyle = 'rgba(10, 6, 16, 0.3)';
-    ctx.beginPath();
-    ctx.ellipse(0, 2, 14, 4, 0, 0, Math.PI * 2);
-    ctx.fill();
+    const vwModal = document.getElementById('virtualWorldModal');
+    if (vwModal) vwModal.classList.add('active');
+    this.state.currentScene = 'garden';
 
-    if (who === 'gaby') {
-      // Legs
-      ctx.fillStyle = '#1e1e1e';
-      ctx.fillRect(-5 * sc, -12 * sc + step, 4 * sc, 12 * sc - step);
-      ctx.fillRect(1 * sc, -12 * sc - step, 4 * sc, 12 * sc + step);
-      // Pink sweater
-      ctx.fillStyle = '#f4ccd5';
-      ctx.fillRect(-7 * sc, -22 * sc, 14 * sc, 11 * sc);
-      // Head
-      ctx.fillStyle = '#fcdbcf';
-      ctx.fillRect(-4 * sc, -30 * sc, 8 * sc, 8 * sc);
-      // Hair
-      ctx.fillStyle = '#442a1b';
-      ctx.beginPath();
-      ctx.arc(0, -28 * sc, 6 * sc, Math.PI, 0);
-      ctx.fill();
-      ctx.fillRect(-6 * sc, -28 * sc, 2.5 * sc, 8 * sc);
-      ctx.fillRect(3.5 * sc, -28 * sc, 2.5 * sc, 8 * sc);
-      // Eyes
-      ctx.fillStyle = '#2c1810';
-      ctx.fillRect(-2.5 * sc, -27 * sc, 1.5 * sc, 1.5 * sc);
-      ctx.fillRect(1 * sc, -27 * sc, 1.5 * sc, 1.5 * sc);
-      // Smile
-      ctx.strokeStyle = '#c9846a';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(0, -25 * sc, 2 * sc, 0.1, Math.PI - 0.1);
-      ctx.stroke();
-      // Cup
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(6 * sc, -20 * sc, 4 * sc, 3.5 * sc);
-      ctx.fillStyle = '#ffd166';
-      ctx.fillRect(7 * sc, -21 * sc, 2 * sc, 1 * sc);
-    } else {
-      // Legs
-      ctx.fillStyle = '#1b2838';
-      ctx.fillRect(-5 * sc, -12 * sc + step, 4 * sc, 12 * sc - step);
-      ctx.fillRect(1 * sc, -12 * sc - step, 4 * sc, 12 * sc + step);
-      // White shirt
-      ctx.fillStyle = '#f8f9fa';
-      ctx.fillRect(-7 * sc, -22 * sc, 14 * sc, 11 * sc);
-      // Head
-      ctx.fillStyle = '#fcdbcf';
-      ctx.fillRect(-4 * sc, -30 * sc, 8 * sc, 8 * sc);
-      // Cap
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(-5.5 * sc, -33 * sc, 11 * sc, 3.5 * sc);
-      ctx.fillStyle = '#385a7c';
-      ctx.fillRect(-1.5 * sc, -32.5 * sc, 3 * sc, 1.5 * sc);
-      // Eyes
-      if (awake) {
-        ctx.fillStyle = '#2c1810';
-        ctx.fillRect(-2.5 * sc, -27 * sc, 1.5 * sc, 1.5 * sc);
-        ctx.fillRect(1 * sc, -27 * sc, 1.5 * sc, 1.5 * sc);
-        // Smile
-        ctx.strokeStyle = '#c9846a';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(0, -25 * sc, 2 * sc, 0.1, Math.PI - 0.1);
-        ctx.stroke();
-        // Blush
-        ctx.fillStyle = '#ff758f';
-        ctx.globalAlpha = 0.6;
-        ctx.fillRect(-4 * sc, -25 * sc, 1.5 * sc, 1 * sc);
-        ctx.fillRect(2.5 * sc, -25 * sc, 1.5 * sc, 1 * sc);
-        ctx.globalAlpha = 1;
-      } else {
-        // Sleeping eyes
-        ctx.strokeStyle = '#4a3e3d';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(-3 * sc, -26 * sc);
-        ctx.lineTo(-1 * sc, -26 * sc);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(1 * sc, -26 * sc);
-        ctx.lineTo(3 * sc, -26 * sc);
-        ctx.stroke();
-      }
-      // Headphones
-      ctx.fillStyle = '#111';
-      ctx.fillRect(-8 * sc, -23 * sc, 2 * sc, 3 * sc);
-      ctx.fillRect(6 * sc, -23 * sc, 2 * sc, 3 * sc);
-    }
-
-    ctx.restore();
+    const existing = this.phaserGame.scene.getScene('GardenScene');
+    if (existing) this.phaserGame.scene.stop('GardenScene');
+    this.phaserGame.scene.start('GardenScene');
   }
 
   public bloomGardenYellowFlowers() {
     audio.playVictoryWaltz();
     this.closeSecretGardenScenario();
-    virtualWorldGame.open();
+    this.openGardenScene();
   }
 
   public openRot3Modal() {
@@ -2506,7 +2303,7 @@ export class GameController {
     document.getElementById('btnBloomGardenYellowFlowers')?.addEventListener('click', () => {
       this.closeSecretGardenScenario();
       audio.playVictoryWaltz();
-      virtualWorldGame.open();
+      this.openGardenScene();
     });
     document.getElementById('secretGardenScenicView')?.addEventListener('click', (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -2831,7 +2628,7 @@ export class GameController {
       document.getElementById('verdictModal')?.classList.remove('active');
       this.state.gardenRevealed = true;
       audio.playVictoryWaltz();
-      virtualWorldGame.open();
+      this.openGardenScene();
     });
 
     // Fast Room Navigation Chips
