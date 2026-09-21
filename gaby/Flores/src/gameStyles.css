@@ -1974,7 +1974,7 @@ html, body {
 .garden-fullscreen-bg {
   position: absolute;
   inset: 0;
-  background: url('/flores.jpeg') no-repeat center center;
+  background: url('../flores.jpeg') no-repeat center center;
   background-size: cover;
 }
 

@@ -2140,7 +2140,7 @@ export class GameController {
 
     // Set background
     const bg = document.getElementById('gardenBg');
-    if (bg) bg.style.backgroundImage = "url('./flores.jpeg')";
+    if (bg) bg.style.backgroundImage = "url('../flores.jpeg')";
 
     // Hide the cabin board completely
     const app = document.getElementById('appContainer');
