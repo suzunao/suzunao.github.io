@@ -2138,9 +2138,7 @@ export class GameController {
     document.getElementById('verdictModal')?.classList.remove('active');
     document.getElementById('secretGardenScenario')?.classList.remove('active');
 
-    // Set background
-    const bg = document.getElementById('gardenBg');
-    if (bg) bg.style.backgroundImage = "url('../flores.jpeg')";
+    // Background is set by CSS .garden-fullscreen-bg — no JS override needed
 
     // Hide the cabin board completely
     const app = document.getElementById('appContainer');
