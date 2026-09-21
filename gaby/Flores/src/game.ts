@@ -3,10 +3,9 @@ import { audio } from './audio';
 import { STORY_CHAPTERS, HOTSPOT_DIALOGUES, ACCEPTED_ANSWERS, NOLAN_RADIO_ADVICES, PROLOGUE_STEPS } from './story';
 import { getSpeakerAvatarHTML, getNovioSpriteSVG, getCoupleTogetherSVG, getGabySpriteSVG, getNolanSpriteSVG } from './characterSprites';
 import { virtualWorldGame } from './virtualWorld';
-import { initSpriteCache } from './spriteCache';
 import Phaser from 'phaser';
-import { PHASER_CONFIG, createCharacterAnims } from './phaserConfig';
-import { SalaScene, GardenScene } from './phaserScenes';
+import { PHASER_CONFIG } from './phaserConfig';
+import { BootScene, SalaScene, GardenScene } from './phaserScenes';
 
 function normalizeStr(str: string): string {
   return str
@@ -220,7 +219,6 @@ export class GameController {
     this.updateNotebookProceduralState();
     this.setupCaesarInteractiveDecoder();
     virtualWorldGame.init();
-    initSpriteCache();
     this.setupListeners();
     this.updateGabyElement();
     this.checkProximity();
@@ -233,24 +231,7 @@ export class GameController {
     const game = new Phaser.Game({
       ...PHASER_CONFIG,
       parent: 'phaserAwakening',
-      scene: [
-        class extends Phaser.Scene {
-          constructor() { super('BootSala'); }
-          preload() {
-            this.load.image('sala-bg', 'sala.jpeg');
-            this.load.spritesheet('gaby', 'gaby.png', { frameWidth: 62, frameHeight: 62 });
-            this.load.spritesheet('willy', 'willy.png', { frameWidth: 62, frameHeight: 62 });
-            this.load.spritesheet('nolan', 'nolan.png', { frameWidth: 62, frameHeight: 62 });
-          }
-          create() {
-            createCharacterAnims(this, 'gaby');
-            createCharacterAnims(this, 'willy');
-            createCharacterAnims(this, 'nolan');
-            this.scene.start('SalaScene');
-          }
-        },
-        SalaScene,
-      ],
+      scene: [BootScene, SalaScene],
     });
 
     this.phaserSalaGame = game;
@@ -263,20 +244,7 @@ export class GameController {
     const game = new Phaser.Game({
       ...PHASER_CONFIG,
       parent: 'phaserGarden',
-      scene: [
-        class extends Phaser.Scene {
-          constructor() { super('BootGarden'); }
-          preload() {
-            this.load.image('garden-bg', 'campo de flores.jpeg');
-            this.load.spritesheet('gaby', 'gaby.png', { frameWidth: 62, frameHeight: 62 });
-          }
-          create() {
-            createCharacterAnims(this, 'gaby');
-            this.scene.start('GardenScene');
-          }
-        },
-        GardenScene,
-      ],
+      scene: [BootScene, GardenScene],
     });
 
     this.phaserGardenGame = game;
