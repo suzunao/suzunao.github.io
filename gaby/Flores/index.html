@@ -684,56 +684,37 @@
 
     <!-- ESCENARIO PRINCIPAL: MUNDO VIRTUAL DE FLORES AMARILLAS (JUEGO INTERACTIVO) -->
     <div class="virtual-world-modal" id="virtualWorldModal">
-      <!-- Cyber Top Bar HUD -->
+      <!-- Minimal top bar -->
       <div class="vw-top-bar">
         <div class="vw-brand">
-          <span class="vw-pulse-icon">🌐</span>
+          <span class="vw-pulse-icon">🌻</span>
           <div class="vw-meta">
-            <h2 class="vw-title">Mundo Virtual de Wylli & Gaby 🌻</h2>
-            <span class="vw-subtitle">Generación Procedural Activa · Compilado para el 21 de Septiembre</span>
+            <h2 class="vw-title">El Gran Campo de Flores Amarillas</h2>
+            <span class="vw-subtitle">21 de Septiembre · Para Gaby ❤️</span>
           </div>
         </div>
-
-        <div class="vw-hud-stats">
-          <div class="vw-stat-item">
-            <span class="vw-stat-label">Flores Amarillas Creadas</span>
-            <span class="vw-stat-value" id="vwFlowerCount">0</span>
-          </div>
-          <div class="vw-stat-item">
-            <span class="vw-stat-label">Sincronía Amorosa</span>
-            <span class="vw-stat-value love-pulse">100% INFINITO ❤️</span>
-          </div>
-        </div>
-
         <div class="vw-actions">
-          <button class="vw-action-btn primary" id="btnVwPlant"><span>🌻</span> Brotar Flores [Espacio]</button>
-          <button class="vw-action-btn" id="btnVwWaltz"><span>✨</span> Vals de Pétalos</button>
-          <button class="vw-action-btn" id="btnVwInspectLetter"><span>📜</span> Carta de Wylli</button>
-          <button class="vw-action-btn close" id="btnVwClose" title="Volver a la cabaña"><span>🏡</span> Volver</button>
+          <button class="vw-pill-btn" id="btnVwLetter"><span>💌</span> Carta de Wylli</button>
+          <button class="vw-pill-btn" id="btnVwPlantMore"><span>🌻</span> Plantar más</button>
+          <span class="vw-flower-count">🌻 <span id="vwFlowerCount">0</span></span>
+          <button class="vw-pill-btn close" id="btnVwClose" title="Volver a la cabaña"><span>🏡</span> Volver</button>
         </div>
       </div>
 
-      <!-- Canvas Container for interactive game -->
+      <!-- Canvas Container -->
       <div class="vw-canvas-container" id="vwCanvasContainer">
         <canvas id="virtualWorldCanvas"></canvas>
 
-        <!-- Dynamic Proximity Prompt -->
-        <div class="vw-interact-prompt" id="vwInteractPrompt">
-          <span class="vw-prompt-spark">✨</span>
-          <span id="vwPromptText">Explorar Altar</span>
-          <span class="vw-prompt-key">[E / Clic]</span>
-        </div>
-
-        <!-- Controls Helper for Desktop & Mobile -->
+        <!-- Controls Helper -->
         <div class="vw-controls-hint">
-          <span>⌨️ <strong>WASD / Flechas</strong> para caminar</span>
+          <span>⌨️ <strong>WASD</strong> para caminar</span>
           <span>·</span>
-          <span>🖱️ <strong>Clic en pantalla</strong> para moverte</span>
+          <span>🖱️ <strong>Clic</strong> para plantar flores</span>
           <span>·</span>
-          <span>🌻 <strong>Espacio</strong> para brotar flores</span>
+          <span>🌻 <strong>Espacio</strong> para brotar</span>
         </div>
 
-        <!-- Touch D-Pad for Mobile -->
+        <!-- Touch D-Pad -->
         <div class="vw-touch-dpad">
           <button class="vw-dpad-btn up" data-dir="up">▲</button>
           <div class="vw-dpad-middle">
@@ -742,22 +723,6 @@
             <button class="vw-dpad-btn right" data-dir="right">▶</button>
           </div>
           <button class="vw-dpad-btn down" data-dir="down">▼</button>
-        </div>
-      </div>
-
-      <!-- In-Game Memory Inspection Modal -->
-      <div class="vw-memory-overlay" id="vwMemoryModal">
-        <div class="vw-memory-card">
-          <div class="vw-memory-header">
-            <span class="vw-memory-badge" id="vwMemoryBadge">Recuerdo</span>
-            <h3 class="vw-memory-title" id="vwMemoryTitle">Título del Nodo</h3>
-          </div>
-          <div class="vw-memory-body" id="vwMemoryBody">
-            Mensaje de Wylli...
-          </div>
-          <div class="vw-memory-footer">
-            <button class="vw-action-btn primary" id="btnVwCloseMemory">Guardar en el Corazón ❤️</button>
-          </div>
         </div>
       </div>
     </div>

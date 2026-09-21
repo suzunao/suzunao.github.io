@@ -1,5 +1,4 @@
 import { audio } from './audio';
-import { getGabySpriteSVG, getWylliStandingSpriteSVG, getCoupleTogetherSVG } from './characterSprites';
 
 export interface VirtualFlower {
   x: number;
@@ -25,18 +24,13 @@ export interface VirtualParticle {
   color: string;
   life: number;
   maxLife: number;
-  type: 'pollen' | 'petal' | 'heart';
+  type: 'pollen' | 'petal' | 'heart' | 'sparkle';
 }
 
-export interface MemoryNode {
-  id: string;
+interface BloomEntry {
   x: number;
   y: number;
-  title: string;
-  icon: string;
-  clueBadge: string;
-  message: string;
-  unlocked: boolean;
+  delay: number;
 }
 
 export class VirtualWorldGame {
@@ -46,99 +40,69 @@ export class VirtualWorldGame {
   private isRunning: boolean = false;
   private animId: number | null = null;
 
-  // Player (Gaby)
+  // Characters — positioned center-left, walk to center-right
   public player = {
-    x: 0,
-    y: 80,
-    targetX: 0,
-    targetY: 80,
-    speed: 3.5,
-    isWalking: false,
+    x: -120,
+    y: 30,
+    speed: 1.8,
+    isWalking: true,
     facingLeft: false,
     stepCycle: 0,
   };
 
-  // Companion (Wylli)
   public companion = {
-    x: -36,
-    y: 80,
-    targetX: -36,
-    targetY: 80,
-    speed: 3.2,
-    isWalking: false,
+    x: -120,
+    y: 34,
+    speed: 1.8,
+    isWalking: true,
     facingLeft: false,
     stepCycle: 0,
-    bubbleText: '«Este mundo se compila solo para ti, amor ❤️»',
-    bubbleTimer: 240,
+    bubbleText: '«Gracias por traerme de vuelta, Gaby... Feliz 21 de Septiembre. Este jardín es todo tuyo ❤️»',
+    bubbleTimer: 0,
+    bubbleDelay: 180,
   };
+
+  // Walk animation
+  private walkProgress = 0;
+  private walkDone = false;
 
   // Camera
-  private camera = {
-    x: 0,
-    y: 0,
-  };
+  private camera = { x: 0, y: 0 };
 
   // Input
   private keys: Record<string, boolean> = {};
-  private pointerTarget: { x: number; y: number } | null = null;
 
   // World Elements
   private flowers: VirtualFlower[] = [];
   private particles: VirtualParticle[] = [];
-  private generatedChunks: Set<string> = new Set();
-  public flowerCount: number = 0;
 
-  // Story Memory Nodes
-  public nodes: MemoryNode[] = [
-    {
-      id: 'node_sun',
-      x: -240,
-      y: -180,
-      title: 'Altar de la Servilleta: «SOS MI SOL»',
-      icon: '📜',
-      clueBadge: 'Cifrado ROT-3',
-      message: 'Wylli: «Gaby... cuando dejé aquella servilleta en la mesita con "Vrv pl vro", quería recordarte que, sin importar qué tan frío o nublado sea el día, tú eres el sol que ilumina toda mi vida.»',
-      unlocked: true,
-    },
-    {
-      id: 'node_stars',
-      x: 240,
-      y: -180,
-      title: 'Fuente de Estrellas: «MI CONSTELACION»',
-      icon: '🔮',
-      clueBadge: 'As Esteganográfico UV',
-      message: 'Wylli: «En la pantalla puedo analizar millones de algoritmos, pero en el cielo de mis noches, tú eres la única constelación que orienta mi corazón hacia su hogar.»',
-      unlocked: true,
-    },
-    {
-      id: 'node_coffee',
-      x: -200,
-      y: 220,
-      title: 'Alambique Barista: «DULCE DESPERTAR»',
-      icon: '☕',
-      clueBadge: 'Fórmula Barista Suprema',
-      message: 'Wylli: «Despertar sabiendo que estás a mi lado, sintiendo el calor de tu mano y compartiendo un café en las mañanas, es el sueño más dulce que jamás imaginé tener.»',
-      unlocked: true,
-    },
-    {
-      id: 'node_finale',
-      x: 0,
-      y: -40,
-      title: 'El Gran Núcleo de las Flores Amarillas (21 de Septiembre)',
-      icon: '🌻',
-      clueBadge: 'Promesa Eterna',
-      message: 'Wylli: «¡Feliz 21 de Septiembre, mi hermosa detective Gaby! Creé este mundo virtual para que nuestras flores amarillas nunca marchiten y este instante juntos sea eterno. Te amo con todo mi ser.»',
-      unlocked: true,
-    },
-  ];
+  // Bloom queue for sequential spawning
+  private bloomQueue: BloomEntry[] = [];
+  private bloomTimer = 0;
+  private bloomIndex = 0;
+  private bloomStarted = false;
 
-  // Active Dialogue / Inspection
-  private activeNodeNear: MemoryNode | null = null;
-  private lastStepDistance: number = 0;
+  // Floating petals
+  private floatingPetals: { x: number; y: number; vx: number; vy: number; size: number; alpha: number; rot: number; rotSpeed: number }[] = [];
 
-  constructor() {
-    // Lazy setup
-  }
+  // Stars for sky
+  private stars: { x: number; y: number; size: number; phase: number }[] = [];
+
+  // Dialogue
+  private dialogueAlpha = 0;
+  private dialogueStarted = false;
+
+  // Exclusion zone radius (pixels)
+  private readonly EXCLUSION_RADIUS = 80;
+
+  // Flower count for display
+  public flowerCount = 0;
+
+  // DOM elements for UI
+  private dialogueEl: HTMLElement | null = null;
+  private flowerCountEl: HTMLElement | null = null;
+
+  constructor() {}
 
   public init() {
     this.container = document.getElementById('virtualWorldModal');
@@ -149,8 +113,12 @@ export class VirtualWorldGame {
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
 
+    this.dialogueEl = document.getElementById('vwDialogueText');
+    this.flowerCountEl = document.getElementById('vwFlowerCount');
+
     this.setupInputs();
-    this.seedInitialGarden();
+    this.generateStars();
+    this.generateFloatingPetals();
   }
 
   private resizeCanvas() {
@@ -167,14 +135,43 @@ export class VirtualWorldGame {
     this.container.classList.add('active');
     this.resizeCanvas();
     this.isRunning = true;
+
+    // Reset state
+    this.walkProgress = 0;
+    this.walkDone = false;
+    this.dialogueAlpha = 0;
+    this.dialogueStarted = false;
+    this.bloomStarted = false;
+    this.bloomIndex = 0;
+    this.flowers = [];
+    this.particles = [];
+    this.flowerCount = 0;
+
+    // Position characters center-left
+    this.player.x = -120;
+    this.player.y = 30;
+    this.player.stepCycle = 0;
+    this.companion.x = -120;
+    this.companion.y = 34;
+    this.companion.stepCycle = 0;
+    this.companion.bubbleTimer = 0;
+    this.companion.bubbleDelay = 180;
+
+    this.camera.x = 0;
+    this.camera.y = 30;
+
+    // Build bloom queue
+    this.buildBloomQueue();
+
+    // Update UI
+    if (this.flowerCountEl) this.flowerCountEl.textContent = '0';
+
+    // Play music
     audio.playVictoryWaltz();
 
-    // Start gameloop
+    // Start game loop
     this.lastTime = performance.now();
     this.loop(this.lastTime);
-
-    this.updateHUD();
-    this.setWylliBubble('«¡Bienvenida a nuestro Mundo Virtual, Gaby! Camina conmigo ❤️»', 300);
   }
 
   public close() {
@@ -190,13 +187,9 @@ export class VirtualWorldGame {
       const k = e.key.toLowerCase();
       this.keys[k] = true;
 
-      if (k === 'e' || k === ' ') {
+      if (k === ' ') {
         e.preventDefault();
-        if (this.activeNodeNear) {
-          this.inspectNode(this.activeNodeNear);
-        } else {
-          this.plantFlowerBurstAroundPlayer();
-        }
+        this.spawnPlayerFlower();
       }
     });
 
@@ -205,31 +198,24 @@ export class VirtualWorldGame {
       this.keys[k] = false;
     });
 
-    // Canvas click / touch for destination walking
+    // Canvas click to plant flower
     this.canvas?.addEventListener('pointerdown', (e) => {
       if (!this.isRunning || !this.canvas) return;
       const rect = this.canvas.getBoundingClientRect();
       const clickScreenX = e.clientX - rect.left;
       const clickScreenY = e.clientY - rect.top;
 
-      // Transform to world coordinates
       const worldX = clickScreenX - this.canvas.width / 2 + this.camera.x;
       const worldY = clickScreenY - this.canvas.height / 2 + this.camera.y;
 
-      this.player.targetX = worldX;
-      this.player.targetY = worldY;
-      this.pointerTarget = { x: worldX, y: worldY };
-
-      // Spawn a burst of flowers at target or underfoot
-      this.spawnFlower(worldX, worldY, 'sunflower', 1.1);
-      audio.playChime(620 + Math.random() * 200);
+      this.spawnFlowerAtClick(worldX, worldY);
     });
 
     // UI Buttons
     document.getElementById('btnVwClose')?.addEventListener('click', () => this.close());
-    document.getElementById('btnVwPlant')?.addEventListener('click', () => this.plantFlowerBurstAroundPlayer());
-    document.getElementById('btnVwWaltz')?.addEventListener('click', () => this.triggerGrandFlowerStorm());
-    document.getElementById('btnVwInspectLetter')?.addEventListener('click', () => {
+
+    document.getElementById('btnVwLetter')?.addEventListener('click', () => {
+      this.close();
       const letterModal = document.getElementById('secretGardenLetterContainer');
       const gardenModal = document.getElementById('secretGardenScenario');
       if (gardenModal) gardenModal.classList.add('active');
@@ -237,6 +223,10 @@ export class VirtualWorldGame {
         letterModal.style.display = 'block';
         letterModal.scrollIntoView({ behavior: 'smooth' });
       }
+    });
+
+    document.getElementById('btnVwPlantMore')?.addEventListener('click', () => {
+      this.plantBurstAroundPlayer();
     });
 
     // Touch D-Pad
@@ -262,107 +252,183 @@ export class VirtualWorldGame {
     });
   }
 
-  private seedInitialGarden() {
-    // Generate an enchanted central garden around (0, 0)
-    for (let i = 0; i < 40; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const dist = 30 + Math.random() * 180;
-      const x = Math.cos(angle) * dist;
-      const y = Math.sin(angle) * dist;
-      const types: ('sunflower' | 'daisy' | 'goldenRose' | 'starBlossom')[] = [
-        'sunflower',
-        'daisy',
-        'goldenRose',
-        'starBlossom',
-      ];
-      this.spawnFlower(x, y, types[Math.floor(Math.random() * types.length)], 0.8 + Math.random() * 0.5);
+  // --- STARS ---
+  private generateStars() {
+    this.stars = [];
+    for (let i = 0; i < 60; i++) {
+      this.stars.push({
+        x: Math.random(),
+        y: Math.random() * 0.35,
+        size: 0.5 + Math.random() * 1.5,
+        phase: Math.random() * Math.PI * 2,
+      });
     }
   }
 
-  public spawnFlower(
-    x: number,
-    y: number,
-    type: 'sunflower' | 'daisy' | 'goldenRose' | 'starBlossom' = 'sunflower',
-    targetScale = 1.0
-  ) {
+  // --- FLOATING PETALS ---
+  private generateFloatingPetals() {
+    this.floatingPetals = [];
+    for (let i = 0; i < 24; i++) {
+      this.floatingPetals.push(this.createPetal());
+    }
+  }
+
+  private createPetal() {
+    return {
+      x: Math.random() * 2000 - 500,
+      y: Math.random() * 1200 - 200,
+      vx: -0.3 + Math.random() * 0.2,
+      vy: 0.2 + Math.random() * 0.4,
+      size: 2 + Math.random() * 3,
+      alpha: 0.3 + Math.random() * 0.5,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.02,
+    };
+  }
+
+  // --- BLOOM QUEUE ---
+  private buildBloomQueue() {
+    this.bloomQueue = [];
+    let delay = 60;
+
+    // Perimeter ring — flowers around the edges
+    for (let i = 0; i < 36; i++) {
+      const angle = (i / 36) * Math.PI * 2;
+      const rx = 220 + Math.random() * 80;
+      const ry = 140 + Math.random() * 60;
+      const x = Math.cos(angle) * rx;
+      const y = Math.sin(angle) * ry + 20;
+      if (!this.isInExclusionZone(x, y)) {
+        this.bloomQueue.push({ x, y, delay });
+        delay += 6;
+      }
+    }
+
+    // Path along the walk — flowers where they walk
+    for (let i = 0; i < 20; i++) {
+      const t = i / 20;
+      const x = -140 + t * 300;
+      const y = 30 + Math.sin(t * Math.PI * 2) * 15 + (Math.random() - 0.5) * 40;
+      if (!this.isInExclusionZone(x, y)) {
+        this.bloomQueue.push({ x, y, delay });
+        delay += 4;
+      }
+    }
+
+    // Scattered extras
+    for (let i = 0; i < 12; i++) {
+      const x = (Math.random() - 0.5) * 500;
+      const y = Math.random() * 180 - 40;
+      if (!this.isInExclusionZone(x, y)) {
+        this.bloomQueue.push({ x, y, delay });
+        delay += 5;
+      }
+    }
+
+    // Sort by delay for sequential bloom
+    this.bloomQueue.sort((a, b) => a.delay - b.delay);
+  }
+
+  private isInExclusionZone(x: number, y: number): boolean {
+    const chars = [
+      { x: this.player.x, y: this.player.y },
+      { x: this.companion.x, y: this.companion.y },
+    ];
+    for (const c of chars) {
+      const dx = x - c.x;
+      const dy = y - c.y;
+      if (Math.sqrt(dx * dx + dy * dy) < this.EXCLUSION_RADIUS) return true;
+    }
+    return false;
+  }
+
+  private displaceFromCharacters(x: number, y: number): { x: number; y: number } {
+    const centerX = (this.player.x + this.companion.x) / 2;
+    const centerY = (this.player.y + this.companion.y) / 2;
+    const dx = x - centerX;
+    const dy = y - centerY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < this.EXCLUSION_RADIUS) {
+      const pushDist = this.EXCLUSION_RADIUS + 20;
+      const angle = Math.atan2(dy, dx) || Math.random() * Math.PI * 2;
+      return { x: centerX + Math.cos(angle) * pushDist, y: centerY + Math.sin(angle) * pushDist };
+    }
+    return { x, y };
+  }
+
+  // --- FLOWER SPAWNING ---
+  private spawnFlower(x: number, y: number, type: VirtualFlower['type'] = 'sunflower', targetScale = 1.0) {
     const flower: VirtualFlower = {
       x,
       y,
       type,
       scale: 0.05,
       targetScale,
-      rotation: (Math.random() - 0.5) * 0.4,
-      stemHeight: 28 + Math.random() * 32,
+      rotation: (Math.random() - 0.5) * 0.3,
+      stemHeight: 28 + Math.random() * 30,
       color: Math.random() > 0.3 ? '#ffd166' : '#ffe066',
-      bloomSpeed: 0.04 + Math.random() * 0.03,
+      bloomSpeed: 0.03 + Math.random() * 0.025,
       swayPhase: Math.random() * Math.PI * 2,
-      swaySpeed: 1.5 + Math.random() * 1.5,
+      swaySpeed: 1.2 + Math.random() * 1.2,
     };
     this.flowers.push(flower);
     this.flowerCount++;
+    if (this.flowerCountEl) this.flowerCountEl.textContent = String(this.flowerCount);
 
-    // Add rising golden particles
+    // Sparkle particles
     for (let i = 0; i < 3; i++) {
       this.particles.push({
-        x: x + (Math.random() - 0.5) * 16,
-        y: y - 10,
+        x: x + (Math.random() - 0.5) * 10,
+        y: y - flower.stemHeight * 0.6 + (Math.random() - 0.5) * 10,
         vx: (Math.random() - 0.5) * 1.2,
-        vy: -0.8 - Math.random() * 1.5,
-        size: 3 + Math.random() * 4,
+        vy: -0.5 - Math.random() * 1.0,
+        size: 1.5 + Math.random() * 2,
         alpha: 1,
-        color: Math.random() > 0.4 ? '#ffd166' : '#fff3b0',
+        color: '#ffd166',
         life: 0,
-        maxLife: 60 + Math.random() * 50,
-        type: Math.random() > 0.8 ? 'heart' : 'pollen',
+        maxLife: 40 + Math.random() * 20,
+        type: 'sparkle',
       });
     }
 
-    this.updateHUD();
+    // Musical note
+    const notes = [523, 587, 659, 784, 880];
+    audio.playChime(notes[Math.floor(Math.random() * notes.length)]);
   }
 
-  public plantFlowerBurstAroundPlayer() {
-    audio.playVictoryWaltz();
-    const cx = this.player.x;
-    const cy = this.player.y;
-    const count = 14;
-    for (let i = 0; i < count; i++) {
-      const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
-      const radius = 35 + Math.random() * 45;
-      const fx = cx + Math.cos(angle) * radius;
-      const fy = cy + Math.sin(angle) * radius;
-      const types: ('sunflower' | 'daisy' | 'goldenRose' | 'starBlossom')[] = [
-        'sunflower',
-        'daisy',
-        'goldenRose',
-        'starBlossom',
-      ];
-      this.spawnFlower(fx, fy, types[i % types.length], 0.9 + Math.random() * 0.4);
+  private spawnFlowerAtClick(x: number, y: number) {
+    const pos = this.displaceFromCharacters(x, y);
+    this.spawnFlower(pos.x, pos.y, 'sunflower', 1.0);
+  }
+
+  private spawnPlayerFlower() {
+    const x = this.player.x + (Math.random() - 0.5) * 30;
+    const y = this.player.y + 5 + (Math.random() - 0.5) * 20;
+    this.spawnFlower(x, y, 'daisy', 0.9 + Math.random() * 0.3);
+  }
+
+  private plantBurstAroundPlayer() {
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const dist = 30 + Math.random() * 25;
+      const x = this.player.x + Math.cos(angle) * dist;
+      const y = this.player.y + Math.sin(angle) * dist * 0.6;
+      const types: VirtualFlower['type'][] = ['sunflower', 'daisy', 'goldenRose', 'starBlossom'];
+      this.spawnFlower(x, y, types[Math.floor(Math.random() * types.length)], 0.8 + Math.random() * 0.4);
     }
+    audio.playVictoryWaltz();
     this.setWylliBubble('«¡Mira cómo brotan a tu alrededor, mi amor! 🌻»', 220);
   }
 
-  public triggerGrandFlowerStorm() {
-    audio.playVictoryWaltz();
-    this.setWylliBubble('«¡El Vals de las Flores Amarillas del 21 de Septiembre! ✨»', 300);
-
-    for (let i = 0; i < 70; i++) {
-      setTimeout(() => {
-        if (!this.isRunning) return;
-        const angle = Math.random() * Math.PI * 2;
-        const dist = Math.random() * 320;
-        const fx = this.player.x + Math.cos(angle) * dist;
-        const fy = this.player.y + Math.sin(angle) * dist;
-        this.spawnFlower(fx, fy, 'sunflower', 1.0 + Math.random() * 0.5);
-      }, i * 35);
-    }
-  }
-
+  // --- WYLLI BUBBLE ---
   public setWylliBubble(text: string, durationFrames = 200) {
     this.companion.bubbleText = text;
     this.companion.bubbleTimer = durationFrames;
   }
 
+  // --- GAME LOOP ---
   private lastTime = 0;
+
   private loop = (time: number) => {
     if (!this.isRunning) return;
     const dt = Math.min(0.05, (time - this.lastTime) / 1000);
@@ -375,103 +441,104 @@ export class VirtualWorldGame {
   };
 
   private update(dt: number) {
-    // 1. Process Player Input
-    let moveX = 0;
-    let moveY = 0;
-
-    if (this.keys['w'] || this.keys['arrowup']) moveY -= 1;
-    if (this.keys['s'] || this.keys['arrowdown']) moveY += 1;
-    if (this.keys['a'] || this.keys['arrowleft']) moveX -= 1;
-    if (this.keys['d'] || this.keys['arrowright']) moveX += 1;
-
-    if (moveX !== 0 || moveY !== 0) {
-      // Direct keyboard movement cancels pointer click target
-      this.pointerTarget = null;
-      const len = Math.hypot(moveX, moveY);
-      const nx = moveX / len;
-      const ny = moveY / len;
-
-      this.player.x += nx * this.player.speed * (dt * 60);
-      this.player.y += ny * this.player.speed * (dt * 60);
-      this.player.isWalking = true;
-      this.player.stepCycle += dt * 10;
-      if (moveX !== 0) this.player.facingLeft = moveX < 0;
-
-      this.onPlayerStep();
-    } else if (this.pointerTarget) {
-      // Move towards pointer click
-      const dx = this.pointerTarget.x - this.player.x;
-      const dy = this.pointerTarget.y - this.player.y;
-      const dist = Math.hypot(dx, dy);
-
-      if (dist > 5) {
-        this.player.x += (dx / dist) * this.player.speed * (dt * 60);
-        this.player.y += (dy / dist) * this.player.speed * (dt * 60);
-        this.player.isWalking = true;
-        this.player.stepCycle += dt * 10;
-        this.player.facingLeft = dx < 0;
-        this.onPlayerStep();
-      } else {
-        this.player.isWalking = false;
-        this.pointerTarget = null;
+    // 1. Walk animation — characters move from left to center
+    if (!this.walkDone) {
+      this.walkProgress += dt * 0.12;
+      if (this.walkProgress >= 1) {
+        this.walkProgress = 1;
+        this.walkDone = true;
       }
+      this.player.x = -120 + this.walkProgress * 240;
+      this.companion.x = -120 + this.walkProgress * 240;
+      this.player.stepCycle += dt * 6;
+      this.companion.stepCycle += dt * 5.5;
+      this.player.isWalking = true;
+      this.companion.isWalking = true;
     } else {
       this.player.isWalking = false;
+      this.companion.isWalking = false;
+
+      // Show dialogue after walk finishes
+      if (!this.dialogueStarted) {
+        this.dialogueStarted = true;
+        this.companion.bubbleTimer = 600;
+      }
     }
 
-    // 2. Procedural World Generation as player moves!
-    this.checkProceduralGeneration(this.player.x, this.player.y);
+    // 2. Keyboard WASD movement after walk is done
+    if (this.walkDone) {
+      let moveX = 0;
+      let moveY = 0;
+      if (this.keys['w'] || this.keys['arrowup']) moveY -= 1;
+      if (this.keys['s'] || this.keys['arrowdown']) moveY += 1;
+      if (this.keys['a'] || this.keys['arrowleft']) moveX -= 1;
+      if (this.keys['d'] || this.keys['arrowright']) moveX += 1;
 
-    // 3. Companion (Wylli) AI Following
-    // Wylli walks hand-in-hand / alongside Gaby (offset slightly to the side)
-    const targetOffsetX = this.player.facingLeft ? 38 : -38;
-    const targetOffsetY = 2;
+      if (moveX !== 0 || moveY !== 0) {
+        const len = Math.hypot(moveX, moveY);
+        this.player.x += (moveX / len) * this.player.speed * (dt * 60);
+        this.player.y += (moveY / len) * this.player.speed * (dt * 60);
+        this.player.stepCycle += dt * 10;
+        this.player.facingLeft = moveX < 0;
+        this.player.isWalking = true;
+      } else {
+        this.player.isWalking = false;
+      }
+    }
+
+    // 3. Companion follows player
+    const targetOffsetX = this.player.facingLeft ? 32 : -32;
     const companionTargetX = this.player.x + targetOffsetX;
-    const companionTargetY = this.player.y + targetOffsetY;
-
+    const companionTargetY = this.player.y + 4;
     const compDx = companionTargetX - this.companion.x;
     const compDy = companionTargetY - this.companion.y;
     const compDist = Math.hypot(compDx, compDy);
-
-    if (compDist > 8) {
-      this.companion.x += (compDx / compDist) * Math.min(this.companion.speed, compDist * 0.12) * (dt * 60);
-      this.companion.y += (compDy / compDist) * Math.min(this.companion.speed, compDist * 0.12) * (dt * 60);
+    if (compDist > 6) {
+      this.companion.x += (compDx / compDist) * Math.min(this.companion.speed, compDist * 0.1) * (dt * 60);
+      this.companion.y += (compDy / compDist) * Math.min(this.companion.speed, compDist * 0.1) * (dt * 60);
       this.companion.isWalking = true;
       this.companion.stepCycle += dt * 9;
       this.companion.facingLeft = this.player.facingLeft;
-
-      // Wylli also sprouts flowers when walking!
-      if (Math.random() < 0.04) {
-        this.spawnFlower(
-          this.companion.x + (Math.random() - 0.5) * 14,
-          this.companion.y + (Math.random() - 0.5) * 14,
-          'daisy',
-          0.8
-        );
-      }
-    } else {
+    } else if (this.walkDone) {
       this.companion.isWalking = false;
     }
 
-    // Wylli bubble timer
+    // 4. Bubble timer
     if (this.companion.bubbleTimer > 0) {
       this.companion.bubbleTimer--;
     }
 
-    // 4. Smooth Camera Lerp
-    const targetCamX = this.player.x;
-    const targetCamY = this.player.y;
-    this.camera.x += (targetCamX - this.camera.x) * 0.08;
-    this.camera.y += (targetCamY - this.camera.y) * 0.08;
+    // 5. Camera follows characters
+    const targetCamX = (this.player.x + this.companion.x) / 2;
+    const targetCamY = (this.player.y + this.companion.y) / 2 - 10;
+    this.camera.x += (targetCamX - this.camera.x) * 0.06;
+    this.camera.y += (targetCamY - this.camera.y) * 0.06;
 
-    // 5. Update Flowers Growth
+    // 6. Sequential bloom from queue
+    if (this.bloomStarted && this.bloomIndex < this.bloomQueue.length) {
+      this.bloomTimer++;
+      const entry = this.bloomQueue[this.bloomIndex];
+      if (this.bloomTimer >= entry.delay) {
+        const types: VirtualFlower['type'][] = ['sunflower', 'daisy', 'goldenRose', 'starBlossom'];
+        this.spawnFlower(entry.x, entry.y, types[Math.floor(Math.random() * types.length)], 0.8 + Math.random() * 0.5);
+        this.bloomIndex++;
+      }
+    }
+
+    // Start bloom after a short delay
+    if (!this.bloomStarted && this.walkDone) {
+      this.bloomStarted = true;
+      this.bloomTimer = 0;
+    }
+
+    // 7. Update flower growth
     for (const f of this.flowers) {
       if (f.scale < f.targetScale) {
         f.scale = Math.min(f.targetScale, f.scale + f.bloomSpeed);
       }
     }
 
-    // 6. Update Particles
+    // 8. Update particles
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.x += p.vx;
@@ -483,232 +550,366 @@ export class VirtualWorldGame {
       }
     }
 
-    // 7. Check Proximity to Memory Nodes
-    let nearNode: MemoryNode | null = null;
-    for (const node of this.nodes) {
-      const dist = Math.hypot(this.player.x - node.x, this.player.y - node.y);
-      if (dist < 60) {
-        nearNode = node;
-        break;
+    // 9. Update floating petals
+    for (const petal of this.floatingPetals) {
+      petal.x += petal.vx;
+      petal.y += petal.vy;
+      petal.rot += petal.rotSpeed;
+      // Wrap around
+      if (petal.y > (this.canvas?.height || 800) + 50) {
+        petal.y = -30;
+        petal.x = Math.random() * ((this.canvas?.width || 1200) + 200) - 100;
+      }
+      if (petal.x < -100) {
+        petal.x = (this.canvas?.width || 1200) + 50;
       }
     }
-    this.activeNodeNear = nearNode;
-    this.updateInteractPrompt(nearNode);
-  }
 
-  private onPlayerStep() {
-    this.lastStepDistance += this.player.speed;
-    if (this.lastStepDistance > 26) {
-      this.lastStepDistance = 0;
-      audio.playStep();
-
-      // Dynamically sprout a yellow flower along the trail!
-      const fx = this.player.x + (Math.random() - 0.5) * 18;
-      const fy = this.player.y + (Math.random() - 0.5) * 18;
-      const types: ('sunflower' | 'daisy' | 'goldenRose' | 'starBlossom')[] = [
-        'sunflower',
-        'daisy',
-        'goldenRose',
-        'starBlossom',
-      ];
-      this.spawnFlower(fx, fy, types[Math.floor(Math.random() * types.length)], 0.85 + Math.random() * 0.4);
+    // 10. Dialogue fade-in
+    if (this.dialogueStarted && this.dialogueAlpha < 1) {
+      this.dialogueAlpha = Math.min(1, this.dialogueAlpha + dt * 0.8);
     }
   }
 
-  // --- PROCEDURAL GENERATION: CHUNKS MATERIALIZE AHEAD ---
-  private checkProceduralGeneration(px: number, py: number) {
-    const chunkSize = 180;
-    const chunkX = Math.floor(px / chunkSize);
-    const chunkY = Math.floor(py / chunkSize);
-
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) {
-        const cx = chunkX + dx;
-        const cy = chunkY + dy;
-        const key = `${cx},${cy}`;
-
-        if (!this.generatedChunks.has(key)) {
-          this.generatedChunks.add(key);
-          this.generateChunk(cx * chunkSize, cy * chunkSize, chunkSize);
-        }
-      }
-    }
-  }
-
-  private generateChunk(originX: number, originY: number, size: number) {
-    // Generate 4 to 8 natural flowers in this new sector of the virtual world!
-    const count = 4 + Math.floor(Math.random() * 5);
-    for (let i = 0; i < count; i++) {
-      const fx = originX + Math.random() * size;
-      const fy = originY + Math.random() * size;
-      const types: ('sunflower' | 'daisy' | 'goldenRose' | 'starBlossom')[] = [
-        'sunflower',
-        'daisy',
-        'goldenRose',
-        'starBlossom',
-      ];
-      this.spawnFlower(fx, fy, types[Math.floor(Math.random() * types.length)], 0.75 + Math.random() * 0.45);
-    }
-  }
-
-  private updateInteractPrompt(node: MemoryNode | null) {
-    const prompt = document.getElementById('vwInteractPrompt');
-    const textEl = document.getElementById('vwPromptText');
-    if (!prompt || !textEl) return;
-
-    if (node) {
-      prompt.classList.add('visible');
-      textEl.textContent = `Explorar: ${node.title}`;
-    } else {
-      prompt.classList.remove('visible');
-    }
-  }
-
-  public inspectNode(node: MemoryNode) {
-    audio.playVictoryWaltz();
-    this.setWylliBubble(node.message, 360);
-
-    const modal = document.getElementById('vwMemoryModal');
-    const title = document.getElementById('vwMemoryTitle');
-    const badge = document.getElementById('vwMemoryBadge');
-    const body = document.getElementById('vwMemoryBody');
-    if (!modal || !title || !badge || !body) return;
-
-    title.textContent = node.title;
-    badge.textContent = node.clueBadge;
-    body.textContent = node.message;
-    modal.classList.add('active');
-
-    document.getElementById('btnVwCloseMemory')?.addEventListener(
-      'click',
-      () => {
-        modal.classList.remove('active');
-      },
-      { once: true }
-    );
-  }
-
-  private updateHUD() {
-    const countEl = document.getElementById('vwFlowerCount');
-    if (countEl) countEl.textContent = String(this.flowerCount);
-  }
-
-  // --- RENDERING PIPELINE ---
+  // --- RENDER ---
   private render() {
     if (!this.ctx || !this.canvas) return;
     const ctx = this.ctx;
-    const width = this.canvas.width;
-    const height = this.canvas.height;
+    const w = this.canvas.width;
+    const h = this.canvas.height;
 
-    ctx.clearRect(0, 0, width, height);
+    ctx.clearRect(0, 0, w, h);
 
-    // 1. Cyber Nebula & Twilight Background Gradient
-    const bgGrad = ctx.createRadialGradient(width / 2, height / 2, 40, width / 2, height / 2, Math.max(width, height));
-    bgGrad.addColorStop(0, '#1c122e');
-    bgGrad.addColorStop(0.5, '#120b20');
-    bgGrad.addColorStop(1, '#080410');
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, width, height);
+    // CAPA 0: Warm sunset background
+    this.renderSunsetBackground(ctx, w, h);
 
-    // Save context for camera transformation
+    // Camera transform for world-space elements
     ctx.save();
-    ctx.translate(width / 2 - this.camera.x, height / 2 - this.camera.y);
+    ctx.translate(w / 2 - this.camera.x, h / 2 - this.camera.y);
 
-    // 2. Procedural Perspective Cyber Grid
-    this.renderCyberGrid(ctx);
-
-    // 3. Memory Nodes (Glowing Altars)
-    this.renderMemoryNodes(ctx);
-
-    // 4. Flowers (Sorted by Y for depth)
-    const sortedFlowers = [...this.flowers].sort((a, b) => a.y - b.y);
-    for (const f of sortedFlowers) {
+    // CAPA 1: Back flowers (above character Y = background)
+    const charY = (this.player.y + this.companion.y) / 2;
+    const backFlowers = this.flowers.filter((f) => f.y < charY);
+    for (const f of backFlowers) {
       this.renderFlower(ctx, f);
     }
 
-    // 5. Couple (Wylli & Gaby)
+    // CAPA 2: Couple (characters)
     this.renderCouple(ctx);
 
-    // 6. Floating Pollen / Hearts / Petals
+    // CAPA 3: Front flowers (below character Y = foreground)
+    const frontFlowers = this.flowers.filter((f) => f.y >= charY);
+    for (const f of frontFlowers) {
+      this.renderFlower(ctx, f);
+    }
+
+    // CAPA 4: Sparkle particles (world space)
     this.renderParticles(ctx);
 
     ctx.restore();
 
-    // 7. Screen-space ambient vignette
-    this.renderScreenVignette(ctx, width, height);
+    // CAPA 4b: Floating petals (screen space)
+    this.renderFloatingPetals(ctx, w, h);
+
+    // CAPA 5: UI — dialogue box + controls
+    this.renderDialogue(ctx, w, h);
+    this.renderScreenVignette(ctx, w, h);
   }
 
-  private renderCyberGrid(ctx: CanvasRenderingContext2D) {
-    const gridSize = 80;
-    const startX = Math.floor((this.camera.x - this.canvas!.width) / gridSize) * gridSize;
-    const endX = Math.ceil((this.camera.x + this.canvas!.width) / gridSize) * gridSize;
-    const startY = Math.floor((this.camera.y - this.canvas!.height) / gridSize) * gridSize;
-    const endY = Math.ceil((this.camera.y + this.canvas!.height) / gridSize) * gridSize;
+  // --- CAPA 0: SUNSET BACKGROUND ---
+  private renderSunsetBackground(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    // Sky gradient: deep violet → warm peach → golden horizon
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+    skyGrad.addColorStop(0, '#2b1b24');
+    skyGrad.addColorStop(0.3, '#4a2a3a');
+    skyGrad.addColorStop(0.55, '#7d4a5a');
+    skyGrad.addColorStop(0.72, '#c98a5a');
+    skyGrad.addColorStop(0.82, '#f5c538');
+    skyGrad.addColorStop(0.88, '#f5d76e');
+    skyGrad.addColorStop(1, '#3a7d44');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, w, h);
 
-    ctx.strokeStyle = 'rgba(245, 197, 56, 0.08)';
-    ctx.lineWidth = 1;
+    // Soft radial glow at horizon
+    const glowGrad = ctx.createRadialGradient(w * 0.5, h * 0.75, 20, w * 0.5, h * 0.75, w * 0.45);
+    glowGrad.addColorStop(0, 'rgba(245, 197, 56, 0.35)');
+    glowGrad.addColorStop(0.5, 'rgba(245, 197, 56, 0.1)');
+    glowGrad.addColorStop(1, 'rgba(245, 197, 56, 0)');
+    ctx.fillStyle = glowGrad;
+    ctx.fillRect(0, 0, w, h);
 
+    // Stars in upper sky
+    const time = performance.now() * 0.001;
+    for (const star of this.stars) {
+      const sx = star.x * w;
+      const sy = star.y * h;
+      const pulse = 0.5 + 0.5 * Math.sin(time * 0.8 + star.phase);
+      ctx.globalAlpha = 0.3 + pulse * 0.5;
+      ctx.fillStyle = '#fffdf0';
+      ctx.beginPath();
+      ctx.arc(sx, sy, star.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // Moon crescent
+    const moonX = w * 0.82;
+    const moonY = h * 0.1;
+    ctx.fillStyle = 'rgba(255, 253, 240, 0.85)';
     ctx.beginPath();
-    for (let x = startX; x <= endX; x += gridSize) {
-      ctx.moveTo(x, startY);
-      ctx.lineTo(x, endY);
+    ctx.arc(moonX, moonY, 16, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#3a2a3a';
+    ctx.beginPath();
+    ctx.arc(moonX + 6, moonY - 3, 14, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Grass ground at bottom
+    const grassGrad = ctx.createLinearGradient(0, h * 0.85, 0, h);
+    grassGrad.addColorStop(0, '#2d6a4f');
+    grassGrad.addColorStop(0.5, '#40916c');
+    grassGrad.addColorStop(1, '#1b4332');
+    ctx.fillStyle = grassGrad;
+    ctx.fillRect(0, h * 0.85, w, h * 0.15);
+
+    // Subtle grass blades
+    ctx.strokeStyle = 'rgba(64, 145, 108, 0.4)';
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 80; i++) {
+      const gx = (i / 80) * w;
+      const gy = h * 0.86 + Math.random() * (h * 0.12);
+      const gh = 6 + Math.random() * 10;
+      const sway = Math.sin(time * 0.5 + i * 0.3) * 2;
+      ctx.beginPath();
+      ctx.moveTo(gx, gy);
+      ctx.quadraticCurveTo(gx + sway, gy - gh * 0.6, gx + sway * 1.5, gy - gh);
+      ctx.stroke();
     }
-    for (let y = startY; y <= endY; y += gridSize) {
-      ctx.moveTo(startX, y);
-      ctx.lineTo(endX, y);
-    }
+  }
+
+  // --- CAPA 2: COUPLE ---
+  private renderCouple(ctx: CanvasRenderingContext2D) {
+    const stepP = Math.sin(this.player.stepCycle) * 3;
+    const stepC = Math.sin(this.companion.stepCycle) * 3;
+
+    // === WYLLI ===
+    ctx.save();
+    ctx.translate(this.companion.x, this.companion.y);
+
+    // Shadow
+    ctx.fillStyle = 'rgba(10, 6, 16, 0.35)';
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 18, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const sc = 2.5;
+    if (this.companion.facingLeft) ctx.scale(-1, 1);
+
+    // Legs (jeans)
+    ctx.fillStyle = '#1b2838';
+    ctx.fillRect(-6 * sc, -15 * sc + stepC, 5 * sc, 15 * sc - stepC);
+    ctx.fillRect(1 * sc, -15 * sc - stepC, 5 * sc, 15 * sc + stepC);
+
+    // White shirt
+    ctx.fillStyle = '#f8f9fa';
+    ctx.fillRect(-9 * sc, -28 * sc, 18 * sc, 14 * sc);
+
+    // Headphones
+    ctx.fillStyle = '#111111';
+    ctx.fillRect(-10 * sc, -29 * sc, 3 * sc, 5 * sc);
+    ctx.fillRect(7 * sc, -29 * sc, 3 * sc, 5 * sc);
+
+    // Head
+    ctx.fillStyle = '#fcdbcf';
+    ctx.fillRect(-5 * sc, -38 * sc, 10 * sc, 10 * sc);
+
+    // Smile
+    ctx.strokeStyle = '#c9846a';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(0, -33 * sc, 3 * sc, 0.1, Math.PI - 0.1);
     ctx.stroke();
 
-    // Glowing intersections
-    ctx.fillStyle = 'rgba(245, 197, 56, 0.2)';
-    for (let x = startX; x <= endX; x += gridSize * 2) {
-      for (let y = startY; y <= endY; y += gridSize * 2) {
-        ctx.beginPath();
-        ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-        ctx.fill();
+    // Eyes
+    ctx.fillStyle = '#2c1810';
+    ctx.fillRect(-3 * sc, -36 * sc, 2 * sc, 2 * sc);
+    ctx.fillRect(2 * sc, -36 * sc, 2 * sc, 2 * sc);
+
+    // Shark cap
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-7 * sc, -42 * sc, 14 * sc, 5 * sc);
+    ctx.fillRect(3 * sc, -40 * sc, 5 * sc, 2 * sc);
+    ctx.fillStyle = '#385a7c';
+    ctx.fillRect(-2 * sc, -41 * sc, 4 * sc, 2 * sc);
+
+    // Bouquet of yellow flowers in hand
+    const bouquetX = 10 * sc;
+    const bouquetY = -20 * sc;
+    ctx.fillStyle = '#52b788';
+    ctx.fillRect(bouquetX - 1, bouquetY, 2, 14);
+    const petalColors = ['#f5c538', '#ffd166', '#ffe066'];
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2 + Math.sin(performance.now() * 0.001) * 0.1;
+      ctx.fillStyle = petalColors[i % 3];
+      ctx.beginPath();
+      ctx.ellipse(bouquetX + Math.cos(a) * 5, bouquetY - 4 + Math.sin(a) * 4, 3, 5, a, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#ffb703';
+    ctx.beginPath();
+    ctx.arc(bouquetX, bouquetY - 4, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+
+    // === GABY ===
+    ctx.save();
+    ctx.translate(this.player.x, this.player.y);
+
+    // Shadow
+    ctx.fillStyle = 'rgba(10, 6, 16, 0.35)';
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 18, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (this.player.facingLeft) ctx.scale(-1, 1);
+
+    // Legs
+    ctx.fillStyle = '#1e1e1e';
+    ctx.fillRect(-6 * sc, -15 * sc + stepP, 5 * sc, 15 * sc - stepP);
+    ctx.fillRect(1 * sc, -15 * sc - stepP, 5 * sc, 15 * sc + stepP);
+
+    // Pink sweater
+    ctx.fillStyle = '#f4ccd5';
+    ctx.fillRect(-9 * sc, -28 * sc, 18 * sc, 14 * sc);
+
+    // Head
+    ctx.fillStyle = '#fcdbcf';
+    ctx.fillRect(-5 * sc, -38 * sc, 10 * sc, 10 * sc);
+
+    // Smile
+    ctx.strokeStyle = '#c9846a';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(0, -33 * sc, 3 * sc, 0.1, Math.PI - 0.1);
+    ctx.stroke();
+
+    // Eyes
+    ctx.fillStyle = '#2c1810';
+    ctx.fillRect(-3 * sc, -36 * sc, 2 * sc, 2 * sc);
+    ctx.fillRect(2 * sc, -36 * sc, 2 * sc, 2 * sc);
+
+    // Wavy hair
+    ctx.fillStyle = '#442a1b';
+    ctx.beginPath();
+    ctx.arc(0, -36 * sc, 7.5 * sc, Math.PI, 0);
+    ctx.fill();
+    ctx.fillRect(-7 * sc, -36 * sc, 3 * sc, 10 * sc);
+    ctx.fillRect(4 * sc, -36 * sc, 3 * sc, 10 * sc);
+    // Wavy ends
+    ctx.beginPath();
+    ctx.moveTo(-7 * sc, -26 * sc);
+    ctx.quadraticCurveTo(-9 * sc, -22 * sc, -7 * sc, -18 * sc);
+    ctx.quadraticCurveTo(-5 * sc, -22 * sc, -4 * sc, -26 * sc);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(4 * sc, -26 * sc);
+    ctx.quadraticCurveTo(5 * sc, -22 * sc, 7 * sc, -18 * sc);
+    ctx.quadraticCurveTo(9 * sc, -22 * sc, 7 * sc, -26 * sc);
+    ctx.fill();
+
+    // Cup in hand
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-3 * sc, -24 * sc, 6 * sc, 5 * sc);
+    ctx.fillStyle = '#ffd166';
+    ctx.fillRect(-1 * sc, -25 * sc, 2 * sc, 1 * sc);
+    // Steam
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.lineWidth = 1;
+    const steamTime = performance.now() * 0.002;
+    for (let i = 0; i < 3; i++) {
+      const sx = (-1 + i) * sc;
+      const sy = -27 * sc - Math.sin(steamTime + i) * 3;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.quadraticCurveTo(sx + Math.sin(steamTime + i * 2) * 2, sy - 4, sx, sy - 7);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+
+    // Heart between them
+    const dist = Math.hypot(this.player.x - this.companion.x, this.player.y - this.companion.y);
+    if (dist < 50) {
+      const midX = (this.player.x + this.companion.x) / 2;
+      const midY = (this.player.y + this.companion.y) / 2 - 80;
+      ctx.save();
+      ctx.font = '16px sans-serif';
+      ctx.textAlign = 'center';
+      const bob = Math.sin(performance.now() * 0.004) * 3;
+      ctx.globalAlpha = 0.8 + 0.2 * Math.sin(performance.now() * 0.003);
+      ctx.fillText('❤️', midX, midY + bob);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    // Wylli speech bubble
+    if (this.companion.bubbleTimer > 0) {
+      this.drawSpeechBubble(ctx, this.companion.bubbleText, this.companion.x, this.companion.y - 110);
+    }
+  }
+
+  // --- SPEECH BUBBLE ---
+  private drawSpeechBubble(ctx: CanvasRenderingContext2D, text: string, cx: number, cy: number) {
+    ctx.save();
+    ctx.font = 'bold 11px Nunito, sans-serif';
+    const maxWidth = 220;
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+    for (const word of words) {
+      const test = currentLine ? currentLine + ' ' + word : word;
+      if (ctx.measureText(test).width > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = test;
       }
     }
-  }
+    if (currentLine) lines.push(currentLine);
 
-  private renderMemoryNodes(ctx: CanvasRenderingContext2D) {
-    const time = performance.now() * 0.002;
-    for (const node of this.nodes) {
-      // Glowing aura
-      const auraGrad = ctx.createRadialGradient(node.x, node.y, 4, node.x, node.y, 45);
-      auraGrad.addColorStop(0, 'rgba(255, 209, 102, 0.45)');
-      auraGrad.addColorStop(0.6, 'rgba(245, 197, 56, 0.15)');
-      auraGrad.addColorStop(1, 'rgba(245, 197, 56, 0)');
-      ctx.fillStyle = auraGrad;
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, 45, 0, Math.PI * 2);
-      ctx.fill();
+    const lineHeight = 15;
+    const bubbleW = maxWidth + 20;
+    const bubbleH = lines.length * lineHeight + 14;
+    const bx = cx - bubbleW / 2;
+    const by = cy - bubbleH;
 
-      // Rotating cyber rings
-      ctx.save();
-      ctx.translate(node.x, node.y);
-      ctx.rotate(time);
-      ctx.strokeStyle = '#f5c538';
-      ctx.lineWidth = 1.8;
-      ctx.setLineDash([8, 6]);
-      ctx.beginPath();
-      ctx.arc(0, 0, 26, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.restore();
+    ctx.fillStyle = 'rgba(43, 27, 36, 0.92)';
+    ctx.strokeStyle = '#f5c538';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, bubbleW, bubbleH, 10);
+    ctx.fill();
+    ctx.stroke();
 
-      // Center Icon
-      ctx.font = '22px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(node.icon, node.x, node.y - 2);
+    // Arrow
+    ctx.beginPath();
+    ctx.moveTo(cx - 5, by + bubbleH);
+    ctx.lineTo(cx, by + bubbleH + 8);
+    ctx.lineTo(cx + 5, by + bubbleH);
+    ctx.fillStyle = 'rgba(43, 27, 36, 0.92)';
+    ctx.fill();
 
-      // Label
-      ctx.font = 'bold 11px Nunito, sans-serif';
-      ctx.fillStyle = '#fff3b0';
-      ctx.fillText(node.title, node.x, node.y + 36);
+    ctx.fillStyle = '#ffd447';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], cx, by + 7 + i * lineHeight);
     }
+    ctx.restore();
   }
 
+  // --- CAPA 1/3: FLOWERS ---
   private renderFlower(ctx: CanvasRenderingContext2D, f: VirtualFlower) {
     ctx.save();
     ctx.translate(f.x, f.y);
@@ -727,17 +928,19 @@ export class VirtualWorldGame {
     ctx.quadraticCurveTo(8, -f.stemHeight * 0.5, 0, -f.stemHeight);
     ctx.stroke();
 
-    // Stem Leaves
+    // Leaves
     ctx.fillStyle = '#74c69d';
     ctx.beginPath();
     ctx.ellipse(6, -f.stemHeight * 0.4, 7, 3.5, 0.3, 0, Math.PI * 2);
     ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(-5, -f.stemHeight * 0.65, 6, 3, -0.4, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Flower Head
+    // Flower head
     ctx.translate(0, -f.stemHeight);
 
     if (f.type === 'sunflower') {
-      // Golden Sunflowers
       const petalCount = 12;
       ctx.fillStyle = '#f5c538';
       for (let i = 0; i < petalCount; i++) {
@@ -749,19 +952,15 @@ export class VirtualWorldGame {
         ctx.fill();
         ctx.restore();
       }
-
-      // Dark brown seed center
       ctx.fillStyle = '#582e14';
       ctx.beginPath();
       ctx.arc(0, 0, 8, 0, Math.PI * 2);
       ctx.fill();
-
       ctx.fillStyle = '#3d1c08';
       ctx.beginPath();
       ctx.arc(0, 0, 5, 0, Math.PI * 2);
       ctx.fill();
     } else if (f.type === 'daisy') {
-      // White and Yellow Daisy
       const petalCount = 8;
       ctx.fillStyle = '#fffdf0';
       for (let i = 0; i < petalCount; i++) {
@@ -773,13 +972,11 @@ export class VirtualWorldGame {
         ctx.fill();
         ctx.restore();
       }
-
       ctx.fillStyle = '#ffd166';
       ctx.beginPath();
       ctx.arc(0, 0, 6, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      // Golden Rose / Star Blossom
       ctx.fillStyle = '#ffd166';
       for (let i = 0; i < 6; i++) {
         const angle = (i / 6) * Math.PI * 2;
@@ -790,7 +987,6 @@ export class VirtualWorldGame {
         ctx.fill();
         ctx.restore();
       }
-
       ctx.fillStyle = '#ffb703';
       ctx.beginPath();
       ctx.arc(0, 0, 5, 0, Math.PI * 2);
@@ -800,170 +996,34 @@ export class VirtualWorldGame {
     ctx.restore();
   }
 
-  private renderCouple(ctx: CanvasRenderingContext2D) {
-    // 1. Wylli Avatar
-    ctx.save();
-    ctx.translate(this.companion.x, this.companion.y);
-
-    // Soft shadow
-    ctx.fillStyle = 'rgba(10, 6, 16, 0.5)';
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 14, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Sprite drawing
-    this.drawPixelCharacter(ctx, 'wylli', this.companion.facingLeft, this.companion.stepCycle);
-
-    // Speech Bubble if active
-    if (this.companion.bubbleTimer > 0) {
-      this.drawSpeechBubble(ctx, this.companion.bubbleText);
-    }
-
-    ctx.restore();
-
-    // 2. Gaby Avatar
-    ctx.save();
-    ctx.translate(this.player.x, this.player.y);
-
-    ctx.fillStyle = 'rgba(10, 6, 16, 0.5)';
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 14, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    this.drawPixelCharacter(ctx, 'gaby', this.player.facingLeft, this.player.stepCycle);
-
-    ctx.restore();
-
-    // Love bond line / holding hands when close
-    const dist = Math.hypot(this.player.x - this.companion.x, this.player.y - this.companion.y);
-    if (dist < 55) {
-      ctx.save();
-      const midX = (this.player.x + this.companion.x) / 2;
-      const midY = (this.player.y + this.companion.y) / 2 - 20;
-
-      ctx.fillStyle = '#ff4d6d';
-      ctx.font = '14px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('❤️', midX, midY - 6 + Math.sin(performance.now() * 0.005) * 3);
-      ctx.restore();
-    }
-  }
-
-  private drawPixelCharacter(
-    ctx: CanvasRenderingContext2D,
-    who: 'gaby' | 'wylli',
-    facingLeft: boolean,
-    stepCycle: number
-  ) {
-    ctx.save();
-    if (facingLeft) ctx.scale(-1, 1);
-
-    const step = Math.sin(stepCycle) * 3;
-
-    if (who === 'gaby') {
-      // Gaby: Pink Sweater, wavy hair, cup
-      // Legs
-      ctx.fillStyle = '#1e1e1e';
-      ctx.fillRect(-6, -15, 5, 15 + step);
-      ctx.fillRect(1, -15, 5, 15 - step);
-
-      // Pink sweater
-      ctx.fillStyle = '#f4ccd5';
-      ctx.fillRect(-9, -28, 18, 14);
-
-      // Head & Hair
-      ctx.fillStyle = '#fcdbcf';
-      ctx.fillRect(-5, -38, 10, 10);
-
-      ctx.fillStyle = '#442a1b';
-      ctx.beginPath();
-      ctx.arc(0, -36, 7.5, Math.PI, 0);
-      ctx.fill();
-      ctx.fillRect(-7, -36, 3, 10);
-      ctx.fillRect(4, -36, 3, 10);
-
-      // Cute Cup
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(-3, -24, 6, 5);
-      ctx.fillStyle = '#ffd166';
-      ctx.fillRect(-1, -25, 2, 1);
-    } else {
-      // Wylli: White Shark Cap, Headphones, dark jeans
-      // Legs
-      ctx.fillStyle = '#1b2838';
-      ctx.fillRect(-6, -15, 5, 15 + step);
-      ctx.fillRect(1, -15, 5, 15 - step);
-
-      // White cyber shirt
-      ctx.fillStyle = '#f8f9fa';
-      ctx.fillRect(-9, -28, 18, 14);
-
-      // Headphones around neck
-      ctx.fillStyle = '#111111';
-      ctx.fillRect(-10, -29, 3, 5);
-      ctx.fillRect(7, -29, 3, 5);
-
-      // Head
-      ctx.fillStyle = '#fcdbcf';
-      ctx.fillRect(-5, -38, 10, 10);
-
-      // White Shark Cap
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(-7, -42, 14, 5);
-      ctx.fillRect(3, -40, 5, 2); // Visor
-      ctx.fillStyle = '#385a7c'; // Shark silhouette
-      ctx.fillRect(-2, -41, 4, 2);
-    }
-
-    ctx.restore();
-  }
-
-  private drawSpeechBubble(ctx: CanvasRenderingContext2D, text: string) {
-    ctx.save();
-    ctx.font = 'bold 11px Nunito, sans-serif';
-    const textWidth = ctx.measureText(text).width;
-    const bubbleWidth = textWidth + 20;
-    const bubbleHeight = 26;
-    const bubbleX = -bubbleWidth / 2;
-    const bubbleY = -68;
-
-    // Rounded rectangle bubble
-    ctx.fillStyle = 'rgba(28, 18, 42, 0.92)';
-    ctx.strokeStyle = '#f5c538';
-    ctx.lineWidth = 1.4;
-
-    ctx.beginPath();
-    ctx.roundRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight, 8);
-    ctx.fill();
-    ctx.stroke();
-
-    // Arrow pointer
-    ctx.beginPath();
-    ctx.moveTo(-4, bubbleY + bubbleHeight);
-    ctx.lineTo(0, bubbleY + bubbleHeight + 6);
-    ctx.lineTo(4, bubbleY + bubbleHeight);
-    ctx.fillStyle = 'rgba(28, 18, 42, 0.92)';
-    ctx.fill();
-
-    // Text
-    ctx.fillStyle = '#ffd447';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, 0, bubbleY + bubbleHeight / 2);
-
-    ctx.restore();
-  }
-
+  // --- CAPA 4: PARTICLES ---
   private renderParticles(ctx: CanvasRenderingContext2D) {
     for (const p of this.particles) {
       ctx.save();
-      ctx.globalAlpha = p.alpha;
-      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, p.alpha);
 
-      if (p.type === 'heart') {
+      if (p.type === 'sparkle') {
+        // Four-pointed star
+        ctx.fillStyle = '#ffd166';
+        ctx.translate(p.x, p.y);
+        ctx.rotate(performance.now() * 0.003);
+        const s = p.size;
+        ctx.beginPath();
+        ctx.moveTo(0, -s);
+        ctx.lineTo(s * 0.3, -s * 0.3);
+        ctx.lineTo(s, 0);
+        ctx.lineTo(s * 0.3, s * 0.3);
+        ctx.lineTo(0, s);
+        ctx.lineTo(-s * 0.3, s * 0.3);
+        ctx.lineTo(-s, 0);
+        ctx.lineTo(-s * 0.3, -s * 0.3);
+        ctx.closePath();
+        ctx.fill();
+      } else if (p.type === 'heart') {
         ctx.font = `${p.size * 2}px sans-serif`;
         ctx.fillText('❤️', p.x, p.y);
       } else {
+        ctx.fillStyle = p.color;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
@@ -973,10 +1033,74 @@ export class VirtualWorldGame {
     }
   }
 
+  // --- CAPA 4b: FLOATING PETALS ---
+  private renderFloatingPetals(ctx: CanvasRenderingContext2D, _w: number, _h: number) {
+    for (const petal of this.floatingPetals) {
+      ctx.save();
+      ctx.globalAlpha = petal.alpha;
+      ctx.translate(petal.x, petal.y);
+      ctx.rotate(petal.rot);
+      ctx.fillStyle = '#f5c538';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, petal.size, petal.size * 0.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // --- CAPA 5: DIALOGUE ---
+  private renderDialogue(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    if (this.dialogueAlpha <= 0) return;
+
+    ctx.save();
+    ctx.globalAlpha = this.dialogueAlpha;
+
+    const text = 'Wylli: «Gracias por traerme de vuelta, Gaby... Feliz 21 de Septiembre. Este jardín es todo tuyo ❤️»';
+    ctx.font = 'bold 13px Nunito, sans-serif';
+    const maxWidth = Math.min(400, w - 40);
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+    for (const word of words) {
+      const test = currentLine ? currentLine + ' ' + word : word;
+      if (ctx.measureText(test).width > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = test;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+
+    const lineH = 18;
+    const boxW = maxWidth + 30;
+    const boxH = lines.length * lineH + 20;
+    const bx = (w - boxW) / 2;
+    const by = h * 0.12;
+
+    ctx.fillStyle = 'rgba(43, 27, 36, 0.88)';
+    ctx.strokeStyle = '#f5c538';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, boxW, boxH, 10);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffd447';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], w / 2, by + 10 + i * lineH);
+    }
+
+    ctx.restore();
+  }
+
+  // --- VIGNETTE ---
   private renderScreenVignette(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const vig = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.4, w / 2, h / 2, Math.max(w, h) * 0.7);
+    const vig = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.7);
     vig.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    vig.addColorStop(1, 'rgba(8, 4, 16, 0.6)');
+    vig.addColorStop(1, 'rgba(43, 27, 36, 0.45)');
     ctx.fillStyle = vig;
     ctx.fillRect(0, 0, w, h);
   }
