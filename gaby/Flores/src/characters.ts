@@ -2,7 +2,141 @@
 /* Canvas 2D primitives — no sprite sheets. Each character is      */
 /* drawn with fillRect / arc / ellipse for an indie RPG look.     */
 
+import Phaser from 'phaser';
+
 export type CharState = 'idle' | 'walk' | 'sit' | 'sleep' | 'walkToCoffee' | 'deliverLetter';
+
+/* ── Phaser Graphics Adapter ───────────────────────────────── */
+/* Translates Canvas2D API calls to Phaser.GameObjects.Graphics */
+
+const COLOR_CACHE: Record<string, number> = {};
+function hexToInt(hex: string): number {
+  if (hex.startsWith('#')) {
+    if (COLOR_CACHE[hex] !== undefined) return COLOR_CACHE[hex];
+    const c = parseInt(hex.slice(1), 16);
+    COLOR_CACHE[hex] = c;
+    return c;
+  }
+  if (hex.startsWith('rgba') || hex.startsWith('rgb')) {
+    const m = hex.match(/\d+/g);
+    if (m) {
+      const r = parseInt(m[0]) << 16;
+      const g = parseInt(m[1]) << 8;
+      const b = parseInt(m[2]);
+      return r | g | b;
+    }
+  }
+  return 0xffffff;
+}
+
+function hexAlpha(hex: string): number {
+  if (hex.startsWith('rgba')) {
+    const m = hex.match(/[\d.]+$/);
+    return m ? parseFloat(m[0]) : 1;
+  }
+  return 1;
+}
+
+export class PhaserGraphicsAdapter {
+  private _fillColor = 0xffffff;
+  private _fillAlpha = 1;
+  private _globalAlpha = 1;
+  private _font = '';
+  private _pathOpen = false;
+
+  /* Transform state */
+  private _tx = 0;
+  private _ty = 0;
+  private _sx = 1;
+  private _sy = 1;
+  private _rot = 0;
+  private _transforms: Array<{tx: number; ty: number; sx: number; sy: number; rot: number}> = [];
+
+  constructor(public g: Phaser.GameObjects.Graphics) {}
+
+  private tx(x: number, y: number): [number, number] {
+    const sx = x * this._sx;
+    const sy = y * this._sy;
+    if (this._rot !== 0) {
+      const rx = sx * Math.cos(this._rot) - sy * Math.sin(this._rot);
+      const ry = sx * Math.sin(this._rot) + sy * Math.cos(this._rot);
+      return [this._tx + rx, this._ty + ry];
+    }
+    return [this._tx + sx, this._ty + sy];
+  }
+
+  set fillStyle(v: string) {
+    this._fillColor = hexToInt(v);
+    this._fillAlpha = hexAlpha(v) * this._globalAlpha;
+  }
+  get fillStyle() { return ''; }
+
+  set font(_v: string) { this._font = _v; }
+  get font() { return this._font; }
+
+  set globalAlpha(v: number) { this._globalAlpha = v; }
+  get globalAlpha() { return this._globalAlpha; }
+
+  save() {
+    this._transforms.push({tx: this._tx, ty: this._ty, sx: this._sx, sy: this._sy, rot: this._rot});
+  }
+
+  restore() {
+    const t = this._transforms.pop();
+    if (t) { this._tx = t.tx; this._ty = t.ty; this._sx = t.sx; this._sy = t.sy; this._rot = t.rot; }
+  }
+
+  translate(x: number, y: number) { this._tx += x; this._ty += y; }
+  scale(x: number, y: number) { this._sx *= x; this._sy *= y; }
+  rotate(a: number) { this._rot += a; }
+
+  fillRect(x: number, y: number, w: number, h: number) {
+    const [tx, ty] = this.tx(x, y);
+    this.g.fillStyle(this._fillColor, this._fillAlpha);
+    this.g.fillRect(tx, ty, w * Math.abs(this._sx), h * Math.abs(this._sy));
+  }
+
+  beginPath() { this._pathOpen = true; }
+  closePath() { /* handled by fillPath */ }
+
+  moveTo(x: number, y: number) {
+    const [px, py] = this.tx(x, y);
+    this.g.beginPath();
+    this.g.moveTo(px, py);
+  }
+
+  lineTo(x: number, y: number) {
+    const [px, py] = this.tx(x, y);
+    this.g.lineTo(px, py);
+  }
+
+  fill() {
+    this.g.fillStyle(this._fillColor, this._fillAlpha);
+    this.g.fillPath();
+    this._pathOpen = false;
+  }
+
+  stroke() {
+    this.g.strokePath();
+    this._pathOpen = false;
+  }
+
+  arc(x: number, y: number, r: number, start: number, end: number, _ccw?: boolean) {
+    const [px, py] = this.tx(x, y);
+    this.g.fillStyle(this._fillColor, this._fillAlpha);
+    this.g.arc(px, py, r * Math.max(Math.abs(this._sx), Math.abs(this._sy)), start + this._rot, end + this._rot, false);
+  }
+
+  ellipse(cx: number, cy: number, rx: number, ry: number) {
+    const [px, py] = this.tx(cx, cy);
+    this.g.fillStyle(this._fillColor, this._fillAlpha);
+    this.g.fillEllipse(px, py, rx * 2 * Math.abs(this._sx), ry * 2 * Math.abs(this._sy));
+  }
+
+  fillText(_text: string, _x: number, _y: number) {
+    /* No-op: text rendering handled separately via Phaser Text objects */
+  }
+}
 
 export interface CharSpec {
   skinColor: string;

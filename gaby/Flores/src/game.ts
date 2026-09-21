@@ -224,25 +224,20 @@ export class GameController {
     this.openPrologue(0);
   }
 
-  private initPhaserGame(): Phaser.Game {
-    if (this.phaserGame) return this.phaserGame;
+  private createPhaserGame(parentId: string): Phaser.Game {
+    if (this.phaserGame) {
+      this.phaserGame.destroy(true);
+      this.phaserGame = null;
+    }
 
     const game = new Phaser.Game({
       ...PHASER_CONFIG,
-      parent: 'phaserAwakening',
+      parent: parentId,
       scene: [BootScene, SalaScene, GardenScene],
     });
 
     this.phaserGame = game;
     return game;
-  }
-
-  private reparentCanvas(parentId: string): void {
-    const canvas = this.phaserGame?.canvas;
-    const parent = document.getElementById(parentId);
-    if (canvas && parent && canvas.parentElement !== parent) {
-      parent.appendChild(canvas);
-    }
   }
 
   private setupMap() {
@@ -2076,9 +2071,7 @@ export class GameController {
     if (overlay) overlay.classList.add('active');
     this.state.currentScene = 'sala';
 
-    this.reparentCanvas('phaserAwakening');
-    const game = this.initPhaserGame();
-    game.scene.start('BootScene', { nextScene: 'SalaScene' });
+    const game = this.createPhaserGame('phaserAwakening');
 
     const checkReady = () => {
       const scene = game.scene.getScene('SalaScene') as SalaScene;
@@ -2101,9 +2094,7 @@ export class GameController {
     if (vwModal) vwModal.classList.add('active');
     this.state.currentScene = 'garden';
 
-    this.reparentCanvas('phaserGarden');
-    const game = this.initPhaserGame();
-    game.scene.start('BootScene', { nextScene: 'GardenScene' });
+    this.createPhaserGame('phaserGarden');
   }
 
   public bloomGardenYellowFlowers() {

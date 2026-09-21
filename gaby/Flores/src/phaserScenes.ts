@@ -1,5 +1,4 @@
-/* ── Phaser 3 Scenes — Programmatic Characters ────────────── */
-/* No sprite sheets. Characters drawn with Canvas 2D primitives. */
+/* ── Phaser 3 Scenes — Image backgrounds + Programmatic Characters ── */
 
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from './phaserConfig';
@@ -9,11 +8,12 @@ import {
   drawFlowerBloom,
   drawStarBlossom,
   drawLetter,
+  PhaserGraphicsAdapter,
 } from './characters';
 import type { CharState } from './characters';
 
 /* ══════════════════════════════════════════════════════════════
-   BOOT SCENE — minimal (no asset loading needed)
+   BOOT SCENE — preload images, then start target scene
    ══════════════════════════════════════════════════════════════ */
 
 export class BootScene extends Phaser.Scene {
@@ -25,6 +25,11 @@ export class BootScene extends Phaser.Scene {
 
   init(data: { nextScene?: string }) {
     this.nextScene = data?.nextScene || 'SalaScene';
+  }
+
+  preload(): void {
+    this.load.image('sala', 'sala.jpeg');
+    this.load.image('campo', 'campo de flores.jpeg');
   }
 
   create(): void {
@@ -64,6 +69,7 @@ export class SalaScene extends Phaser.Scene {
   private phase: SalaPhase = 'initial';
   private phaseTimer = 0;
   private graphics!: Phaser.GameObjects.Graphics;
+  private adapter!: PhaserGraphicsAdapter;
   private heartsActive = false;
   private heartsStartTime = 0;
   private dialogueText = '';
@@ -85,7 +91,14 @@ export class SalaScene extends Phaser.Scene {
     this.dialogueAlpha = 0;
     this.completed = false;
 
+    /* Background image */
+    this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'sala')
+      .setDisplaySize(GAME_WIDTH, GAME_HEIGHT)
+      .setDepth(0);
+
     this.graphics = this.add.graphics();
+    this.graphics.setDepth(1);
+    this.adapter = new PhaserGraphicsAdapter(this.graphics);
 
     /* Dialogue text object */
     this.dialogueTextObj = this.add.text(0, 0, '', {
@@ -144,7 +157,6 @@ export class SalaScene extends Phaser.Scene {
 
     /* Render */
     this.graphics.clear();
-    this.renderBackground();
     this.renderDialogue(t);
 
     /* Y-sorting: draw characters by y position */
@@ -152,13 +164,13 @@ export class SalaScene extends Phaser.Scene {
       (a, b) => a.y - b.y,
     );
     for (const c of chars) {
-      drawCharacter(this.graphics as any, c.x, c.y, this.getCharKey(c), c.state, t, c.dir);
+      drawCharacter(this.adapter as any, c.x, c.y, this.getCharKey(c), c.state, t, c.dir);
     }
 
     /* Hearts overlay */
     if (this.heartsActive) {
       drawHearts(
-        this.graphics as any,
+        this.adapter as any,
         (this.gaby.x + this.willy.x) / 2,
         Math.min(this.gaby.y, this.willy.y) - 30,
         8,
@@ -331,42 +343,6 @@ export class SalaScene extends Phaser.Scene {
 
   /* ── Rendering ──────────────────────────────────────────── */
 
-  private renderBackground(): void {
-    const g = this.graphics;
-    /* Dark cabin interior */
-    g.fillStyle(0x1a120d);
-    g.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-
-    /* Floor */
-    g.fillStyle(0x2b1b24);
-    g.fillRect(0, GAME_HEIGHT * 0.55, GAME_WIDTH, GAME_HEIGHT * 0.45);
-
-    /* Sofa (green) */
-    g.fillStyle(0x2d5a37);
-    g.fillRoundedRect(GAME_WIDTH * 0.15, GAME_HEIGHT * 0.48, GAME_WIDTH * 0.32, GAME_HEIGHT * 0.16, 8);
-    g.fillStyle(0x22452a);
-    g.fillRect(GAME_WIDTH * 0.13, GAME_HEIGHT * 0.50, GAME_WIDTH * 0.03, GAME_HEIGHT * 0.12);
-    g.fillRect(GAME_WIDTH * 0.45, GAME_HEIGHT * 0.50, GAME_WIDTH * 0.03, GAME_HEIGHT * 0.12);
-
-    /* Coffee machine area */
-    g.fillStyle(0x374151);
-    g.fillRoundedRect(GAME_WIDTH * 0.18, GAME_HEIGHT * 0.38, GAME_WIDTH * 0.12, GAME_HEIGHT * 0.18, 4);
-    g.fillStyle(0x6b7280);
-    g.fillRect(GAME_WIDTH * 0.22, GAME_HEIGHT * 0.40, GAME_WIDTH * 0.04, GAME_HEIGHT * 0.04);
-
-    /* Fireplace */
-    g.fillStyle(0x7c2d12);
-    g.fillRoundedRect(GAME_WIDTH * 0.75, GAME_HEIGHT * 0.32, GAME_WIDTH * 0.15, GAME_HEIGHT * 0.22, 6);
-    g.fillStyle(0xf97316);
-    g.fillRect(GAME_WIDTH * 0.78, GAME_HEIGHT * 0.40, GAME_WIDTH * 0.08, GAME_HEIGHT * 0.10);
-
-    /* Door */
-    g.fillStyle(0x92400e);
-    g.fillRect(GAME_WIDTH * 0.46, GAME_HEIGHT * 0.88, GAME_WIDTH * 0.08, GAME_HEIGHT * 0.12);
-    g.fillStyle(0xfbbf24);
-    g.fillRect(GAME_WIDTH * 0.52, GAME_HEIGHT * 0.93, 3, 3);
-  }
-
   private renderDialogue(_t: number): void {
     if (this.dialogueAlpha <= 0 || !this.dialogueText) {
       this.dialogueTextObj.setVisible(false);
@@ -440,6 +416,7 @@ export class GardenScene extends Phaser.Scene {
   private willy!: CharPos;
   private flowers: GardenFlower[] = [];
   private graphics!: Phaser.GameObjects.Graphics;
+  private adapter!: PhaserGraphicsAdapter;
   private bloomIndex = 0;
   private enteredBench = false;
   private benchFlowersActive = false;
@@ -457,7 +434,14 @@ export class GardenScene extends Phaser.Scene {
     this.enteredBench = false;
     this.benchFlowersActive = false;
 
+    /* Background image */
+    this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'campo')
+      .setDisplaySize(GAME_WIDTH, GAME_HEIGHT)
+      .setDepth(0);
+
     this.graphics = this.add.graphics();
+    this.graphics.setDepth(1);
+    this.adapter = new PhaserGraphicsAdapter(this.graphics);
 
     /* Gaby enters from left */
     this.gaby = {
@@ -516,7 +500,6 @@ export class GardenScene extends Phaser.Scene {
 
     /* Render */
     this.graphics.clear();
-    this.renderBackground();
 
     /* Bench */
     this.renderBench();
@@ -525,7 +508,7 @@ export class GardenScene extends Phaser.Scene {
     const chars = [this.gaby, this.willy].sort((a, b) => a.y - b.y);
     for (const c of chars) {
       drawCharacter(
-        this.graphics as any,
+        this.adapter as any,
         c.x,
         c.y,
         c === this.gaby ? 'gaby' : 'willy',
@@ -540,9 +523,9 @@ export class GardenScene extends Phaser.Scene {
       const sway = Math.sin(t * 0.0015 + f.swayPhase) * 2;
       const fx = f.baseX + sway;
       if (f.type === 'starBlossom') {
-        drawStarBlossom(this.graphics as any, fx, f.y, f.size, t);
+        drawStarBlossom(this.adapter as any, fx, f.y, f.size, t);
       } else {
-        drawFlowerBloom(this.graphics as any, fx, f.y, f.size, FLOWER_COLORS[f.type], t);
+        drawFlowerBloom(this.adapter as any, fx, f.y, f.size, FLOWER_COLORS[f.type], t);
       }
     }
 
@@ -576,7 +559,7 @@ export class GardenScene extends Phaser.Scene {
       const size = 4 + Math.sin(t * 0.002 + i) * 1;
       const colors = ['#facc15', '#fef3c7', '#daa520', '#fde68a'];
       drawFlowerBloom(
-        this.graphics as any,
+        this.adapter as any,
         fx,
         fy,
         size,
@@ -586,29 +569,12 @@ export class GardenScene extends Phaser.Scene {
     }
 
     /* Center star blossom */
-    drawStarBlossom(this.graphics as any, cx, cy - 25, 6, t);
+    drawStarBlossom(this.adapter as any, cx, cy - 25, 6, t);
 
     /* Letter overlay appears after a moment */
     if (this.benchFlowersActive && t > 5000) {
-      drawLetter(this.graphics as any, cx, cy - 50, 20);
+      drawLetter(this.adapter as any, cx, cy - 50, 20);
     }
-  }
-
-  /* ── Background ────────────────────────────────────────── */
-
-  private renderBackground(): void {
-    const g = this.graphics;
-    /* Sky gradient */
-    g.fillStyle(0x87ceeb);
-    g.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT * 0.4);
-    g.fillStyle(0x98d8a0);
-    g.fillRect(0, GAME_HEIGHT * 0.35, GAME_WIDTH, GAME_HEIGHT * 0.15);
-    /* Grass */
-    g.fillStyle(0x4ade80);
-    g.fillRect(0, GAME_HEIGHT * 0.45, GAME_WIDTH, GAME_HEIGHT * 0.55);
-    /* Path */
-    g.fillStyle(0xd4a574);
-    g.fillRect(GAME_WIDTH * 0.3, GAME_HEIGHT * 0.55, GAME_WIDTH * 0.4, GAME_HEIGHT * 0.08);
   }
 
   private renderBench(): void {
