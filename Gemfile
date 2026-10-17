@@ -8,12 +8,7 @@ group :jekyll_plugins do
   gem "jekyll-seo-tag"
   gem "jekyll-archives"
   gem "jekyll-compose"
-  gem "jekyll-paginate-v2"
 end
-
-# Sass / CSS
-gem "sassc", "~> 2.4"
-gem "autoprefixer-rails", "~> 10.4"
 
 # Windows support
 platforms :mingw, :x64_mingw, :mswin, :jruby do

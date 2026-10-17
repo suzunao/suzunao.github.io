@@ -1,44 +1,44 @@
 ---
 layout: default
+title: {{ page.title }}
+description: {{ page.description }}
 ---
 
-<article class="single-post">
-  <!-- Post Header -->
-  <header class="post-header">
-    <div class="post-meta">
-      <span class="post-date">{{ page.date | date: "%Y-%m-%d" }}</span>
-      <span class="post-separator">|</span>
-      <span class="post-author">{{ page.author.name | default: "P4R4$IT3" }}</span>
+<!-- ============ VISTA: POST ============ -->
+<section class="hk-view" data-vista="post">
+  <article class="hk-single">
+    <nav class="hk-breadcrumb" aria-label="Migas de pan">
+      <a href="#home" data-nav="home">Home</a>
+      <span class="hk-sep" aria-hidden="true">/</span>
+      <a href="#posts" data-nav="posts">Artículos</a>
+      <span class="hk-sep" aria-hidden="true">/</span>
+      <span class="hk-current">{{ page.title }}</span>
+    </nav>
+    <header class="hk-post-header">
+      <div class="hk-post-meta">
+        <time datetime="{{ page.date | date: "%Y-%m-%d" }}">{{ page.date | date: "%d %b %Y" }}</time>
+        {% if page.author %}
+          <span class="hk-post-separator">|</span><span>{{ page.author.name | default: "Suzunao" }}</span>
+        {% endif %}
+        <span class="hk-post-separator">|</span><span>{{ page.reading_time | default: 5 }} min de lectura</span>
+      </div>
+      <h1 class="hk-post-title">{{ page.title }}</h1>
+      <div class="hk-post-tags">
+        {% for tag in page.tags %}
+          <span class="hk-tag" data-cat="{{ tag | downcase }}">#{{ tag }}</span>
+        {% endfor %}
+      </div>
+    </header>
+    <div class="hk-post-content">
+      {{ content }}
     </div>
-    
-    <h1 class="post-title">{{ page.title }}</h1>
-    
-    <div class="post-tags">
-      {% for tag in page.tags %}
-        <span class="tag">#{{ tag }}</span>
-      {% endfor %}
-    </div>
-  </header>
-
-  <!-- Post Content -->
-  <div class="post-content">
-    {{ content }}
-  </div>
-
-  <!-- Post Footer -->
-  <footer class="post-footer">
-    <div class="footer-navigation">
-      <a href="{{ '/' | relative_url }}" class="back-link">
-        <span class="arrow">←</span> Back to Home
-      </a>
-    </div>
-    
-    <div class="share-section">
-      <span class="share-label">Share:</span>
-      <a href="https://twitter.com/intent/tweet?text={{ page.title | url_encode }}&url={{ page.url | absolute_url | url_encode }}" target="_blank" class="share-link">Twitter</a>
-      <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ page.url | absolute_url | url_encode }}&title={{ page.title | url_encode }}" target="_blank" class="share-link">LinkedIn</a>
-    </div>
-  </footer>
-</article>
-
-<script src="{{ '/assets/js/posts.js' | relative_url }}" defer></script>
+    <footer class="hk-post-footer">
+      <div><a href="#home" class="hk-back-link" data-nav="home"><span class="arrow" aria-hidden="true">←</span> Back to Home</a></div>
+      <div class="hk-share">
+        <span class="hk-share-label">Share:</span>
+        <a href="#" class="hk-share-link" target="_blank" rel="noopener noreferrer">Twitter</a>
+        <a href="#" class="hk-share-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      </div>
+    </footer>
+  </article>
+</section>

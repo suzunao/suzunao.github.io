@@ -3,164 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- SEO -->
-  <title>{{ page.title | default: site.title }}</title>
-  <meta name="description" content="{{ page.description | default: site.description }}">
-  <meta name="author" content="{{ site.author.name }}">
-  {% if page.tags %}<meta name="keywords" content="cybersecurity, hacking, penetration testing, CTF, malware analysis, reverse engineering, {{ page.tags | join: ', ' }}">{% else %}<meta name="keywords" content="cybersecurity, hacking, penetration testing, CTF, malware analysis, reverse engineering">{% endif %}
-  
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="{{ page.og_type | default: 'website' }}">
-  <meta property="og:url" content="{{ page.url | absolute_url | default: site.url }}">
-  <meta property="og:title" content="{{ page.title | default: site.title }}">
-  <meta property="og:description" content="{{ page.description | default: site.description }}">
-  {% assign og_image = page.background | default: '/assets/img/icon/P4r4$it3.png' %}
-  <meta property="og:image" content="{{ og_image | absolute_url }}">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:site_name" content="{{ site.title }}">
-  <meta property="og:locale" content="es_ES">
-  <meta property="article:author" content="{{ page.author.name | default: site.author.name }}">
-  {% if page.date %}<meta property="article:published_time" content="{{ page.date | date_to_xmlschema }}">{% endif %}
-  
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="{{ page.url | absolute_url | default: site.url }}">
-  <meta name="twitter:title" content="{{ page.title | default: site.title }}">
-  <meta name="twitter:description" content="{{ page.description | default: site.description }}">
-  {% assign twitter_image = page.background | default: '/assets/img/icon/P4r4$it3.png' %}
-  <meta name="twitter:image" content="{{ twitter_image | absolute_url }}">
-  <meta name="twitter:site" content="@llSuzunaoll">
-  <meta name="twitter:creator" content="@llSuzunaoll">
-  
-  <!-- Canonical URL -->
-  <link rel="canonical" href="{{ page.url | absolute_url }}">
-  
-  <!-- RSS Feed -->
-  <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ '/feed.xml' | absolute_url }}">
-  
+  <meta name="theme-color" content="#050a06">
+  <meta name="color-scheme" content="dark">
+
+  <!-- SEO: jekyll-seo-tag genera title, description, canonical, Open Graph,
+       Twitter Cards y JSON-LD de forma única y consistente (sin duplicados). -->
   {% seo %}
-  <link rel="icon" href="{{ 'assets/img/icon/P4r4$it3.png' | relative_url }}" type="image/png">
+
+  <link rel="icon" href="{{ '/assets/img/_optimized/favicon.png' | relative_url }}" type="image/png">
+  <link rel="apple-touch-icon" href="{{ '/assets/img/_optimized/brand-512.webp' | relative_url }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
 </head>
-<body>
-  <!-- Efecto de scanline -->
-  <div class="scanlines"></div>
-  
-  <!-- Contenedor principal -->
-  <div class="hacker-container">
-    <!-- Sidebar / Panel izquierdo -->
-    <aside class="sidebar">
-      <!-- Logo -->
-      <div class="logo-section">
-        <div class="logo-box">
-          <span class="logo-bracket">[</span><span class="logo-text">P4R4</span><span class="logo-bracket">$IT3</span><span class="cursor">_</span><span class="logo-bracket">]</span>
+<body class="hk-app">
+  <a href="#contenido" class="hk-skip">Saltar al contenido</a>
+  <div class="hk-scanlines" aria-hidden="true"></div>
+  <div class="hk-screen-door" aria-hidden="true"></div>
+
+  <!-- Mobile top bar -->
+  <div class="hk-mobile-bar">
+    <button type="button" class="hk-hamburger" data-hamburger aria-label="Abrir menú" aria-expanded="false" aria-controls="hk-drawer">☰</button>
+    <span class="hk-mini-logo"><span aria-hidden="true">[</span>P4R4$IT3<span aria-hidden="true">]</span></span>
+    <span class="hk-spacer"></span>
+  </div>
+
+  <!-- Mobile drawer backdrop -->
+  <div class="hk-drawer-backdrop" data-drawer-backdrop></div>
+
+  <!-- Container -->
+  <div class="hk-container">
+    <aside class="hk-sidebar" aria-label="Navegación lateral">
+      <div class="hk-logo">
+        <div class="hk-logo-box">
+          <span class="hk-logo-bracket">[</span><span class="hk-logo-text">P4R4</span><span class="hk-logo-bracket">$IT3</span><span class="hk-cursor" aria-hidden="true">_</span><span class="hk-logo-bracket">]</span>
         </div>
-        <div class="logo-subtitle">Security Researcher</div>
+        <div class="hk-logo-sub">Security Researcher</div>
       </div>
 
-      <!-- Navegación -->
-      <nav class="main-nav">
-        <div class="nav-section-title">// NAVIGATION</div>
-        <a href="{{ '/' | relative_url }}" class="nav-item">
-          <span class="nav-icon">▸</span>
-          <span class="nav-text">[HOME] Inicio</span>
-        </a>
-        <a href="{{ '/posts/' | relative_url }}" class="nav-item" id="nav-posts">
-          <span class="nav-icon">▸</span>
-          <span class="nav-text">[POSTS] Artículos</span>
-        </a>
-        <a href="{{ '/about/' | relative_url }}" class="nav-item">
-          <span class="nav-icon">▸</span>
-          <span class="nav-text">[ABOUT] Sobre mí</span>
-        </a>
+      <div class="hk-search">
+        <div class="hk-section-title">// SEARCH</div>
+        <label for="hk-search-input" class="sr-only">Buscar artículos</label>
+        <div class="hk-search-box">
+          <span class="hk-search-prompt" aria-hidden="true">$</span>
+          <input id="hk-search-input" type="search" class="hk-search-input" placeholder="Buscar..." data-search-input autocomplete="off">
+        </div>
+        <div class="hk-search-results" data-search-results style="display:none;"></div>
+      </div>
+
+      <nav class="hk-nav" aria-label="Navegación principal">
+        <div class="hk-section-title">// NAVIGATION</div>
+        <a href="#home" class="hk-nav-item active" data-nav="home" aria-current="page"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[HOME] Inicio</span></a>
+        <a href="#posts" class="hk-nav-item" data-nav="posts"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[POSTS] Artículos</span></a>
+        <a href="#about" class="hk-nav-item" data-nav="about"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[ABOUT] Sobre mí</span></a>
       </nav>
 
-      <!-- Estado del sistema -->
-      <div class="system-status">
-        <div class="status-title">// SYSTEM STATUS</div>
-        <div class="status-item">
-          <span class="status-dot online"></span>
-          <span>Server: <span class="status-ok">ONLINE</span></span>
-        </div>
-        <div class="status-item">
-          <span class="status-dot secure"></span>
-          <span>Connection: <span class="status-secure">ENCRYPTED</span></span>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Uptime:</span>
-          <span class="status-value" id="uptime">00:00:00</span>
-        </div>
-      </div>
-
-      <!-- Buscador -->
-      <div class="sidebar-search">
-        <div class="search-title">// SEARCH</div>
-        <div class="search-box">
-          <span class="search-prompt">$</span>
-          <input type="text" id="search-input-sidebar" placeholder="Buscar...">
-        </div>
-        <div id="search-results-sidebar" class="search-results"></div>
+      <div class="hk-status" aria-label="Estado del sistema">
+        <div class="hk-section-title">// SYSTEM STATUS</div>
+        <div class="hk-status-row"><span class="hk-dot online" aria-hidden="true"></span><span>Server: <span class="hk-status-ok">ONLINE</span></span></div>
+        <div class="hk-status-row"><span class="hk-dot secure" aria-hidden="true"></span><span>Connection: <span class="hk-status-secure">ENCRYPTED</span></span></div>
+        <div class="hk-status-row"><span class="hk-status-label">Uptime:</span><span class="hk-status-value" data-uptime aria-hidden="true">00:00:00</span></div>
       </div>
     </aside>
 
-    <!-- Contenido principal -->
-    <main class="main-content">
-      <!-- Header móvil -->
-      <header class="mobile-header">
-        <div class="mobile-logo">[P4R4$IT3]</div>
-        <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
-      </header>
-
-      <!-- Terminal de bienvenida - solo en home -->
-      {% if page.title == 'home' or page.url == '/' %}
-      <div class="welcome-terminal" id="welcomeTerminal">
-        <div class="terminal-header-bar">
-          <span class="terminal-buttons">
-            <span class="terminal-btn red"></span>
-            <span class="terminal-btn yellow"></span>
-            <span class="terminal-btn green"></span>
-          </span>
-          <span class="terminal-title">welcome.sh</span>
-        </div>
-        <div class="terminal-body" id="terminalBody">
-          <!-- Los comandos se agregan dinámicamente con JS -->
-        </div>
-      </div>
-      {% endif %}
-
-      <!-- Contenido -->
-      <div class="content-wrapper">
+    <main class="hk-main" id="contenido" tabindex="-1">
+      <div class="hk-content">
         {{ content }}
       </div>
 
-      <!-- Footer -->
-      <footer class="main-footer">
-        <div class="footer-left">
-          <span class="footer-bracket">[</span>
-          <span class="footer-text">© 2025 P4R4$IT3 - All rights reserved</span>
-          <span class="footer-bracket">]</span>
+      <footer class="hk-footer">
+        <div class="hk-footer-left">
+          <span class="hk-footer-bracket" aria-hidden="true">[</span>
+          <span>© {{ 'now' | date: "%Y" }} P4R4$IT3 — All rights reserved</span>
+          <span class="hk-footer-bracket" aria-hidden="true">]</span>
         </div>
-        <div class="footer-right">
-          <span class="footer-status">Theme: <span class="theme-name">Hacker Dark</span></span>
+        <div class="hk-footer-right">
+          <span>Theme: <span class="hk-footer-theme">Hacker Dark</span></span>
         </div>
       </footer>
     </main>
   </div>
 
-  <!-- Menú móvil -->
-  <nav class="mobile-nav" id="mobile-nav">
-    <a href="{{ '/' | relative_url }}">[HOME] Inicio</a>
-    <a href="{{ '/posts/' | relative_url }}">[POSTS] Artículos</a>
-    <a href="{{ '/about/' | relative_url }}">[ABOUT] Sobre mí</a>
-  </nav>
+  <button type="button" class="hk-to-top" data-to-top aria-label="Volver arriba">↑<span>Volver arriba</span></button>
 
-  <!-- Datos de posts para búsqueda -->
-  <script type="application/json" id="posts-data">
+  <script type="application/json" id="hk-posts-data">
     {% include posts.html %}
   </script>
 

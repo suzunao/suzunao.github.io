@@ -6,13 +6,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // Reemplazo de enlaces de YouTube
   const content = document.querySelector(".post-content");
   if (content) {
-    const youtubeRegex = /(?:https?:\/\/(?:www\.)?youtube\.com\/watch\?v=|https?:\/\/youtu\.be\/)([a-zA-Z0-9_-]+)/g;
-    let html = content.innerHTML;
+    const youtubeRegex = /(?:https?:\/\/(?:www\.)?youtube\.com\/watch\?v=|https?:\/\/youtu\.be\/)([a-zA-Z0-9_-]+)/;
+    const html = content.innerHTML;
+    // Usar .test() solo para detectar, sin flag /g (que es stateful y causa
+    // falsos negativos entre llamadas). El reemplazo sí usa regex con /g local.
     if (youtubeRegex.test(html)) {
-      html = html.replace(youtubeRegex, (match, videoId) => 
-        `<div class="video-container"><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`
+      const replaceRegex = /(?:https?:\/\/(?:www\.)?youtube\.com\/watch\?v=|https?:\/\/youtu\.be\/)([a-zA-Z0-9_-]+)/g;
+      const newHtml = html.replace(replaceRegex, (match, videoId) =>
+        `<div class="video-container"><iframe src="https://www.youtube-nocookie.com/embed/${videoId}" title="Video de YouTube" loading="lazy" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`
       );
-      content.innerHTML = html;
+      if (newHtml !== html) content.innerHTML = newHtml;
     }
   }
 
