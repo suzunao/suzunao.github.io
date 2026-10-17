@@ -5,7 +5,7 @@ description: Blog personal sobre hacking, cybersecurity, penetration testing, CT
 ---
 
 <!-- ============ VISTA: HOME ============ -->
-<section class="hk-view visible" data-vista="home">
+<section>
 
   <section class="hk-posts-section">
     <div class="hk-section-header">
@@ -13,7 +13,7 @@ description: Blog personal sobre hacking, cybersecurity, penetration testing, CT
       <div class="hk-section-line" aria-hidden="true"></div>
     </div>
     <div class="hk-posts-grid featured">
-      {% assign limit = 3 %}
+      {% assign limit = site.home_post_limit | default: 3 %}
       {% assign all_posts = site.posts | sort: 'date' | reverse %}
       {% for post in all_posts limit: limit %}
         {% assign bg_index = forloop.index0 | modulo: 4 %}

@@ -1,158 +1,121 @@
-/* ================================================
-   ABOUT STYLES
-   ================================================ */
-
-.about-section {
-  max-width: 800px;
+.hk-about {
+  width: min(100%, 800px);
   margin: 0 auto;
 }
 
-.about-card {
-  background: var(--bg-panel);
+.hk-about-card {
+  padding: clamp(1.25rem, 4vw, 2rem);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 2rem;
+  border-radius: 6px;
+  background: var(--bg-panel);
 }
 
-.about-profile {
+.hk-about-profile {
   display: flex;
   align-items: center;
   gap: 1.5rem;
   margin-bottom: 1.5rem;
 }
 
-.about-avatar img {
+.hk-about-avatar {
+  display: flex;
   width: 100px;
   height: 100px;
-  object-fit: cover;
+  flex: 0 0 100px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid var(--accent-green);
   border-radius: 50%;
-  border: 3px solid var(--accent-green);
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
-  transition: transform var(--transition-normal);
+  background: var(--bg-terminal);
 }
 
-.about-avatar img:hover {
-  transform: scale(1.05);
+.hk-about-info {
+  min-width: 0;
 }
 
-.about-info {
-  flex: 1;
-}
-
-.about-name {
-  font-size: 1.8rem;
-  font-weight: 700;
+.hk-about-name {
+  margin: 0;
   color: var(--accent-green);
-  margin-bottom: 0.25rem;
+  font-size: 1.7rem;
 }
 
-.about-role {
-  font-size: 0.9rem;
+.hk-about-role {
+  margin: .2rem 0 0;
   color: var(--text-secondary);
 }
 
-.about-bio {
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--text-primary);
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
+.hk-about-bio {
+  padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
 }
 
-.about-skills {
+.hk-about-skills,
+.hk-about-socials {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  gap: .7rem;
 }
 
-.skill-item {
+.hk-about-skills {
+  margin-bottom: 1.25rem;
+}
+
+.hk-skill-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background: rgba(0, 255, 65, 0.05);
+  gap: .45rem;
+  padding: .5rem .75rem;
   border: 1px solid var(--border-color);
-  padding: 0.5rem 1rem;
   border-radius: 4px;
-  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-size: .78rem;
 }
 
-.skill-icon {
+.hk-skill-icon {
   color: var(--accent-green);
 }
 
-.skill-name {
+.hk-skill-name {
   color: var(--text-secondary);
 }
 
-.about-socials {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.social-link {
-  color: var(--accent-green);
-  text-decoration: none;
-  padding: 0.5rem 1rem;
+.hk-social-link {
+  padding: .45rem .65rem;
   border: 1px solid var(--accent-green);
   border-radius: 4px;
-  font-size: 0.85rem;
-  transition: all var(--transition-normal);
+  color: var(--accent-green);
+  font-size: .75rem;
+  text-decoration: none;
 }
 
-.social-link:hover {
-  background: var(--accent-green);
-  color: var(--bg-dark);
-  box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+.hk-social-link:hover {
+  background: rgb(0 255 136 / 10%);
 }
 
-.social-bracket {
-  color: inherit;
-}
-
-/* Warning */
-.about-warning {
+.hk-about-warning {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: rgba(248, 81, 73, 0.05);
+  gap: .7rem;
+  margin-top: 1.25rem;
+  padding: .85rem;
   border: 1px solid var(--accent-red);
-  border-radius: 6px;
+  border-radius: 4px;
+  background: rgb(248 81 73 / 5%);
 }
 
-.warning-icon {
+.hk-warning-icon,
+.hk-warning-text {
   color: var(--accent-red);
-  font-size: 1.2rem;
 }
 
-.warning-text {
-  color: var(--accent-red);
-  font-size: 0.85rem;
-  font-weight: 500;
+.hk-warning-text {
+  font-size: .78rem;
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-  .about-profile {
+@media (max-width: 520px) {
+  .hk-about-profile {
+    align-items: flex-start;
     flex-direction: column;
-    text-align: center;
-  }
-
-  .about-card {
-    padding: 1.5rem;
-  }
-
-  .about-name {
-    font-size: 1.5rem;
-  }
-
-  .about-socials {
-    justify-content: center;
   }
 }

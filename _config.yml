@@ -46,10 +46,11 @@ locale: es_ES
 twitter:
   username: llSuzunaoll
   card: summary_large_image
-logo: /assets/img/_optimized/brand-512.webp
+logo: /assets/img/optimized/brand-512.webp
 
 # Plugins de Jekyll
 plugins:
+  - jekyll-archives
   - jekyll-feed
   - jekyll-sitemap
   - jekyll-seo-tag
@@ -104,6 +105,6 @@ defaults:
       comments: false
       share: true
       image:
-        path: /assets/img/_optimized/brand-1200x630.webp
+        path: /assets/img/optimized/brand-1200x630.webp
         height: 567
         width: 1080

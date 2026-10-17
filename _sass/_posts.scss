@@ -1,322 +1,188 @@
-/* ================================================
-   POST STYLES - Article Layout
-   ================================================ */
-
-.single-post {
-  max-width: 800px;
+.hk-single {
+  width: min(100%, 900px);
   margin: 0 auto;
-  padding: 0;
 }
 
-/* Post Header */
-.post-header {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
+.hk-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-bottom: 1.25rem;
+  color: var(--text-muted);
+  font-size: .75rem;
+}
+
+.hk-breadcrumb a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.hk-breadcrumb a:hover,
+.hk-breadcrumb .hk-current {
+  color: var(--accent-green);
+}
+
+.hk-post-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--border-color);
 }
 
-.post-meta {
-  font-size: 0.8rem;
+.hk-post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: .6rem;
   color: var(--text-muted);
-  margin-bottom: 1rem;
+  font-size: .75rem;
 }
 
-.post-separator {
-  margin: 0 0.5rem;
+.hk-post-separator {
   color: var(--border-color);
 }
 
-.post-title {
-  font-size: 2rem;
-  font-weight: 700;
+.hk-post-header .hk-post-title {
+  margin-bottom: .8rem;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.hk-post-content {
   color: var(--text-primary);
-  line-height: 1.3;
-  margin-bottom: 1rem;
+  font-size: .95rem;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
 }
 
-.post-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+.hk-post-content > * {
+  margin-block: 0 1.25rem;
 }
 
-.post-tags .tag {
-  font-size: 0.75rem;
+.hk-post-content h2,
+.hk-post-content h3,
+.hk-post-content h4 {
+  margin-top: 2rem;
   color: var(--accent-green);
-  background: rgba(0, 255, 65, 0.1);
-  border: 1px solid var(--accent-green-dim);
-  padding: 0.3rem 0.75rem;
-  border-radius: 4px;
-}
-
-/* Post Content */
-.post-content {
-  font-size: 1rem;
-  line-height: 1.8;
-  color: var(--text-primary);
-}
-
-.post-content h1,
-.post-content h2,
-.post-content h3,
-.post-content h4 {
-  color: var(--accent-green);
-  margin: 2rem 0 1rem;
-  font-weight: 600;
   line-height: 1.4;
 }
 
-.post-content h1 { font-size: 1.8rem; }
-.post-content h2 { font-size: 1.5rem; }
-.post-content h3 { font-size: 1.25rem; }
-.post-content h4 { font-size: 1.1rem; }
-
-.post-content p {
-  margin-bottom: 1.25rem;
+.hk-post-content h2 {
+  font-size: 1.45rem;
 }
 
-.post-content a {
-  color: var(--accent-blue);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-color var(--transition-fast);
+.hk-post-content h3 {
+  font-size: 1.2rem;
 }
 
-.post-content a:hover {
-  border-bottom-color: var(--accent-blue);
+.hk-post-content ul,
+.hk-post-content ol {
+  padding-left: 1.5rem;
 }
 
-.post-content ul,
-.post-content ol {
-  margin: 1rem 0 1.5rem 1.5rem;
+.hk-post-content li {
+  margin-bottom: .35rem;
 }
 
-.post-content li {
-  margin-bottom: 0.5rem;
-  color: var(--text-secondary);
-}
-
-.post-content li::marker {
+.hk-post-content li::marker {
   color: var(--accent-green);
 }
 
-/* Code Blocks */
-.post-content code {
-  font-family: var(--font-mono);
-  font-size: 0.9em;
-  background: var(--code-bg);
+.hk-post-content a {
+  overflow-wrap: anywhere;
+}
+
+.hk-post-content code {
+  padding: .12rem .35rem;
+  border-radius: 3px;
+  background: var(--bg-terminal);
   color: #e6db74;
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
+  font-size: .9em;
 }
 
-.post-content pre {
-  background: var(--code-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1.25rem;
-  margin: 1.5rem 0;
-  overflow-x: auto;
+.hk-post-content pre {
   position: relative;
-}
-
-.post-content pre code {
-  background: none;
-  padding: 0;
-  color: var(--text-primary);
-  font-size: 0.85rem;
-  line-height: 1.6;
-}
-
-/* Copy Button */
-.copy-button {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  overflow-x: auto;
   border: 1px solid var(--border-color);
-  color: var(--text-muted);
-  padding: 0.4rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  cursor: pointer;
-  opacity: 0;
-  transition: all var(--transition-fast);
-  font-family: var(--font-mono);
+  border-radius: 6px;
+  background: var(--bg-panel);
 }
 
-.post-content pre:hover .copy-button {
-  opacity: 1;
-}
-
-.copy-button:hover {
-  background: rgba(255, 255, 255, 0.1);
+.hk-post-content pre code {
+  padding: 0;
+  background: transparent;
   color: var(--text-primary);
-  border-color: var(--text-muted);
+  font-size: .82rem;
 }
 
-/* Images */
-.post-content img {
+.hk-post-content img {
+  display: block;
   max-width: 100%;
   height: auto;
-  border-radius: 8px;
-  margin: 2rem auto;
-  display: block;
+  margin: 1.5rem auto;
   border: 1px solid var(--border-color);
+  border-radius: 5px;
 }
 
-.post-content figure {
-  margin: 2rem 0;
-}
-
-.post-content figcaption {
-  text-align: center;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin-top: 0.75rem;
-  font-style: italic;
-}
-
-/* Blockquote */
-.post-content blockquote {
+.hk-post-content blockquote {
+  padding: .75rem 1rem;
   border-left: 3px solid var(--accent-green);
-  padding-left: 1.25rem;
-  margin: 1.5rem 0;
+  background: rgb(0 255 136 / 4%);
   color: var(--text-secondary);
-  font-style: italic;
-  background: rgba(0, 255, 65, 0.03);
-  padding: 1rem 1rem 1rem 1.25rem;
-  border-radius: 0 8px 8px 0;
 }
 
-/* Tables */
-.post-content table {
-  width: 100%;
+.hk-post-content table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
-  margin: 1.5rem 0;
 }
 
-.post-content th,
-.post-content td {
-  padding: 0.75rem 1rem;
+.hk-post-content th,
+.hk-post-content td {
+  padding: .55rem .75rem;
   border: 1px solid var(--border-color);
   text-align: left;
 }
 
-.post-content th {
+.hk-post-content th {
   background: var(--bg-panel);
   color: var(--accent-green);
-  font-weight: 600;
 }
 
-.post-content td {
-  color: var(--text-secondary);
-}
-
-.post-content tr:hover {
-  background: rgba(0, 255, 65, 0.02);
-}
-
-/* Horizontal Rule */
-.post-content hr {
-  border: none;
-  height: 1px;
-  background: var(--border-color);
-  margin: 2rem 0;
-}
-
-/* Video Container */
-.video-container {
-  position: relative;
-  width: 100%;
-  max-width: 720px;
-  padding-bottom: 56.25%;
-  margin: 2rem auto;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid var(--border-color);
-}
-
-.video-container iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-/* Post Footer */
-.post-footer {
-  margin-top: 3rem;
-  padding-top: 2rem;
+.hk-post-content hr {
+  border: 0;
   border-top: 1px solid var(--border-color);
+}
+
+.hk-post-footer {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
   gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-color);
 }
 
-.footer-navigation {
-  flex: 1;
-}
-
-.back-link {
-  color: var(--accent-blue);
-  text-decoration: none;
-  font-size: 0.9rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: color var(--transition-fast);
-}
-
-.back-link:hover {
+.hk-back-link,
+.hk-share-link {
   color: var(--accent-green);
-}
-
-.back-link .arrow {
-  transition: transform var(--transition-fast);
-}
-
-.back-link:hover .arrow {
-  transform: translateX(-4px);
-}
-
-.share-section {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.85rem;
-}
-
-.share-label {
-  color: var(--text-muted);
-}
-
-.share-link {
-  color: var(--text-secondary);
+  font-size: .8rem;
   text-decoration: none;
-  transition: color var(--transition-fast);
 }
 
-.share-link:hover {
-  color: var(--accent-blue);
+.hk-share {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .post-title {
-    font-size: 1.5rem;
-  }
+.hk-share-label {
+  color: var(--text-muted);
+  font-size: .8rem;
+}
 
-  .post-content h1 { font-size: 1.5rem; }
-  .post-content h2 { font-size: 1.25rem; }
-  .post-content h3 { font-size: 1.1rem; }
-
-  .post-footer {
+@media (max-width: 520px) {
+  .hk-post-footer {
     flex-direction: column;
-    align-items: flex-start;
   }
 }

@@ -10,8 +10,8 @@
        Twitter Cards y JSON-LD de forma única y consistente (sin duplicados). -->
   {% seo %}
 
-  <link rel="icon" href="{{ '/assets/img/_optimized/favicon.png' | relative_url }}" type="image/png">
-  <link rel="apple-touch-icon" href="{{ '/assets/img/_optimized/brand-512.webp' | relative_url }}">
+  <link rel="icon" href="{{ '/assets/img/optimized/favicon.png' | relative_url }}" type="image/png">
+  <link rel="apple-touch-icon" href="{{ '/assets/img/optimized/brand-512.webp' | relative_url }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -34,7 +34,7 @@
 
   <!-- Container -->
   <div class="hk-container">
-    <aside class="hk-sidebar" aria-label="Navegación lateral">
+    <aside class="hk-sidebar" id="hk-drawer" aria-label="Navegación lateral">
       <div class="hk-logo">
         <div class="hk-logo-box">
           <span class="hk-logo-bracket">[</span><span class="hk-logo-text">P4R4</span><span class="hk-logo-bracket">$IT3</span><span class="hk-cursor" aria-hidden="true">_</span><span class="hk-logo-bracket">]</span>
@@ -42,21 +42,23 @@
         <div class="hk-logo-sub">Security Researcher</div>
       </div>
 
-      <div class="hk-search">
-        <div class="hk-section-title">// SEARCH</div>
-        <label for="hk-search-input" class="sr-only">Buscar artículos</label>
-        <div class="hk-search-box">
-          <span class="hk-search-prompt" aria-hidden="true">$</span>
-          <input id="hk-search-input" type="search" class="hk-search-input" placeholder="Buscar..." data-search-input autocomplete="off">
+      {% if site.search_enabled %}
+        <div class="hk-search">
+          <div class="hk-section-title">// SEARCH</div>
+          <label for="hk-search-input" class="sr-only">Buscar artículos</label>
+          <div class="hk-search-box">
+            <span class="hk-search-prompt" aria-hidden="true">$</span>
+            <input id="hk-search-input" type="search" class="hk-search-input" placeholder="Buscar..." data-search-input autocomplete="off">
+          </div>
+          <div class="hk-search-results" data-search-results style="display:none;"></div>
         </div>
-        <div class="hk-search-results" data-search-results style="display:none;"></div>
-      </div>
+      {% endif %}
 
       <nav class="hk-nav" aria-label="Navegación principal">
         <div class="hk-section-title">// NAVIGATION</div>
-        <a href="#home" class="hk-nav-item active" data-nav="home" aria-current="page"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[HOME] Inicio</span></a>
-        <a href="#posts" class="hk-nav-item" data-nav="posts"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[POSTS] Artículos</span></a>
-        <a href="#about" class="hk-nav-item" data-nav="about"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[ABOUT] Sobre mí</span></a>
+        <a href="{{ '/' | relative_url }}" class="hk-nav-item" data-nav="home"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[HOME] Inicio</span></a>
+        <a href="{{ '/posts/' | relative_url }}" class="hk-nav-item" data-nav="posts"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[POSTS] Artículos</span></a>
+        <a href="{{ '/about/' | relative_url }}" class="hk-nav-item" data-nav="about"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[ABOUT] Sobre mí</span></a>
       </nav>
 
       <div class="hk-status" aria-label="Estado del sistema">
@@ -87,10 +89,11 @@
 
   <button type="button" class="hk-to-top" data-to-top aria-label="Volver arriba">↑<span>Volver arriba</span></button>
 
-  <script type="application/json" id="hk-posts-data">
-    {% include posts.html %}
-  </script>
-
+  {% if site.search_enabled %}
+    <script type="application/json" id="hk-posts-data">
+      {% include posts.html %}
+    </script>
+  {% endif %}
   <script src="{{ '/assets/js/main.js' | relative_url }}" defer></script>
 </body>
 </html>

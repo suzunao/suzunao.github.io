@@ -6,7 +6,7 @@ permalink: /posts/
 ---
 
 <!-- ============ VISTA: POSTS ============ -->
-<section class="hk-view" data-vista="posts">
+<section>
   <section class="hk-posts-section">
     <div class="hk-section-header">
       <h2 class="hk-section-title"><span class="hk-bracket">[</span> ALL POSTS <span class="hk-bracket">]</span></h2>

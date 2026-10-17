@@ -5,12 +5,12 @@ description: {{ page.description }}
 ---
 
 <!-- ============ VISTA: POST ============ -->
-<section class="hk-view" data-vista="post">
+<section>
   <article class="hk-single">
     <nav class="hk-breadcrumb" aria-label="Migas de pan">
-      <a href="#home" data-nav="home">Home</a>
+      <a href="{{ '/' | relative_url }}">Home</a>
       <span class="hk-sep" aria-hidden="true">/</span>
-      <a href="#posts" data-nav="posts">Artículos</a>
+      <a href="{{ '/posts/' | relative_url }}">Artículos</a>
       <span class="hk-sep" aria-hidden="true">/</span>
       <span class="hk-current">{{ page.title }}</span>
     </nav>
@@ -33,11 +33,11 @@ description: {{ page.description }}
       {{ content }}
     </div>
     <footer class="hk-post-footer">
-      <div><a href="#home" class="hk-back-link" data-nav="home"><span class="arrow" aria-hidden="true">←</span> Back to Home</a></div>
+      <div><a href="{{ '/posts/' | relative_url }}" class="hk-back-link"><span class="arrow" aria-hidden="true">←</span> Volver a artículos</a></div>
       <div class="hk-share">
         <span class="hk-share-label">Share:</span>
-        <a href="#" class="hk-share-link" target="_blank" rel="noopener noreferrer">Twitter</a>
-        <a href="#" class="hk-share-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <a href="https://twitter.com/intent/tweet?url={{ site.url | append: page.url | url_encode }}&amp;text={{ page.title | url_encode }}" class="hk-share-link" target="_blank" rel="noopener noreferrer">X</a>
+        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ site.url | append: page.url | url_encode }}" class="hk-share-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </div>
     </footer>
   </article>

@@ -4,7 +4,7 @@ title: CoffeeAddicts - Write-up
 date: 2025-08-18
 author:
   name: Suzunao
-  avatar: /assets/img/_optimized/avatar-96.webp
+  avatar: /assets/img/optimized/avatar-96.webp
 tags:
   - Linux
   - Vulnhub
