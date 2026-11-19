@@ -134,6 +134,28 @@
     }, 1000);
   }
 
+  const tocNav = document.querySelector('[data-toc]');
+  if (tocNav) {
+    const headings = document.querySelectorAll('.hk-post-content h2, .hk-post-content h3');
+    if (headings.length > 1) {
+      const ul = document.createElement('ul');
+      headings.forEach((heading, i) => {
+        if (!heading.id) heading.id = 'sec-' + i;
+        const li = document.createElement('li');
+        if (heading.tagName === 'H3') li.style.paddingLeft = '1rem';
+        const a = document.createElement('a');
+        a.href = '#' + heading.id;
+        a.textContent = heading.textContent;
+        li.appendChild(a);
+        ul.appendChild(li);
+      });
+      tocNav.appendChild(ul);
+    } else {
+      const details = tocNav.closest('.hk-toc');
+      if (details) details.style.display = 'none';
+    }
+  }
+
   const toTop = document.querySelector('[data-to-top]');
   if (toTop) {
     window.addEventListener('scroll', () => {

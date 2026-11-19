@@ -44,7 +44,7 @@
 
       {% if site.search_enabled %}
         <div class="hk-search">
-          <div class="hk-section-title">// SEARCH</div>
+          <div class="hk-section-title">// BUSCAR</div>
           <label for="hk-search-input" class="sr-only">Buscar artículos</label>
           <div class="hk-search-box">
             <span class="hk-search-prompt" aria-hidden="true">$</span>
@@ -55,16 +55,16 @@
       {% endif %}
 
       <nav class="hk-nav" aria-label="Navegación principal">
-        <div class="hk-section-title">// NAVIGATION</div>
-        <a href="{{ '/' | relative_url }}" class="hk-nav-item" data-nav="home"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[HOME] Inicio</span></a>
-        <a href="{{ '/posts/' | relative_url }}" class="hk-nav-item" data-nav="posts"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[POSTS] Artículos</span></a>
-        <a href="{{ '/about/' | relative_url }}" class="hk-nav-item" data-nav="about"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[ABOUT] Sobre mí</span></a>
+        <div class="hk-section-title">// NAVEGACIÓN</div>
+        <a href="{{ '/' | relative_url }}" class="hk-nav-item" data-nav="home"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[INICIO]</span></a>
+        <a href="{{ '/posts/' | relative_url }}" class="hk-nav-item" data-nav="posts"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[ARTÍCULOS]</span></a>
+        <a href="{{ '/about/' | relative_url }}" class="hk-nav-item" data-nav="about"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[SOBRE MÍ]</span></a>
       </nav>
 
       <div class="hk-status" aria-label="Estado del sistema">
-        <div class="hk-section-title">// SYSTEM STATUS</div>
-        <div class="hk-status-row"><span class="hk-dot online" aria-hidden="true"></span><span>Server: <span class="hk-status-ok">ONLINE</span></span></div>
-        <div class="hk-status-row"><span class="hk-dot secure" aria-hidden="true"></span><span>Connection: <span class="hk-status-secure">ENCRYPTED</span></span></div>
+        <div class="hk-section-title">// ESTADO DEL SISTEMA</div>
+        <div class="hk-status-row"><span class="hk-dot online" aria-hidden="true"></span><span>Servidor: <span class="hk-status-ok">ONLINE</span></span></div>
+        <div class="hk-status-row"><span class="hk-dot secure" aria-hidden="true"></span><span>Conexión: <span class="hk-status-secure">CIFRADA</span></span></div>
         <div class="hk-status-row"><span class="hk-status-label">Uptime:</span><span class="hk-status-value" data-uptime aria-hidden="true">00:00:00</span></div>
       </div>
     </aside>
@@ -77,7 +77,7 @@
       <footer class="hk-footer">
         <div class="hk-footer-left">
           <span class="hk-footer-bracket" aria-hidden="true">[</span>
-          <span>© {{ 'now' | date: "%Y" }} P4R4$IT3 — All rights reserved</span>
+          <span>© {{ 'now' | date: "%Y" }} P4R4$IT3 — Todos los derechos reservados</span>
           <span class="hk-footer-bracket" aria-hidden="true">]</span>
         </div>
         <div class="hk-footer-right">

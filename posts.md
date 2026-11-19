@@ -9,7 +9,7 @@ permalink: /posts/
 <section>
   <section class="hk-posts-section">
     <div class="hk-section-header">
-      <h2 class="hk-section-title"><span class="hk-bracket">[</span> ALL POSTS <span class="hk-bracket">]</span></h2>
+      <h2 class="hk-section-title"><span class="hk-bracket">[</span> TODOS LOS ARTÍCULOS <span class="hk-bracket">]</span></h2>
       <div class="hk-section-line" aria-hidden="true"></div>
     </div>
     <div class="hk-posts-grid">
@@ -36,7 +36,10 @@ permalink: /posts/
                   {% endif %}
                 </span>
                 <span>{{ post.author.name | default: "Suzunao" }}</span>
-                <span class="hk-reading-time">⌚ {{ post.reading_time | default: 5 }} min</span>
+                {% assign words = post.content | number_of_words %}
+                {% assign mins = words | divided_by: 200 %}
+                {% if mins < 1 %}{% assign mins = 1 %}{% endif %}
+                <span class="hk-reading-time">⌚ {{ mins }} min</span>
               </div>
               <div class="hk-card-tags">
                 {% for tag in post.tags %}

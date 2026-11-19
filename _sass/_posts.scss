@@ -181,8 +181,125 @@
   font-size: .8rem;
 }
 
+.hk-toc {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-panel);
+}
+
+.hk-toc-title {
+  color: var(--accent-green);
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hk-toc-nav {
+  margin-top: .75rem;
+}
+
+.hk-toc-nav ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style: none;
+}
+
+.hk-toc-nav > ul {
+  padding-left: 0;
+}
+
+.hk-toc-nav li {
+  margin: .3rem 0;
+}
+
+.hk-toc-nav a {
+  color: var(--text-secondary);
+  font-size: .8rem;
+  text-decoration: none;
+}
+
+.hk-toc-nav a:hover {
+  color: var(--accent-green);
+}
+
+.hk-post-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.hk-post-nav-link {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  padding: .85rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: border-color .15s ease;
+}
+
+.hk-post-nav-link:hover {
+  border-color: var(--accent-green);
+}
+
+.hk-post-nav-label {
+  color: var(--text-muted);
+  font-size: .72rem;
+}
+
+.hk-post-nav-title {
+  color: var(--text-secondary);
+  font-size: .82rem;
+  line-height: 1.4;
+}
+
+.hk-post-nav-link:hover .hk-post-nav-title {
+  color: var(--accent-green);
+}
+
+.hk-post-nav-next {
+  text-align: right;
+}
+
+.hk-copy-btn {
+  position: absolute;
+  top: .5rem;
+  right: .5rem;
+  padding: .25rem .5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-terminal);
+  color: var(--text-muted);
+  font-size: .68rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .15s ease, color .15s ease;
+}
+
+.hk-post-content pre:hover .hk-copy-btn {
+  opacity: 1;
+}
+
+.hk-copy-btn:hover {
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+.hk-copy-btn.copied {
+  color: var(--accent-green);
+}
+
 @media (max-width: 520px) {
   .hk-post-footer {
     flex-direction: column;
+  }
+
+  .hk-post-nav {
+    grid-template-columns: 1fr;
   }
 }

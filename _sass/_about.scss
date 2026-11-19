@@ -30,6 +30,12 @@
   background: var(--bg-terminal);
 }
 
+.hk-about-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .hk-about-info {
   min-width: 0;
 }
@@ -49,6 +55,7 @@
   padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--border-color);
   color: var(--text-secondary);
+  line-height: 1.7;
 }
 
 .hk-about-skills,
@@ -58,8 +65,8 @@
   gap: .7rem;
 }
 
-.hk-about-skills {
-  margin-bottom: 1.25rem;
+.hk-about-socials {
+  margin-top: 1.25rem;
 }
 
 .hk-skill-item {
@@ -94,23 +101,80 @@
   background: rgb(0 255 136 / 10%);
 }
 
-.hk-about-warning {
-  display: flex;
-  gap: .7rem;
-  margin-top: 1.25rem;
-  padding: .85rem;
-  border: 1px solid var(--accent-red);
-  border-radius: 4px;
-  background: rgb(248 81 73 / 5%);
+.hk-about-section {
+  margin-top: 2rem;
 }
 
-.hk-warning-icon,
-.hk-warning-text {
-  color: var(--accent-red);
+.hk-skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 1.25rem;
 }
 
-.hk-warning-text {
+.hk-skill-group-title {
+  margin: 0 0 .6rem;
+  color: var(--text-secondary);
   font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.hk-skill-group .hk-about-skills {
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.hk-certs-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .8rem;
+}
+
+.hk-cert-card {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-panel);
+}
+
+.hk-cert-icon {
+  font-size: 1.5rem;
+}
+
+.hk-cert-name {
+  display: block;
+  color: var(--accent-green);
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.hk-cert-issuer {
+  color: var(--text-muted);
+  font-size: .72rem;
+}
+
+.hk-cert-note {
+  margin-top: .75rem;
+  color: var(--text-muted);
+  font-size: .75rem;
+}
+
+.hk-contact-text {
+  color: var(--text-secondary);
+  font-size: .88rem;
+  line-height: 1.7;
+}
+
+.hk-about-disclaimer {
+  margin-top: 2rem;
+  padding: .65rem .85rem;
+  border-left: 3px solid var(--text-muted);
+  color: var(--text-muted);
+  font-size: .72rem;
 }
 
 @media (max-width: 520px) {

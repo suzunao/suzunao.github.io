@@ -1,5 +1,5 @@
 # Configuración del sitio
-title: Suzuano - Security Researcher
+title: Suzunao - Security Researcher
 description: Personal blog about hacking, cybersecurity, penetration testing, CTF writeups, malware analysis, and reverse engineering. Compartiendo conocimientos de seguridad informática.
 baseurl: ""
 url: "https://suzunao.github.io"
@@ -17,7 +17,7 @@ author:
 
 # Redes sociales
 social:
-  name: Suzuano
+  name: Suzunao
   links:
     - https://github.com/suzunao
     - https://twitter.com/llSuzunaoll

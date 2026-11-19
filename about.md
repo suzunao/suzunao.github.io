@@ -1,6 +1,6 @@
 ---
 layout: default
-title: about
+title: Sobre mí
 permalink: /about/
 ---
 {% include about.html %}

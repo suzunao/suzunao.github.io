@@ -5,37 +5,3 @@
 @use "posts";
 @use "search";
 @use "about";
-
-@media (min-width: 1200px) {
-  .terminal-window {
-    max-width: 1200px; 
-    width: 80%;          
-  }
-}
-
-@media (min-width: 1600px) {
-  .terminal-window {
-    max-width: 1400px;
-    width: 60%;
-  }
-}
-
-/* Animación de aparición de tarjetas (progressive enhancement).
-   Las tarjetas son visibles por defecto; solo se ocultan si JS añade .pre-reveal. */
-.pre-reveal {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.pre-reveal.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pre-reveal {
-    opacity: 1 !important;
-    transform: none !important;
-  }
-}

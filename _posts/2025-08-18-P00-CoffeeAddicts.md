@@ -5,6 +5,7 @@ date: 2025-08-18
 author:
   name: Suzunao
   avatar: /assets/img/optimized/avatar-96.webp
+description: Write-up completo de la máquina CoffeeAddicts de VulnHub, desde la enumeración de puertos hasta la escalada de privilegios.
 tags:
   - Linux
   - Vulnhub
