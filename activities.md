@@ -21,7 +21,7 @@ permalink: /activities/
             <time class="hk-post-date" datetime="2026-01-17">17 Ene 2026</time>
           </div>
           <h3 class="hk-post-title">La curiosidad también es una herramienta de hacking</h3>
-          <p class="hk-post-excerpt">Mi primera presentación en una conferencia. Una charla algo psicológica sobre cómo la curiosidad puede llevarte a aprender muchas cosas y ser la chispa para moverte a explorar y profundizar. Lo explico con un caso real de IoT: una cámara expuesta. La curiosidad no necesitó fuerza bruta sobre un login; fue suficiente con explorar su código y observar cómo estaba construido hasta conseguir acceso. Charla de divulgación.</p>
+          <p class="hk-post-excerpt">Mi primera presentación en una conferencia. Charla sobre cómo la curiosidad puede ser la chispa para aprender y profundizar, explicada a través de un caso real de IoT: una cámara expuesta. En lugar de fuerza bruta sobre un login, bastó con explorar y entender cómo estaba construido su código para conseguir acceso.</p>
           <div class="hk-card-meta">
             <div class="hk-card-author">
               <span class="hk-card-avatar">◍</span>
