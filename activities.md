@@ -21,7 +21,7 @@ permalink: /activities/
             <time class="hk-post-date" datetime="2026-01-17">17 Ene 2026</time>
           </div>
           <h3 class="hk-post-title">La curiosidad también es una herramienta de hacking</h3>
-          <p class="hk-post-excerpt">Mi primera presentación en una conferencia: un caso de IoT, del indicio al hallazgo. Charla de divulgación.</p>
+          <p class="hk-post-excerpt">Mi primera presentación en una conferencia. Una charla algo psicológica sobre cómo la curiosidad puede llevarte a aprender muchas cosas y ser la chispa para moverte a explorar y profundizar. Lo explico con un caso real de IoT: una cámara expuesta. La curiosidad no necesitó fuerza bruta sobre un login; fue suficiente con explorar su código y observar cómo estaba construido hasta conseguir acceso. Charla de divulgación.</p>
           <div class="hk-card-meta">
             <div class="hk-card-author">
               <span class="hk-card-avatar">◍</span>
@@ -35,11 +35,10 @@ permalink: /activities/
             </div>
           </div>
         </a>
+        <p style="margin-top:12px;padding:0 14px 14px;">
+          <a href="https://www.instagram.com/p/DeshVixoOPS/" target="_blank" rel="noopener noreferrer" class="hk-social-link">[Ver en Instagram]</a>
+        </p>
       </article>
     </div>
-
-    <p style="margin-top:24px;">
-      <a href="https://www.instagram.com/p/DeshVixoOPS/" target="_blank" rel="noopener noreferrer" class="hk-social-link">[Ver en Instagram]</a>
-    </p>
   </section>
 </section>
