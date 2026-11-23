@@ -1,0 +1,14 @@
+- id: "A01"
+  title: "La curiosidad también es una herramienta de hacking"
+  date: 2026-01-17
+  type: "Presentación"
+  summary: "Mi primera presentación en una conferencia. Charla sobre cómo la curiosidad puede ser la chispa para aprender y profundizar, explicada a través de un caso real de IoT: una cámara expuesta. En lugar de fuerza bruta sobre un login, bastó con explorar y entender cómo estaba construido su código para conseguir acceso."
+  tags:
+    - iot
+    - charla
+    - conferencia
+  url: "/activities/la-curiosidad-tambien-es-una-herramienta-de-hacking.html"
+  external: true
+  extra_links:
+    - label: "Ver en Instagram"
+      url: "https://www.instagram.com/p/DeshVixoOPS/"

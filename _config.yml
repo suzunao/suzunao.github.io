@@ -15,12 +15,12 @@ author:
   tryhackme: suzunao
   hackthebox: 1548247
 
-# Redes sociales
+# Redes sociales (sincronizado con _data/profile.yml para jekyll-seo-tag)
 social:
   name: Suzunao
   links:
     - https://github.com/suzunao
-    - https://twitter.com/llSuzunaoll
+    - https://x.com/llSuzunaoll
     - https://www.linkedin.com/in/wuillian-rosales/
 
 # Configuración de Markdown
@@ -79,9 +79,10 @@ sitemap:
 # Número de posts recientes que se muestran en la home
 home_post_limit: 6
 
-# Excluir el directorio gaby completo (no publicar en el sitio)
+# Exclusiones de build
 exclude:
   - README.md
+  - MEJORAS.md
   - Gemfile
   - Gemfile.lock
   - Rakefile
@@ -93,7 +94,6 @@ exclude:
   - node_modules
   - package.json
   - package-lock.json
-  - gaby
 
 # Categorías y etiquetas por defecto
 defaults:

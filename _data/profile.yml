@@ -1,0 +1,64 @@
+name: Suzunao
+alias: P4R4$IT3
+group_alias: "Grup. P4R4$IT3"
+role: "Security Researcher · Pentester · CTF Player"
+short_role: "Security Researcher"
+about_role: "Security Researcher · aka P4R4$IT3"
+hero_description: "Comparto investigaciones de seguridad, write-ups de CTF y análisis técnicos sobre ciberseguridad, hacking ético y sistemas."
+bio: "Entusiasta de la ciberseguridad enfocado en sistemas Linux, soporte técnico y fundamentos de seguridad. Práctica activa en análisis de vulnerabilidades, conceptos básicos de SOC, escaneo de redes y pruebas de seguridad en entornos de laboratorio."
+avatar: /assets/img/optimized/avatar-96.webp
+avatar_width: 96
+avatar_height: 96
+copyright_holder: P4R4$IT3
+theme_name: "Hacker Dark"
+disclaimer: "Este espacio contiene notas personales y experimentos de seguridad con fines educativos."
+
+x_handle: llSuzunaoll
+x_url: "https://x.com/llSuzunaoll"
+linkedin_url: "https://www.linkedin.com/in/wuillian-rosales/"
+
+socials:
+  - id: github
+    label: GitHub
+    url: "https://github.com/suzunao"
+  - id: linkedin
+    label: LinkedIn
+    url: "https://www.linkedin.com/in/wuillian-rosales/"
+  - id: x
+    label: X
+    url: "https://x.com/llSuzunaoll"
+  - id: tryhackme
+    label: TryHackMe
+    url: "https://tryhackme.com/p/suzunao"
+  - id: hackthebox
+    label: HackTheBox
+    url: "https://app.hackthebox.com/users/1548247"
+
+skill_groups:
+  - title: "Seguridad ofensiva"
+    items:
+      - "Penetration Testing"
+      - "Análisis de vulnerabilidades"
+      - "CTF / Capture The Flag"
+      - "Enumeración de redes"
+  - title: "Análisis y defensa"
+    items:
+      - "Reverse Engineering"
+      - "Malware Analysis"
+      - "Fundamentos SOC"
+      - "Seguridad IoT"
+  - title: "Herramientas"
+    items:
+      - "Nmap / Wireshark"
+      - "Burp Suite / ffuf"
+      - "Metasploit"
+      - "Linux / Bash"
+
+# Sin certificaciones registradas aún. Añade entradas con name, issuer y year cuando corresponda.
+certifications: []
+
+active_platforms:
+  - name: TryHackMe
+    url: "https://tryhackme.com/p/suzunao"
+  - name: HackTheBox
+    url: "https://app.hackthebox.com/users/1548247"

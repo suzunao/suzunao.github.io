@@ -1,0 +1,62 @@
+# Metadatos de etiquetas (clave en minúsculas coincidente con /tag/<slug>/).
+# Tonos válidos: green (por defecto), blue, yellow, purple, cyan, red.
+
+windows:
+  label: Windows
+  description: "Análisis de internos de Windows, mecanismos de defensa, NTFS y técnicas de evasión."
+  tone: blue
+
+ads:
+  label: ADS
+  description: "Flujos de Datos Alternativos (Alternate Data Streams) en NTFS y técnicas de ocultamiento."
+  tone: cyan
+
+ntfs:
+  label: NTFS
+  description: "Estructuras y particularidades del sistema de archivos NTFS relevantes para seguridad."
+  tone: blue
+
+linux:
+  label: Linux
+  description: "Administración, enumeración y escalada de privilegios en sistemas GNU/Linux."
+  tone: yellow
+
+vulnhub:
+  label: VulnHub
+  description: "Write-ups y laboratorios prácticos resueltos de máquinas vulnerables de VulnHub."
+  tone: purple
+
+iotsecurity:
+  label: IoT Security
+  description: "Investigación de superficie de ataque, cámaras IP, firmware y protocolos en dispositivos IoT."
+  tone: cyan
+
+infosec:
+  label: InfoSec
+  description: "Fundamentos, análisis y notas técnicas de seguridad de la información."
+  tone: green
+
+cyberwar:
+  label: CyberWar
+  description: "Ciberespionaje, exposición masiva de infraestructura conectada e impacto geopolítico."
+  tone: red
+
+web:
+  label: Web
+  description: "Seguridad en aplicaciones web, enumeración y explotación de servicios HTTP."
+  tone: purple
+
+iot:
+  label: IoT
+  description: "Dispositivos conectados, cámaras IP y seguridad en entornos embebidos."
+  tone: cyan
+
+charla:
+  label: Charla
+  description: "Presentaciones y ponencias técnicas impartidas en eventos y comunidades."
+  tone: green
+
+conferencia:
+  label: Conferencia
+  description: "Participaciones en conferencias y encuentros de ciberseguridad."
+  tone: yellow
