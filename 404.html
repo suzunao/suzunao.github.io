@@ -1,17 +1,20 @@
 ---
 layout: default
-title: 404 - Page Not Found
+title: "404 - Página no encontrada"
 permalink: /404.html
 robots: noindex
 ---
 
-<section class="error-404" style="text-align: center; padding: 4rem 2rem;">
-  <div style="margin-bottom: 2rem;">
-    <h1 style="font-size: 6rem; color: #00ff41; text-shadow: 0 0 20px rgba(0, 255, 65, 0.5); margin-bottom: 0.5rem;">404</h1>
-    <p style="font-size: 1.5rem; color: #c9d1d9; margin-bottom: 1rem;">[ ERROR: PAGE_NOT_FOUND ]</p>
-    <p style="font-size: 1rem; color: #8b949e; margin-bottom: 2rem;">The page you are looking for does not exist or has been moved.</p>
+<section class="hk-error-page" aria-labelledby="error-code">
+  <h1 id="error-code" class="hk-error-code">404</h1>
+  <p class="hk-error-tag">[ ERROR: PAGE_NOT_FOUND ]</p>
+  <p class="hk-error-desc">La página que buscas no existe, fue movida o el enlace ya no está disponible.</p>
+  <div class="hk-error-actions">
+    <a href="{{ '/' | relative_url }}" class="hk-btn-outline">
+      <span aria-hidden="true">[</span> Volver al inicio <span aria-hidden="true">]</span>
+    </a>
+    <a href="{{ '/posts/' | relative_url }}" class="hk-btn-outline hk-btn-secondary">
+      <span aria-hidden="true">[</span> Ver artículos <span aria-hidden="true">]</span>
+    </a>
   </div>
-  <a href="{{ '/' | relative_url }}" style="display: inline-block; padding: 0.75rem 1.5rem; color: #00ff41; border: 1px solid #00ff41; border-radius: 4px; text-decoration: none; font-family: var(--font-mono); transition: all 0.25s ease;">
-    <span style="color: #00ff41;">[</span> Return to Home <span style="color: #00ff41;">]</span>
-  </a>
 </section>

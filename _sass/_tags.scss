@@ -1,0 +1,87 @@
+.hk-tag-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+}
+
+.hk-filter-label {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  margin-right: var(--space-1);
+}
+
+.hk-tag-archive {
+  max-width: 1120px;
+}
+
+.hk-tag-header {
+  margin-bottom: var(--space-6);
+  padding: var(--space-5) var(--space-6);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+}
+
+.hk-tag-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.hk-tag-heading {
+  margin: 0;
+  color: var(--accent-green);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+}
+
+.hk-tag-heading[data-tone="blue"] { color: var(--accent-blue); }
+.hk-tag-heading[data-tone="yellow"] { color: var(--accent-yellow); }
+.hk-tag-heading[data-tone="purple"] { color: var(--accent-purple); }
+.hk-tag-heading[data-tone="cyan"] { color: var(--accent-cyan); }
+.hk-tag-heading[data-tone="red"] { color: var(--accent-red); }
+
+.hk-tag-count {
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-dark);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.hk-tag-desc {
+  margin: var(--space-3) 0 0;
+  max-width: 68ch;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.hk-tag-directory {
+  margin-top: var(--space-10);
+}
+
+.hk-tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.hk-tag-pill.is-current {
+  box-shadow: 0 0 0 1px currentColor;
+  font-weight: 600;
+}
+
+.hk-tag-pill-count {
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+}
