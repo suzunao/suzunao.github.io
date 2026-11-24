@@ -76,10 +76,27 @@
   display: flex;
   min-height: 36px;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
   color: var(--accent-green);
   font-size: var(--text-sm);
   font-weight: 600;
+  list-style: none;
   cursor: pointer;
+}
+
+.hk-toc-title::-webkit-details-marker {
+  display: none;
+}
+
+.hk-toc-title::after {
+  content: "▸";
+  color: var(--accent-green);
+  font-size: var(--text-sm);
+}
+
+.hk-toc[open] > .hk-toc-title::after {
+  content: "▾";
 }
 
 .hk-toc-nav {

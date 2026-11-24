@@ -459,7 +459,10 @@ html[data-fx="off"] .hk-cursor {
   font-size: var(--text-xs);
 }
 
-.hk-footer-left,
+.hk-footer-left {
+  line-height: var(--leading-snug);
+}
+
 .hk-footer-right {
   display: flex;
   flex-wrap: wrap;
