@@ -1,90 +1,102 @@
 ---
 layout: default
-title: {{ page.title }}
-description: {{ page.description }}
 ---
+{%- assign profile = site.data.profile -%}
 
 <!-- ============ VISTA: POST ============ -->
-<section>
-  <article class="hk-single">
-    <nav class="hk-breadcrumb" aria-label="Migas de pan">
-      <a href="{{ '/' | relative_url }}">Inicio</a>
-      <span class="hk-sep" aria-hidden="true">/</span>
-      <a href="{{ '/posts/' | relative_url }}">Artículos</a>
-      <span class="hk-sep" aria-hidden="true">/</span>
-      <span class="hk-current">{{ page.title }}</span>
-    </nav>
-    <header class="hk-post-header">
-      <div class="hk-post-meta">
-        <time datetime="{{ page.date | date: "%Y-%m-%d" }}">{{ page.date | date: "%d %b %Y" }}</time>
-        {% if page.author %}
-          <span class="hk-post-separator">|</span><span>{{ page.author.name | default: "Suzunao" }}</span>
-        {% endif %}
-        {% assign words = page.content | number_of_words %}
-        {% assign mins = words | divided_by: 200 %}
-        {% if mins < 1 %}{% assign mins = 1 %}{% endif %}
-        <span class="hk-post-separator">|</span><span>{{ mins }} min de lectura</span>
-      </div>
-      <h1 class="hk-post-title">{{ page.title }}</h1>
-      <div class="hk-post-tags">
-        {% for tag in page.tags %}
-          <span class="hk-tag" data-cat="{{ tag | downcase }}">#{{ tag }}</span>
-        {% endfor %}
-      </div>
-    </header>
+<article class="hk-single">
+  <nav class="hk-breadcrumb" aria-label="Migas de pan">
+    <a href="{{ '/' | relative_url }}">Inicio</a>
+    <span class="hk-sep" aria-hidden="true">/</span>
+    <a href="{{ '/posts/' | relative_url }}">Artículos</a>
+    <span class="hk-sep" aria-hidden="true">/</span>
+    <span class="hk-current" aria-current="page">{{ page.title }}</span>
+  </nav>
 
-    {% if page.toc != false %}
-    <details class="hk-toc" open>
-      <summary class="hk-toc-title">Tabla de contenidos</summary>
-      <nav class="hk-toc-nav" aria-label="Tabla de contenidos" data-toc></nav>
-    </details>
-    {% endif %}
-
-    <div class="hk-post-content">
-      {{ content }}
+  <header class="hk-post-header">
+    <div class="hk-post-meta">
+      <span class="hk-post-id">{% include post-id.html post=page %}</span>
+      <span class="hk-post-separator" aria-hidden="true">|</span>
+      <time datetime="{{ page.date | date: '%Y-%m-%d' }}">{{ page.date | date: "%d %b %Y" }}</time>
+      <span class="hk-post-separator" aria-hidden="true">|</span>
+      <span>{{ page.author.name | default: profile.name }}</span>
+      <span class="hk-post-separator" aria-hidden="true">|</span>
+      <span>{% include reading-time.html content=page.content suffix=" min de lectura" %}</span>
     </div>
-    <footer class="hk-post-footer">
-      <div><a href="{{ '/posts/' | relative_url }}" class="hk-back-link"><span class="arrow" aria-hidden="true">←</span> Volver a artículos</a></div>
-      <div class="hk-share">
-        <span class="hk-share-label">Compartir:</span>
-        <a href="https://twitter.com/intent/tweet?url={{ site.url | append: page.url | url_encode }}&amp;text={{ page.title | url_encode }}" class="hk-share-link" target="_blank" rel="noopener noreferrer">X</a>
-        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ site.url | append: page.url | url_encode }}" class="hk-share-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+    <h1 class="hk-post-title">{{ page.title }}</h1>
+    {%- if page.tags.size > 0 -%}
+      <div class="hk-post-tags">
+        {% include tag-list.html tags=page.tags prefix="#" %}
       </div>
-    </footer>
+    {%- endif -%}
+  </header>
 
-    {% assign sorted_posts = site.posts | sort: 'date' | reverse %}
-    {% assign prev_post = nil %}
-    {% assign next_post = nil %}
-    {% for p in sorted_posts %}
-      {% if p.url == page.url %}
-        {% unless forloop.first %}
-          {% assign next_post = sorted_posts[forloop.index0 | minus: 1] %}
-        {% endunless %}
-        {% unless forloop.last %}
-          {% assign prev_post = sorted_posts[forloop.index] %}
-        {% endunless %}
-      {% endif %}
-    {% endfor %}
-
-    {% if prev_post or next_post %}
-    <nav class="hk-post-nav" aria-label="Navegación entre artículos">
-      {% if prev_post %}
-        <a href="{{ prev_post.url | relative_url }}" class="hk-post-nav-link hk-post-nav-prev">
-          <span class="hk-post-nav-label">← Anterior</span>
-          <span class="hk-post-nav-title">{{ prev_post.title }}</span>
-        </a>
-      {% else %}
-        <span></span>
-      {% endif %}
-      {% if next_post %}
-        <a href="{{ next_post.url | relative_url }}" class="hk-post-nav-link hk-post-nav-next">
-          <span class="hk-post-nav-label">Siguiente →</span>
-          <span class="hk-post-nav-title">{{ next_post.title }}</span>
-        </a>
-      {% else %}
-        <span></span>
-      {% endif %}
-    </nav>
+  <div class="hk-post-layout{% if page.toc == false %} hk-post-layout--no-toc{% endif %}">
+    {% if page.toc != false %}
+      <aside class="hk-toc-aside" aria-label="Tabla de contenidos">
+        <details class="hk-toc" data-toc-details open>
+          <summary class="hk-toc-title">Tabla de contenidos</summary>
+          <nav class="hk-toc-nav" aria-label="Secciones del artículo" data-toc></nav>
+        </details>
+      </aside>
     {% endif %}
-  </article>
-</section>
+
+    <div class="hk-post-body">
+      <div class="hk-post-content">
+        {{ content }}
+      </div>
+
+      <footer class="hk-post-footer">
+        <div>
+          <a href="{{ '/posts/' | relative_url }}" class="hk-back-link">
+            <span class="arrow" aria-hidden="true">←</span> Volver a artículos
+          </a>
+        </div>
+        {%- if page.share != false -%}
+          <div class="hk-share">
+            <span class="hk-share-label">Compartir:</span>
+            <a href="https://x.com/intent/tweet?url={{ site.url | append: page.url | url_encode }}&amp;text={{ page.title | url_encode }}&amp;via={{ profile.x_handle | url_encode }}" class="hk-share-link" target="_blank" rel="noopener noreferrer">X</a>
+            <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ site.url | append: page.url | url_encode }}" class="hk-share-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          </div>
+        {%- endif -%}
+      </footer>
+
+      {%- assign sorted_posts = site.posts | sort: 'date' | reverse -%}
+      {%- assign prev_post = nil -%}
+      {%- assign next_post = nil -%}
+      {%- for p in sorted_posts -%}
+        {%- if p.url == page.url -%}
+          {%- unless forloop.first -%}
+            {%- assign next_idx = forloop.index0 | minus: 1 -%}
+            {%- assign next_post = sorted_posts[next_idx] -%}
+          {%- endunless -%}
+          {%- unless forloop.last -%}
+            {%- assign prev_idx = forloop.index0 | plus: 1 -%}
+            {%- assign prev_post = sorted_posts[prev_idx] -%}
+          {%- endunless -%}
+        {%- endif -%}
+      {%- endfor -%}
+
+      {% if prev_post or next_post %}
+        <nav class="hk-post-nav" aria-label="Navegación entre artículos">
+          {% if prev_post %}
+            <a href="{{ prev_post.url | relative_url }}" class="hk-post-nav-link hk-post-nav-prev">
+              <span class="hk-post-nav-label">← Anterior</span>
+              <span class="hk-post-nav-title">{{ prev_post.title }}</span>
+            </a>
+          {% else %}
+            <span aria-hidden="true"></span>
+          {% endif %}
+          {% if next_post %}
+            <a href="{{ next_post.url | relative_url }}" class="hk-post-nav-link hk-post-nav-next">
+              <span class="hk-post-nav-label">Siguiente →</span>
+              <span class="hk-post-nav-title">{{ next_post.title }}</span>
+            </a>
+          {% else %}
+            <span aria-hidden="true"></span>
+          {% endif %}
+        </nav>
+      {% endif %}
+    </div>
+  </div>
+</article>

@@ -1,97 +1,98 @@
+{%- assign profile = site.data.profile -%}
 <section class="hk-about">
   <div class="hk-section-header">
-    <h2 class="hk-section-title"><span class="hk-bracket">[</span> SOBRE MÍ <span class="hk-bracket">]</span></h2>
+    <h1 class="hk-section-title"><span class="hk-bracket" aria-hidden="true">[</span> SOBRE MÍ <span class="hk-bracket" aria-hidden="true">]</span></h1>
     <div class="hk-section-line" aria-hidden="true"></div>
   </div>
 
   <div class="hk-about-card">
     <div class="hk-about-profile">
       <div class="hk-about-avatar">
-        <img src="{{ '/assets/img/optimized/avatar-96.webp' | relative_url }}" alt="Suzunao" width="96" height="96" loading="eager" decoding="async">
+        <img src="{{ profile.avatar | relative_url }}" alt="{{ profile.name }}" width="{{ profile.avatar_width }}" height="{{ profile.avatar_height }}" loading="eager" decoding="async">
       </div>
       <div class="hk-about-info">
-        <h1 class="hk-about-name">Suzunao</h1>
-        <p class="hk-about-role">Security Researcher · aka P4R4$IT3</p>
+        <h2 class="hk-about-name">{{ profile.name }}</h2>
+        <p class="hk-about-role">{{ profile.about_role }}</p>
       </div>
     </div>
 
-    <p class="hk-about-bio">
-      Entusiasta de la ciberseguridad enfocado en sistemas Linux, soporte técnico y fundamentos de seguridad. Práctica activa en análisis de vulnerabilidades, conceptos básicos de SOC, escaneo de redes y pruebas de seguridad en entornos de laboratorio.
-    </p>
+    <p class="hk-about-bio">{{ profile.bio }}</p>
 
-    <div class="hk-about-socials">
-      <a href="https://github.com/suzunao" class="hk-social-link" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">[</span>GitHub<span aria-hidden="true">]</span></a>
-      <a href="https://www.linkedin.com/in/wuillian-rosales/" class="hk-social-link" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">[</span>LinkedIn<span aria-hidden="true">]</span></a>
-      <a href="https://x.com/llSuzunaoll" class="hk-social-link" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">[</span>Twitter<span aria-hidden="true">]</span></a>
-      <a href="https://tryhackme.com/p/suzunao" class="hk-social-link" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">[</span>TryHackMe<span aria-hidden="true">]</span></a>
-      <a href="https://app.hackthebox.com/users/1548247" class="hk-social-link" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">[</span>HackTheBox<span aria-hidden="true">]</span></a>
+    <div class="hk-about-socials" aria-label="Enlaces sociales">
+      {%- for social in profile.socials -%}
+        <a href="{{ social.url }}" class="hk-social-link" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">[</span>{{ social.label }}<span aria-hidden="true">]</span></a>
+      {%- endfor -%}
     </div>
   </div>
 
   <div class="hk-about-section">
     <div class="hk-section-header">
-      <h2 class="hk-section-title"><span class="hk-bracket">[</span> HABILIDADES <span class="hk-bracket">]</span></h2>
+      <h2 class="hk-section-title"><span class="hk-bracket" aria-hidden="true">[</span> HABILIDADES <span class="hk-bracket" aria-hidden="true">]</span></h2>
       <div class="hk-section-line" aria-hidden="true"></div>
     </div>
     <div class="hk-skills-grid">
-      <div class="hk-skill-group">
-        <h3 class="hk-skill-group-title">Seguridad ofensiva</h3>
-        <div class="hk-about-skills">
-          <div class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">◆</span><span class="hk-skill-name">Penetration Testing</span></div>
-          <div class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">◆</span><span class="hk-skill-name">Análisis de vulnerabilidades</span></div>
-          <div class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">◆</span><span class="hk-skill-name">CTF / Capture The Flag</span></div>
-          <div class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">◆</span><span class="hk-skill-name">Enumeración de redes</span></div>
+      {%- for group in profile.skill_groups -%}
+        <div class="hk-skill-group">
+          <h3 class="hk-skill-group-title">{{ group.title }}</h3>
+          <div class="hk-about-skills">
+            {%- for item in group.items -%}
+              <div class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">◆</span><span class="hk-skill-name">{{ item }}</span></div>
+            {%- endfor -%}
+          </div>
         </div>
-      </div>
-      <div class="hk-skill-group">
-        <h3 class="hk-skill-group-title">Análisis y defensa</h3>
-        <div class="hk-about-skills">
-          <div class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">◆</span><span class="hk-skill-name">Reverse Engineering</span></div>
-          <div class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">◆</span><span class="hk-skill-name">Malware Analysis</span></div>
-          <div class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">◆</span><span class="hk-skill-name">Fundamentos SOC</span></div>
-          <div class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">◆</span><span class="hk-skill-name">Seguridad IoT</span></div>
-        </div>
-      </div>
-      <div class="hk-skill-group">
-        <h3 class="hk-skill-group-title">Herramientas</h3>
-        <div class="hk-about-skills">
-          <div class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">◆</span><span class="hk-skill-name">Nmap / Wireshark</span></div>
-          <div class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">◆</span><span class="hk-skill-name">Burp Suite / ffuf</span></div>
-          <div class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">◆</span><span class="hk-skill-name">Metasploit</span></div>
-          <div class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">◆</span><span class="hk-skill-name">Linux / Bash</span></div>
-        </div>
-      </div>
+      {%- endfor -%}
     </div>
   </div>
 
   <div class="hk-about-section">
     <div class="hk-section-header">
-      <h2 class="hk-section-title"><span class="hk-bracket">[</span> CERTIFICACIONES <span class="hk-bracket">]</span></h2>
+      <h2 class="hk-section-title"><span class="hk-bracket" aria-hidden="true">[</span> CERTIFICACIONES <span class="hk-bracket" aria-hidden="true">]</span></h2>
       <div class="hk-section-line" aria-hidden="true"></div>
     </div>
-    <div class="hk-certs-grid">
-      <div class="hk-cert-card">
-        <span class="hk-cert-icon" aria-hidden="true">🎓</span>
-        <div class="hk-cert-info">
-          <span class="hk-cert-name"></span>
-          <span class="hk-cert-issuer"></span>
-        </div>
+    {%- if profile.certifications and profile.certifications.size > 0 -%}
+      <div class="hk-certs-grid">
+        {%- for cert in profile.certifications -%}
+          <div class="hk-cert-card">
+            <span class="hk-cert-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3L2 8l10 5 10-5-10-5z"/><path d="M6 10.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-5.5"/></svg>
+            </span>
+            <div class="hk-cert-info">
+              <span class="hk-cert-name">{{ cert.name }}</span>
+              {%- if cert.issuer -%}
+                <span class="hk-cert-issuer">{{ cert.issuer }}{% if cert.year %} · {{ cert.year }}{% endif %}</span>
+              {%- endif -%}
+            </div>
+          </div>
+        {%- endfor -%}
       </div>
-    </div>
-    <p class="hk-cert-note">Plataformas activas: TryHackMe · HackTheBox</p>
+    {%- else -%}
+      <div class="hk-empty-state hk-empty-state--compact">
+        <p class="hk-empty-title">[ EN_PROGRESO ]</p>
+        <p class="hk-empty-desc">Sin certificaciones registradas públicamente por el momento. Formación práctica activa en laboratorios.</p>
+      </div>
+    {%- endif -%}
+
+    {%- if profile.active_platforms.size > 0 -%}
+      <p class="hk-cert-note">
+        Plataformas activas:
+        {%- for plat in profile.active_platforms -%}
+          <a href="{{ plat.url }}" target="_blank" rel="noopener noreferrer">{{ plat.name }}</a>{% unless forloop.last %} · {% endunless %}
+        {%- endfor -%}
+      </p>
+    {%- endif -%}
   </div>
 
   <div class="hk-about-section">
     <div class="hk-section-header">
-      <h2 class="hk-section-title"><span class="hk-bracket">[</span> CONTACTO <span class="hk-bracket">]</span></h2>
+      <h2 class="hk-section-title"><span class="hk-bracket" aria-hidden="true">[</span> CONTACTO <span class="hk-bracket" aria-hidden="true">]</span></h2>
       <div class="hk-section-line" aria-hidden="true"></div>
     </div>
     <p class="hk-contact-text">
-      Si quieres contactarme para colaboraciones, preguntas o compartir conocimientos, puedes encontrarme en cualquiera de mis redes sociales o enviarme un mensaje directo por <a href="https://x.com/llSuzunaoll" target="_blank" rel="noopener noreferrer">Twitter/X</a> o <a href="https://www.linkedin.com/in/wuillian-rosales/" target="_blank" rel="noopener noreferrer">LinkedIn</a>.
+      Si quieres contactarme para colaboraciones, preguntas o compartir conocimientos, puedes encontrarme en cualquiera de mis redes sociales o enviarme un mensaje directo por <a href="{{ profile.x_url }}" target="_blank" rel="noopener noreferrer">X</a> o <a href="{{ profile.linkedin_url }}" target="_blank" rel="noopener noreferrer">LinkedIn</a>.
     </p>
   </div>
 
   <div class="hk-about-disclaimer" role="note">
-    <span class="hk-disclaimer-text">Este espacio contiene notas personales y experimentos de seguridad con fines educativos.</span>
+    <span class="hk-disclaimer-text">{{ profile.disclaimer }}</span>
   </div>
 </section>

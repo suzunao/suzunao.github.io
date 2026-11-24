@@ -1,0 +1,16 @@
+{%- assign _existing_tags = "" | split: "" -%}
+{%- for _t in site.tags -%}
+  {%- assign _tslug = _t[0] | downcase | strip -%}
+  {%- assign _existing_tags = _existing_tags | push: _tslug -%}
+{%- endfor -%}
+{%- for _raw_tag in include.tags -%}
+  {%- assign _slug = _raw_tag | downcase | strip -%}
+  {%- assign _meta = site.data.tags[_slug] -%}
+  {%- assign _label = _meta.label | default: _raw_tag -%}
+  {%- assign _tone = _meta.tone | default: "green" -%}
+  {%- if include.interactive != false and _existing_tags contains _slug -%}
+    <a href="{{ '/tag/' | append: _slug | append: '/' | relative_url }}" class="hk-tag" data-tone="{{ _tone }}">{{ include.prefix }}{{ _label }}</a>
+  {%- else -%}
+    <span class="hk-tag" data-tone="{{ _tone }}">{{ include.prefix }}{{ _label }}</span>
+  {%- endif -%}
+{%- endfor -%}

@@ -61,7 +61,7 @@ jekyll-archives:
   enabled:
     - tags
   layouts:
-    tag: default
+    tag: tag
   permalinks:
     tag: '/tag/:name/'
 

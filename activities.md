@@ -6,39 +6,27 @@ permalink: /activities/
 ---
 
 <!-- ============ VISTA: ACTIVIDADES ============ -->
-<section>
-  <section class="hk-posts-section">
-    <div class="hk-section-header">
-      <h2 class="hk-section-title"><span class="hk-bracket">[</span> ACTIVIDADES <span class="hk-bracket">]</span></h2>
-      <div class="hk-section-line" aria-hidden="true"></div>
-    </div>
+<section class="hk-posts-section">
+  <div class="hk-section-header">
+    <h1 class="hk-section-title"><span class="hk-bracket" aria-hidden="true">[</span> ACTIVIDADES <span class="hk-bracket" aria-hidden="true">]</span></h1>
+    <div class="hk-section-line" aria-hidden="true"></div>
+    <span class="hk-section-count">{{ site.data.activities | size }}</span>
+  </div>
 
+  {%- assign activities = site.data.activities | sort: 'date' | reverse -%}
+  {%- if activities.size > 0 -%}
     <div class="hk-posts-grid">
-      <article class="hk-post-card" data-bg="matrix">
-        <a href="{{ '/activities/la-curiosidad-tambien-es-una-herramienta-de-hacking.html' | relative_url }}" class="hk-card-link" data-nav="activity" target="_blank" rel="noopener">
-          <div class="hk-card-header">
-            <span class="hk-post-id">#01</span>
-            <time class="hk-post-date" datetime="2026-01-17">17 Ene 2026</time>
-          </div>
-          <h3 class="hk-post-title">La curiosidad también es una herramienta de hacking</h3>
-          <p class="hk-post-excerpt">Mi primera presentación en una conferencia. Charla sobre cómo la curiosidad puede ser la chispa para aprender y profundizar, explicada a través de un caso real de IoT: una cámara expuesta. En lugar de fuerza bruta sobre un login, bastó con explorar y entender cómo estaba construido su código para conseguir acceso.</p>
-          <div class="hk-card-meta">
-            <div class="hk-card-author">
-              <span class="hk-card-avatar">◍</span>
-              <span>Suzunao</span>
-              <span class="hk-reading-time">⌚ presentación</span>
-            </div>
-            <div class="hk-card-tags">
-              <span class="hk-tag" data-cat="iot">IoT</span>
-              <span class="hk-tag" data-cat="charla">Charla</span>
-              <span class="hk-tag" data-cat="conferencia">Conferencia</span>
-            </div>
-          </div>
-        </a>
-        <p style="margin-top:12px;padding:0 14px 14px;">
-          <a href="https://www.instagram.com/p/DeshVixoOPS/" target="_blank" rel="noopener noreferrer" class="hk-social-link">[Ver en Instagram]</a>
-        </p>
-      </article>
+      {%- assign bg_array = "matrix,glitch,scan,noise" | split: ',' -%}
+      {%- for activity in activities -%}
+        {%- assign bg_index = forloop.index0 | modulo: 4 -%}
+        {%- assign data_bg = bg_array[bg_index] -%}
+        {% include activity-card.html activity=activity bg=data_bg heading_level="h2" %}
+      {%- endfor -%}
     </div>
-  </section>
+  {%- else -%}
+    <div class="hk-empty-state" role="status">
+      <p class="hk-empty-title">[ SIN_ACTIVIDADES ]</p>
+      <p class="hk-empty-desc">No hay charlas ni eventos registrados todavía.</p>
+    </div>
+  {%- endif -%}
 </section>

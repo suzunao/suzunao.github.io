@@ -1,0 +1,12 @@
+{%- if include.post.post_id -%}
+#{{- include.post.post_id -}}
+{%- else -%}
+  {%- assign _chrono = site.posts | sort: "date" -%}
+  {%- assign _num = 0 -%}
+  {%- for _p in _chrono -%}
+    {%- if _p.url == include.post.url -%}
+      {%- assign _num = forloop.index -%}
+    {%- endif -%}
+  {%- endfor -%}
+#{{- _num | prepend: "00" | slice: -2, 2 -}}
+{%- endif -%}

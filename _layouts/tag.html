@@ -1,0 +1,74 @@
+---
+layout: default
+---
+{%- assign _slug = page.title | downcase | strip -%}
+{%- assign _meta = site.data.tags[_slug] -%}
+{%- assign _label = _meta.label | default: page.title -%}
+{%- assign _desc = _meta.description -%}
+{%- assign _tone = _meta.tone | default: "green" -%}
+{%- assign _posts = page.posts | sort: "date" | reverse -%}
+{%- assign _count = _posts | size -%}
+
+<section class="hk-tag-archive">
+  <nav class="hk-breadcrumb" aria-label="Migas de pan">
+    <a href="{{ '/' | relative_url }}">Inicio</a>
+    <span class="hk-sep" aria-hidden="true">/</span>
+    <a href="{{ '/posts/' | relative_url }}">Artículos</a>
+    <span class="hk-sep" aria-hidden="true">/</span>
+    <span class="hk-current" aria-current="page">#{{ _label }}</span>
+  </nav>
+
+  <header class="hk-tag-header">
+    <div class="hk-tag-title-row">
+      <h1 class="hk-tag-heading" data-tone="{{ _tone }}"><span class="hk-bracket" aria-hidden="true">#</span>{{ _label }}</h1>
+      <span class="hk-tag-count">{{ _count }} {% if _count == 1 %}artículo{% else %}artículos{% endif %}</span>
+    </div>
+    {%- if _desc -%}
+      <p class="hk-tag-desc">{{ _desc }}</p>
+    {%- endif -%}
+  </header>
+
+  {%- if _count > 0 -%}
+    <div class="hk-posts-grid">
+      {%- assign bg_array = "matrix,glitch,scan,noise" | split: "," -%}
+      {%- for post in _posts -%}
+        {%- assign bg_index = forloop.index0 | modulo: 4 -%}
+        {%- assign data_bg = bg_array[bg_index] -%}
+        {% include post-card.html post=post bg=data_bg heading_level="h2" %}
+      {%- endfor -%}
+    </div>
+  {%- else -%}
+    <div class="hk-empty-state" role="status">
+      <p class="hk-empty-title">[ SIN_ARTÍCULOS ]</p>
+      <p class="hk-empty-desc">Todavía no hay publicaciones etiquetadas con <strong>#{{ _label }}</strong>.</p>
+      <a href="{{ '/posts/' | relative_url }}" class="hk-btn-outline">Ver todos los artículos</a>
+    </div>
+  {%- endif -%}
+
+  {%- if site.tags.size > 1 -%}
+    <nav class="hk-tag-directory" aria-label="Otras etiquetas">
+      <div class="hk-section-header">
+        <h2 class="hk-section-title"><span class="hk-bracket" aria-hidden="true">[</span> TODAS LAS ETIQUETAS <span class="hk-bracket" aria-hidden="true">]</span></h2>
+        <div class="hk-section-line" aria-hidden="true"></div>
+      </div>
+      <div class="hk-tag-cloud">
+        {%- assign _tag_names = "" | split: "" -%}
+        {%- for _t in site.tags -%}
+          {%- assign _tag_names = _tag_names | push: _t[0] -%}
+        {%- endfor -%}
+        {%- assign _tag_names = _tag_names | sort_natural -%}
+        {%- for _tname in _tag_names -%}
+          {%- assign _tslug = _tname | downcase | strip -%}
+          {%- assign _tmeta = site.data.tags[_tslug] -%}
+          {%- assign _tlabel = _tmeta.label | default: _tname -%}
+          {%- assign _ttone = _tmeta.tone | default: "green" -%}
+          {%- assign _tcount = site.tags[_tname].size -%}
+          <a href="{{ '/tag/' | append: _tslug | append: '/' | relative_url }}" class="hk-tag hk-tag-pill{% if _tslug == _slug %} is-current{% endif %}" data-tone="{{ _ttone }}"{% if _tslug == _slug %} aria-current="page"{% endif %}>
+            <span>#{{ _tlabel }}</span>
+            <span class="hk-tag-pill-count">{{ _tcount }}</span>
+          </a>
+        {%- endfor -%}
+      </div>
+    </nav>
+  {%- endif -%}
+</section>

@@ -6,50 +6,45 @@ permalink: /posts/
 ---
 
 <!-- ============ VISTA: POSTS ============ -->
-<section>
-  <section class="hk-posts-section">
-    <div class="hk-section-header">
-      <h2 class="hk-section-title"><span class="hk-bracket">[</span> TODOS LOS ARTÍCULOS <span class="hk-bracket">]</span></h2>
-      <div class="hk-section-line" aria-hidden="true"></div>
-    </div>
+<section class="hk-posts-section">
+  <div class="hk-section-header">
+    <h1 class="hk-section-title"><span class="hk-bracket" aria-hidden="true">[</span> TODOS LOS ARTÍCULOS <span class="hk-bracket" aria-hidden="true">]</span></h1>
+    <div class="hk-section-line" aria-hidden="true"></div>
+    <span class="hk-section-count">{{ site.posts | size }}</span>
+  </div>
+
+  {%- if site.tags.size > 0 -%}
+    <nav class="hk-tag-filter-bar" aria-label="Filtrar por etiqueta">
+      <span class="hk-filter-label">Etiquetas:</span>
+      {%- assign _tag_names = "" | split: "" -%}
+      {%- for _t in site.tags -%}
+        {%- assign _tag_names = _tag_names | push: _t[0] -%}
+      {%- endfor -%}
+      {%- assign _tag_names = _tag_names | sort_natural -%}
+      {%- for _tname in _tag_names -%}
+        {%- assign _tslug = _tname | downcase | strip -%}
+        {%- assign _tmeta = site.data.tags[_tslug] -%}
+        {%- assign _tlabel = _tmeta.label | default: _tname -%}
+        {%- assign _ttone = _tmeta.tone | default: "green" -%}
+        <a href="{{ '/tag/' | append: _tslug | append: '/' | relative_url }}" class="hk-tag" data-tone="{{ _ttone }}">#{{ _tlabel }}</a>
+      {%- endfor -%}
+    </nav>
+  {%- endif -%}
+
+  {%- assign all_posts = site.posts | sort: 'date' | reverse -%}
+  {%- if all_posts.size > 0 -%}
     <div class="hk-posts-grid">
-      {% assign all_posts = site.posts | sort: 'date' | reverse %}
-      {% for post in all_posts %}
-        {% assign bg_index = forloop.index0 | modulo: 4 %}
-        {% assign bg_array = "matrix,glitch,scan,noise" | split: ',' %}
-        {% assign data_bg = bg_array[bg_index] %}
-        <article class="hk-post-card" data-bg="{{ data_bg }}">
-          <a href="{{ post.url | relative_url }}" class="hk-card-link" data-nav="post">
-            <div class="hk-card-header">
-              <span class="hk-post-id">#{{ forloop.index | prepend: "00" | slice: -2, 2 }}</span>
-              <time class="hk-post-date" datetime="{{ post.date | date: "%Y-%m-%d" }}">{{ post.date | date: "%d %b %Y" }}</time>
-            </div>
-            <h3 class="hk-post-title">{{ post.title }}</h3>
-            <p class="hk-post-excerpt">{{ post.excerpt | strip_html | truncate: 100 }}</p>
-            <div class="hk-card-meta">
-              <div class="hk-card-author">
-                <span class="hk-card-avatar">
-                  {% if post.author.avatar %}
-                    <img src="{{ post.author.avatar | relative_url }}" alt="Avatar" loading="lazy" decoding="async">
-                  {% else %}
-                    ◍
-                  {% endif %}
-                </span>
-                <span>{{ post.author.name | default: "Suzunao" }}</span>
-                {% assign words = post.content | number_of_words %}
-                {% assign mins = words | divided_by: 200 %}
-                {% if mins < 1 %}{% assign mins = 1 %}{% endif %}
-                <span class="hk-reading-time">⌚ {{ mins }} min</span>
-              </div>
-              <div class="hk-card-tags">
-                {% for tag in post.tags %}
-                  <span class="hk-tag" data-cat="{{ tag | downcase }}">{{ tag }}</span>
-                {% endfor %}
-              </div>
-            </div>
-          </a>
-        </article>
-      {% endfor %}
+      {%- assign bg_array = "matrix,glitch,scan,noise" | split: ',' -%}
+      {%- for post in all_posts -%}
+        {%- assign bg_index = forloop.index0 | modulo: 4 -%}
+        {%- assign data_bg = bg_array[bg_index] -%}
+        {% include post-card.html post=post bg=data_bg heading_level="h2" %}
+      {%- endfor -%}
     </div>
-  </section>
+  {%- else -%}
+    <div class="hk-empty-state" role="status">
+      <p class="hk-empty-title">[ SIN_ARTÍCULOS ]</p>
+      <p class="hk-empty-desc">Aún no hay publicaciones disponibles.</p>
+    </div>
+  {%- endif -%}
 </section>
