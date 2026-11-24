@@ -51,6 +51,29 @@ sitemap: false
     "external": {% if act.external %}true{% else %}false{% endif %}
   }
 {%- endfor -%}
+{%- assign _tag_names = "" | split: "" -%}
+{%- for _t in site.tags -%}
+  {%- assign _tag_names = _tag_names | push: _t[0] -%}
+{%- endfor -%}
+{%- assign _tag_names = _tag_names | sort_natural -%}
+{%- for _tname in _tag_names -%}
+  {%- if _items_count > 0 -%},{%- endif -%}
+  {%- assign _items_count = _items_count | plus: 1 -%}
+  {%- assign _tslug = _tname | downcase | strip -%}
+  {%- assign _tmeta = site.data.tags[_tslug] -%}
+  {%- assign _tlabel = _tmeta.label | default: _tname -%}
+  {
+    "kind": "tag",
+    "type": "Etiqueta",
+    "title": {{ "#" | append: _tlabel | jsonify }},
+    "description": {{ _tmeta.description | default: "Explorar artículos de esta etiqueta." | jsonify }},
+    "tags": [{{ _tlabel | jsonify }}],
+    "tagSlugs": [{{ _tslug | jsonify }}],
+    "date": "{{ site.tags[_tname].size }} {% if site.tags[_tname].size == 1 %}artículo{% else %}artículos{% endif %}",
+    "url": {{ '/tag/' | append: _tslug | append: '/' | relative_url | jsonify }},
+    "external": false
+  }
+{%- endfor -%}
 ]
 {%- else -%}
 []
