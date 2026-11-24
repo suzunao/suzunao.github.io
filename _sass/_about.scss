@@ -1,13 +1,13 @@
 .hk-about {
-  width: min(100%, var(--about-max));
+  width: min(100%, 880px);
   margin: 0 auto;
 }
 
 .hk-about-card {
-  padding: clamp(var(--space-5), 4vw, var(--space-8));
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background: var(--bg-panel);
+  padding: clamp(var(--space-6), 4vw, var(--space-8));
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
 }
 
 .hk-about-profile {
@@ -18,16 +18,13 @@
 }
 
 .hk-about-avatar {
-  display: flex;
   width: 96px;
   height: 96px;
   flex: 0 0 96px;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
-  border: 2px solid var(--accent-green);
+  border: 2px solid var(--accent);
   border-radius: var(--radius-full);
-  background: var(--bg-terminal);
+  box-shadow: var(--accent-glow);
 }
 
 .hk-about-avatar img {
@@ -37,85 +34,81 @@
   object-fit: cover;
 }
 
-.hk-about-info {
-  min-width: 0;
-}
-
 .hk-about-name {
   margin: 0;
-  color: var(--accent-green);
+  color: var(--text-primary);
+  font-family: var(--font-display);
   font-size: var(--text-xl);
-  line-height: var(--leading-tight);
+  font-weight: 700;
 }
 
 .hk-about-role {
   margin: var(--space-1) 0 0;
-  color: var(--text-secondary);
-  font-size: var(--text-sm);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
 }
 
 .hk-about-bio {
   margin: 0;
-  padding-bottom: var(--space-5);
-  border-bottom: 1px solid var(--border-color);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-subtle);
   color: var(--text-secondary);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   line-height: var(--leading-relaxed);
 }
 
-.hk-about-skills,
 .hk-about-socials {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: var(--space-2);
+  margin-top: var(--space-5);
 }
 
-.hk-about-socials {
-  margin-top: var(--space-5);
+.hk-about-section {
+  margin-top: var(--space-10);
+}
+
+.hk-skills-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.hk-skill-group {
+  padding: var(--space-5);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.hk-skill-group-title {
+  margin: 0 0 var(--space-4);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.hk-about-skills {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
 }
 
 .hk-skill-item {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  background: var(--bg-panel);
   color: var(--text-secondary);
   font-size: var(--text-sm);
 }
 
 .hk-skill-icon {
-  color: var(--accent-green);
-}
-
-.hk-skill-name {
-  color: var(--text-primary);
-}
-
-.hk-about-section {
-  margin-top: var(--space-8);
-}
-
-.hk-skills-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-  gap: var(--space-5);
-}
-
-.hk-skill-group-title {
-  margin: 0 0 var(--space-3);
-  color: var(--text-secondary);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.hk-skill-group .hk-about-skills {
-  flex-direction: column;
-  gap: var(--space-2);
+  color: var(--accent);
+  font-family: var(--font-mono);
 }
 
 .hk-certs-grid {
@@ -128,49 +121,59 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--border-color);
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  background: var(--bg-panel);
+  background: var(--bg-surface);
 }
 
 .hk-cert-icon {
-  color: var(--accent-green);
+  color: var(--accent);
   display: inline-flex;
 }
 
 .hk-cert-name {
   display: block;
-  color: var(--accent-green);
-  font-size: var(--text-base);
+  color: var(--text-primary);
+  font-family: var(--font-display);
   font-weight: 600;
 }
 
 .hk-cert-issuer {
   color: var(--text-muted);
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
 }
 
 .hk-cert-note {
-  margin: var(--space-3) 0 0;
+  margin: var(--space-4) 0 0;
   color: var(--text-muted);
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
 }
 
 .hk-contact-text {
   margin: 0;
   color: var(--text-secondary);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   line-height: var(--leading-relaxed);
 }
 
 .hk-about-disclaimer {
-  margin-top: var(--space-8);
-  padding: var(--space-3) var(--space-4);
-  border-left: 3px solid var(--text-muted);
-  background: var(--bg-panel);
+  margin-top: var(--space-10);
+  padding: var(--space-4) var(--space-5);
+  border-left: 3px solid var(--accent-border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--bg-surface);
   color: var(--text-muted);
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
+}
+
+@media (max-width: 760px) {
+  .hk-skills-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 520px) {
