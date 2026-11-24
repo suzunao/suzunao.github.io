@@ -1,5 +1,6 @@
 ---
 layout: post
+post_id: "02"
 title: CoffeeAddicts - Write-up
 date: 2025-08-18
 author:
@@ -7,8 +8,8 @@ author:
   avatar: /assets/img/optimized/avatar-96.webp
 description: Write-up completo de la máquina CoffeeAddicts de VulnHub, desde la enumeración de puertos hasta la escalada de privilegios.
 tags:
-  - Linux
-  - Vulnhub
+  - linux
+  - vulnhub
 ---
 
 Antes de iniciar, debemos identificar la dirección IP correspondiente a la máquina Coffee y, posteriormente, escanear sus puertos abiertos. Para ello, primero es necesario conocer la interfaz de red activa y la subred asignada, lo cual nos permitirá delimitar correctamente el rango de escaneo. Utilizamos el siguiente comando:
@@ -36,7 +37,7 @@ sudo nmap -sn <IP/mascara>
 
 Una vez identificada la IP de la máquina Coffee (en este caso es la 142.160.0.7), se procederá con el escaneo detallado de sus puertos abiertos.
 
-### Scan Port
+## Scan Port
 
 Para identificar los puertos abiertos y los servicios que se están ejecutando en la máquina objetivo (en este caso, IP `142.160.0.7`), se empleó el siguiente comando:
 
@@ -87,7 +88,7 @@ http://coffeeaddicts.thm
 
 Con este paso completado, ya podemos inspeccionar y analizar la aplicación web en busca de rutas ocultas, formularios vulnerables o configuraciones inseguras.
 
-### Enumeración
+## Enumeración
 
 Para identificar rutas o directorios ocultos dentro del sitio web accesible en `http://coffeeaddicts.thm`, se utilizó la herramienta ffuf (Fuzz Faster U Fool), que permite realizar ataques de enumeración de rutas mediante diccionarios:
 
@@ -129,7 +130,7 @@ Al parecer la autenticación  es exitosa, otorgando acceso al panel de administr
 
 <img src="/assets/img/posts/cofeeaddicts/20250622001608.webp" alt="Descripción" width="1000" height="894" loading="lazy" decoding="async">
 
-### Ejecución de código remoto  
+## Ejecución de código remoto  
 
 Al examinar  el panel de administración de WordPress con el usuario `gus`,  este posee privilegios suficientes para editar archivos de plugins desde el propio panel. 
 En particular,  es posible modificar el archivo `akismet.php`, correspondiente al plugin Akismet, ubicado en: `/wp-content/plugins/akismet/akismet.php`
@@ -169,7 +170,7 @@ Accedemos a la URL para ejecutar el payload: `http://coffeeaddicts.thm/wordpress
 
 <img src="/assets/img/posts/cofeeaddicts/20250622014743.webp" alt="Descripción" width="645" height="177" loading="lazy" decoding="async">
 
-### Escalada Privilegios  -> user
+## Escalada Privilegios  -> user
 
 Una vez dentro del sistema con la sesión obtenida vía reverse shell, se accede al directorio `/home/gus`, donde se encuentra la flag de usuario junto a un archivo adicional llamado `readme.txt`. Al revisar el contenido del `readme.txt`, se puede observar el siguiente mensaje:
 
@@ -211,7 +212,7 @@ Después de unos segundos, John logra descifrar la contraseña de la clave priva
 
 <img src="/assets/img/posts/cofeeaddicts/20250622031310.webp" alt="Descripción" width="826" height="380" loading="lazy" decoding="async">
 
-### Escalada de privilegios -> root 
+## Escalada de privilegios -> root 
 
 Una vez se ha obtenido acceso como el usuario `badbyte`,  buscaremos la forma para elevar privilegios al usuario `root`. Para verificar si `badbyte` posee permisos especiales mediante `sudo`, se ejecuta:
 
@@ -234,7 +235,7 @@ sudo /opt/BadByte/shell
 
 El sistema muestra el prompt `"BadByte # "`, lo que indica que el programa está activo. Desde aquí, se puede ejecutar cualquier comando del sistema con privilegios elevados.
 
-### (extra) Edición del  index.html
+## (extra) Edición del  index.html
 
 Una vez se obtiene acceso como root, se cuenta con privilegios suficientes para modificar los archivos del sitio web público sin inconvenientes.  Para comenzar localizar el archivo `index.html` que corresponde al sitio expuesto públicamente:
 
@@ -262,7 +263,7 @@ modificamos estas dos lineas  uno con nuentro seudonimo y el otro con la imagen:
 <img src="/assets/img/posts/cofeeaddicts/20250622041707.webp" alt="Descripción" width="1024" height="862" loading="lazy" decoding="async">
 
 
-### Flags 
+## Flags 
 
 ``` bash
 root@CoffeeAdicts:/# cat /home/gus/user.txt 
