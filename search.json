@@ -1,0 +1,57 @@
+---
+layout: null
+sitemap: false
+---
+{%- if site.search_enabled -%}
+[
+{%- assign _items_count = 0 -%}
+{%- assign _posts = site.posts | sort: 'date' | reverse -%}
+{%- for post in _posts -%}
+  {%- if _items_count > 0 -%},{%- endif -%}
+  {%- assign _items_count = _items_count | plus: 1 -%}
+  {%- assign _tag_labels = "" | split: "" -%}
+  {%- for _t in post.tags -%}
+    {%- assign _slug = _t | downcase | strip -%}
+    {%- assign _meta = site.data.tags[_slug] -%}
+    {%- assign _lbl = _meta.label | default: _t -%}
+    {%- assign _tag_labels = _tag_labels | push: _lbl -%}
+  {%- endfor -%}
+  {
+    "kind": "post",
+    "type": "Artículo",
+    "title": {{ post.title | jsonify }},
+    "description": {{ post.description | default: post.excerpt | strip_html | strip_newlines | strip | jsonify }},
+    "tags": {{ _tag_labels | jsonify }},
+    "tagSlugs": {{ post.tags | jsonify }},
+    "date": "{{ post.date | date: '%Y-%m-%d' }}",
+    "url": {{ post.url | relative_url | jsonify }},
+    "external": false
+  }
+{%- endfor -%}
+{%- assign _acts = site.data.activities | sort: 'date' | reverse -%}
+{%- for act in _acts -%}
+  {%- if _items_count > 0 -%},{%- endif -%}
+  {%- assign _items_count = _items_count | plus: 1 -%}
+  {%- assign _tag_labels = "" | split: "" -%}
+  {%- for _t in act.tags -%}
+    {%- assign _slug = _t | downcase | strip -%}
+    {%- assign _meta = site.data.tags[_slug] -%}
+    {%- assign _lbl = _meta.label | default: _t -%}
+    {%- assign _tag_labels = _tag_labels | push: _lbl -%}
+  {%- endfor -%}
+  {
+    "kind": "activity",
+    "type": {{ act.type | default: "Actividad" | jsonify }},
+    "title": {{ act.title | jsonify }},
+    "description": {{ act.summary | default: "" | strip_html | strip_newlines | strip | jsonify }},
+    "tags": {{ _tag_labels | jsonify }},
+    "tagSlugs": {{ act.tags | jsonify }},
+    "date": "{{ act.date | date: '%Y-%m-%d' }}",
+    "url": {{ act.url | relative_url | jsonify }},
+    "external": {% if act.external %}true{% else %}false{% endif %}
+  }
+{%- endfor -%}
+]
+{%- else -%}
+[]
+{%- endif -%}
