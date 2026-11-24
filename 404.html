@@ -6,15 +6,18 @@ robots: noindex
 ---
 
 <section class="hk-error-page" aria-labelledby="error-code">
+  <p class="hk-kicker">// ERROR 404</p>
   <h1 id="error-code" class="hk-error-code">404</h1>
-  <p class="hk-error-tag">[ ERROR: PAGE_NOT_FOUND ]</p>
+  <p class="hk-error-tag">[ PAGE_NOT_FOUND ]</p>
   <p class="hk-error-desc">La página que buscas no existe, fue movida o el enlace ya no está disponible.</p>
   <div class="hk-error-actions">
-    <a href="{{ '/' | relative_url }}" class="hk-btn-outline">
-      <span aria-hidden="true">[</span> Volver al inicio <span aria-hidden="true">]</span>
-    </a>
-    <a href="{{ '/posts/' | relative_url }}" class="hk-btn-outline hk-btn-secondary">
-      <span aria-hidden="true">[</span> Ver artículos <span aria-hidden="true">]</span>
-    </a>
+    <a href="{{ '/' | relative_url }}" class="hk-btn hk-btn-primary">Volver al inicio</a>
+    <a href="{{ '/posts/' | relative_url }}" class="hk-btn hk-btn-secondary">Ver artículos</a>
+    {% if site.search_enabled %}
+      <button type="button" class="hk-btn hk-btn-secondary" data-open-cmdk>
+        <span>Buscar</span>
+        <kbd class="hk-kbd" aria-hidden="true">⌘K</kbd>
+      </button>
+    {% endif %}
   </div>
 </section>

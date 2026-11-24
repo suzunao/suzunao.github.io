@@ -1,16 +1,16 @@
 {%- assign _act = include.activity -%}
 {%- assign _profile = site.data.profile -%}
 {%- assign _heading = include.heading_level | default: "h2" -%}
-<article class="hk-post-card hk-activity-card" data-bg="{{ include.bg | default: 'matrix' }}">
+<article class="hk-post-card hk-activity-card">
   <div class="hk-card-inner">
-    <div class="hk-card-header">
+    <div class="hk-card-top">
       <div class="hk-card-id-group">
         <span class="hk-post-id">#{{ _act.id }}</span>
         {%- if _act.type -%}
           <span class="hk-activity-type">{{ _act.type }}</span>
         {%- endif -%}
       </div>
-      <time class="hk-post-date" datetime="{{ _act.date | date: '%Y-%m-%d' }}">{{ _act.date | date: "%d %b %Y" }}</time>
+      <time class="hk-card-date" datetime="{{ _act.date | date: '%Y-%m-%d' }}">{{ _act.date | date: "%d %b %Y" }}</time>
     </div>
 
     <{{ _heading }} class="hk-post-title">
@@ -24,35 +24,24 @@
 
     <p class="hk-post-excerpt">{{ _act.summary }}</p>
 
-    <div class="hk-card-meta">
-      <div class="hk-card-author">
-        <span class="hk-card-avatar">
-          {%- if _profile.avatar -%}
-            <img src="{{ _profile.avatar | relative_url }}" alt="{{ _profile.name }}" width="28" height="28" loading="lazy" decoding="async">
-          {%- else -%}
-            <span aria-hidden="true">&gt;_</span>
-          {%- endif -%}
-        </span>
-        <span class="hk-card-author-name">{{ _profile.name }}</span>
-        {%- if _act.type -%}
-          <span class="hk-reading-time">
-            <svg class="hk-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
-            {{ _act.type }}
-          </span>
-        {%- endif -%}
-      </div>
+    <div class="hk-card-footer">
       {%- if _act.tags.size > 0 -%}
         <div class="hk-card-tags">
           {% include tag-list.html tags=_act.tags %}
         </div>
       {%- endif -%}
+      <span class="hk-card-cta" aria-hidden="true">
+        <span>Abrir presentación</span>
+        <span>↗</span>
+      </span>
     </div>
 
     {%- if _act.extra_links.size > 0 -%}
       <div class="hk-card-actions">
         {%- for link in _act.extra_links -%}
-          <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="hk-social-link">
-            <span aria-hidden="true">[</span>{{ link.label }}<span aria-hidden="true">]</span>
+          <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer" class="hk-btn hk-btn-secondary hk-btn-sm">
+            <span>{{ link.label }}</span>
+            <span aria-hidden="true">↗</span>
           </a>
         {%- endfor -%}
       </div>

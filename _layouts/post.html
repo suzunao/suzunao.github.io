@@ -3,27 +3,32 @@ layout: default
 ---
 {%- assign profile = site.data.profile -%}
 
-<!-- ============ VISTA: POST ============ -->
 <article class="hk-single">
   <nav class="hk-breadcrumb" aria-label="Migas de pan">
     <a href="{{ '/' | relative_url }}">Inicio</a>
     <span class="hk-sep" aria-hidden="true">/</span>
     <a href="{{ '/posts/' | relative_url }}">Artículos</a>
     <span class="hk-sep" aria-hidden="true">/</span>
-    <span class="hk-current" aria-current="page">{{ page.title }}</span>
+    <span class="hk-current" aria-current="page">{% include post-id.html post=page %}</span>
   </nav>
 
   <header class="hk-post-header">
     <div class="hk-post-meta">
       <span class="hk-post-id">{% include post-id.html post=page %}</span>
-      <span class="hk-post-separator" aria-hidden="true">|</span>
+      <span class="hk-meta-dot" aria-hidden="true">·</span>
       <time datetime="{{ page.date | date: '%Y-%m-%d' }}">{{ page.date | date: "%d %b %Y" }}</time>
-      <span class="hk-post-separator" aria-hidden="true">|</span>
+      <span class="hk-meta-dot" aria-hidden="true">·</span>
       <span>{{ page.author.name | default: profile.name }}</span>
-      <span class="hk-post-separator" aria-hidden="true">|</span>
+      <span class="hk-meta-dot" aria-hidden="true">·</span>
       <span>{% include reading-time.html content=page.content suffix=" min de lectura" %}</span>
     </div>
+
     <h1 class="hk-post-title">{{ page.title }}</h1>
+
+    {%- if page.description -%}
+      <p class="hk-post-lead">{{ page.description }}</p>
+    {%- endif -%}
+
     {%- if page.tags.size > 0 -%}
       <div class="hk-post-tags">
         {% include tag-list.html tags=page.tags prefix="#" %}
@@ -33,30 +38,46 @@ layout: default
 
   <div class="hk-post-layout{% if page.toc == false %} hk-post-layout--no-toc{% endif %}">
     {% if page.toc != false %}
-      <aside class="hk-toc-aside" aria-label="Tabla de contenidos">
+      <aside class="hk-toc-aside" aria-label="Navegación del artículo">
         <details class="hk-toc" data-toc-details open>
-          <summary class="hk-toc-title">Tabla de contenidos</summary>
+          <summary class="hk-toc-title">
+            <span>Contenidos</span>
+            <span class="hk-toc-meta" data-toc-count></span>
+          </summary>
           <nav class="hk-toc-nav" aria-label="Secciones del artículo" data-toc></nav>
         </details>
+
+        <div class="hk-reading-tools" aria-label="Herramientas de lectura">
+          <div class="hk-reading-tools-label">// Lectura</div>
+          <div class="hk-size-group" role="group" aria-label="Tamaño del texto">
+            <button type="button" class="hk-size-btn" data-prose-btn="sm" aria-pressed="false" title="Texto compacto">A-</button>
+            <button type="button" class="hk-size-btn" data-prose-btn="md" aria-pressed="true" title="Texto estándar">A</button>
+            <button type="button" class="hk-size-btn" data-prose-btn="lg" aria-pressed="false" title="Texto grande">A+</button>
+          </div>
+          <button type="button" class="hk-tool-btn" data-copy-url>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <span>Copiar enlace</span>
+          </button>
+        </div>
       </aside>
     {% endif %}
 
     <div class="hk-post-body">
-      <div class="hk-post-content">
+      <div class="hk-post-content" data-post-content>
         {{ content }}
       </div>
 
       <footer class="hk-post-footer">
-        <div>
-          <a href="{{ '/posts/' | relative_url }}" class="hk-back-link">
-            <span class="arrow" aria-hidden="true">←</span> Volver a artículos
-          </a>
-        </div>
+        <a href="{{ '/posts/' | relative_url }}" class="hk-btn hk-btn-secondary hk-btn-sm">
+          <span aria-hidden="true">←</span>
+          <span>Volver a artículos</span>
+        </a>
         {%- if page.share != false -%}
           <div class="hk-share">
             <span class="hk-share-label">Compartir:</span>
-            <a href="https://x.com/intent/tweet?url={{ site.url | append: page.url | url_encode }}&amp;text={{ page.title | url_encode }}&amp;via={{ profile.x_handle | url_encode }}" class="hk-share-link" target="_blank" rel="noopener noreferrer">X</a>
-            <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ site.url | append: page.url | url_encode }}" class="hk-share-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <button type="button" class="hk-share-pill" data-copy-url>Copiar URL</button>
+            <a href="https://x.com/intent/tweet?url={{ site.url | append: page.url | url_encode }}&amp;text={{ page.title | url_encode }}&amp;via={{ profile.x_handle | url_encode }}" class="hk-share-pill" target="_blank" rel="noopener noreferrer">X ↗</a>
+            <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ site.url | append: page.url | url_encode }}" class="hk-share-pill" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
           </div>
         {%- endif -%}
       </footer>
@@ -81,7 +102,7 @@ layout: default
         <nav class="hk-post-nav" aria-label="Navegación entre artículos">
           {% if prev_post %}
             <a href="{{ prev_post.url | relative_url }}" class="hk-post-nav-link hk-post-nav-prev">
-              <span class="hk-post-nav-label">← Anterior</span>
+              <span class="hk-post-nav-label">← Artículo anterior</span>
               <span class="hk-post-nav-title">{{ prev_post.title }}</span>
             </a>
           {% else %}
@@ -89,7 +110,7 @@ layout: default
           {% endif %}
           {% if next_post %}
             <a href="{{ next_post.url | relative_url }}" class="hk-post-nav-link hk-post-nav-next">
-              <span class="hk-post-nav-label">Siguiente →</span>
+              <span class="hk-post-nav-label">Siguiente artículo →</span>
               <span class="hk-post-nav-title">{{ next_post.title }}</span>
             </a>
           {% else %}

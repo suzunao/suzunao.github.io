@@ -20,8 +20,11 @@ layout: default
 
   <header class="hk-tag-header">
     <div class="hk-tag-title-row">
-      <h1 class="hk-tag-heading" data-tone="{{ _tone }}"><span class="hk-bracket" aria-hidden="true">#</span>{{ _label }}</h1>
-      <span class="hk-tag-count">{{ _count }} {% if _count == 1 %}artículo{% else %}artículos{% endif %}</span>
+      <div>
+        <p class="hk-kicker">// ARCHIVO POR ETIQUETA</p>
+        <h1 class="hk-tag-heading" data-tone="{{ _tone }}"><span class="hk-bracket" aria-hidden="true">#</span>{{ _label }}</h1>
+      </div>
+      <span class="hk-mono-badge">{{ _count }} {% if _count == 1 %}artículo{% else %}artículos{% endif %}</span>
     </div>
     {%- if _desc -%}
       <p class="hk-tag-desc">{{ _desc }}</p>
@@ -30,26 +33,25 @@ layout: default
 
   {%- if _count > 0 -%}
     <div class="hk-posts-grid">
-      {%- assign bg_array = "matrix,glitch,scan,noise" | split: "," -%}
       {%- for post in _posts -%}
-        {%- assign bg_index = forloop.index0 | modulo: 4 -%}
-        {%- assign data_bg = bg_array[bg_index] -%}
-        {% include post-card.html post=post bg=data_bg heading_level="h2" %}
+        {% include post-card.html post=post heading_level="h2" %}
       {%- endfor -%}
     </div>
   {%- else -%}
     <div class="hk-empty-state" role="status">
       <p class="hk-empty-title">[ SIN_ARTÍCULOS ]</p>
       <p class="hk-empty-desc">Todavía no hay publicaciones etiquetadas con <strong>#{{ _label }}</strong>.</p>
-      <a href="{{ '/posts/' | relative_url }}" class="hk-btn-outline">Ver todos los artículos</a>
+      <a href="{{ '/posts/' | relative_url }}" class="hk-btn hk-btn-secondary">Ver todos los artículos</a>
     </div>
   {%- endif -%}
 
   {%- if site.tags.size > 1 -%}
     <nav class="hk-tag-directory" aria-label="Otras etiquetas">
-      <div class="hk-section-header">
-        <h2 class="hk-section-title"><span class="hk-bracket" aria-hidden="true">[</span> TODAS LAS ETIQUETAS <span class="hk-bracket" aria-hidden="true">]</span></h2>
-        <div class="hk-section-line" aria-hidden="true"></div>
+      <div class="hk-section-head">
+        <div>
+          <p class="hk-kicker">// EXPLORAR MÁS</p>
+          <h2 class="hk-section-heading">Todas las etiquetas</h2>
+        </div>
       </div>
       <div class="hk-tag-cloud">
         {%- assign _tag_names = "" | split: "" -%}

@@ -6,15 +6,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#050a06">
+  <meta name="theme-color" content="#06090c">
   <meta name="color-scheme" content="dark">
 
-  <!-- SEO: jekyll-seo-tag genera title, description, canonical, Open Graph,
-       Twitter Cards y JSON-LD de forma única y consistente (sin duplicados). -->
   {% seo %}
 
   <link rel="icon" href="{{ '/assets/img/optimized/favicon.png' | relative_url }}" type="image/png">
   <link rel="apple-touch-icon" href="{{ '/assets/img/optimized/brand-512.webp' | relative_url }}">
+  <link rel="preload" href="{{ '/assets/fonts/inter-latin-wght.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ '/assets/fonts/space-grotesk-latin-wght.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{{ '/assets/fonts/fira-code-latin-wght.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
   {%- if page.layout == 'post' -%}
@@ -26,123 +26,203 @@
   <script>
     (function () {
       try {
-        var pref = localStorage.getItem('hk-fx');
-        if (pref === 'off' || (!pref && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+        var fx = localStorage.getItem('hk-fx');
+        if (fx === 'off' || (!fx && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
           document.documentElement.setAttribute('data-fx', 'off');
+        }
+        var sz = localStorage.getItem('hk-prose-size');
+        if (sz === 'sm' || sz === 'md' || sz === 'lg') {
+          document.documentElement.setAttribute('data-prose-size', sz);
         }
       } catch (e) {}
     })();
   </script>
 </head>
-<body class="hk-app">
+<body class="hk-app{% if page.layout == 'post' %} hk-is-post{% endif %}">
   <a href="#contenido" class="hk-skip">Saltar al contenido</a>
+
+  {%- if page.layout == 'post' -%}
+    <div class="hk-progress" data-reading-progress aria-hidden="true"></div>
+  {%- endif -%}
+
   <div class="hk-scanlines" aria-hidden="true"></div>
-  <div class="hk-screen-door" aria-hidden="true"></div>
+  <div class="hk-ambient" aria-hidden="true"></div>
 
-  <!-- Mobile top bar -->
-  <header class="hk-mobile-bar">
-    <button type="button" class="hk-hamburger" data-hamburger aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="hk-drawer">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-    </button>
-    <a href="{{ '/' | relative_url }}" class="hk-mini-logo"><span aria-hidden="true">[</span>{{ profile.alias }}<span aria-hidden="true">]</span></a>
-    <span class="hk-spacer"></span>
-  </header>
+  <!-- Top Command Header -->
+  <header class="hk-topbar">
+    <div class="hk-topbar-inner">
+      <a href="{{ '/' | relative_url }}" class="hk-brand" aria-label="{{ profile.name }} — Inicio">
+        <span class="hk-brand-mark" aria-hidden="true">
+          <span class="hk-brand-bracket">[</span>P4R4<span class="hk-brand-bracket">$IT3</span><span class="hk-cursor">_</span><span class="hk-brand-bracket">]</span>
+        </span>
+      </a>
 
-  <!-- Mobile drawer backdrop -->
-  <div class="hk-drawer-backdrop" data-drawer-backdrop></div>
-
-  <!-- Container -->
-  <div class="hk-container">
-    <aside class="hk-sidebar" id="hk-drawer" aria-label="Navegación lateral">
-      <div class="hk-logo">
-        <a href="{{ '/' | relative_url }}" class="hk-logo-home" aria-label="{{ profile.name }} — Inicio">
-          <div class="hk-logo-box">
-            <span class="hk-logo-bracket">[</span><span class="hk-logo-text">P4R4</span><span class="hk-logo-bracket">$IT3</span><span class="hk-cursor" aria-hidden="true">_</span><span class="hk-logo-bracket">]</span>
-          </div>
-        </a>
-        <div class="hk-logo-sub">{{ profile.short_role }}</div>
-      </div>
-
-      {% if site.search_enabled %}
-        <div class="hk-search">
-          <div class="hk-section-title">// BUSCAR</div>
-          <label for="hk-search-input" class="sr-only">Buscar artículos y actividades</label>
-          <div class="hk-search-box">
-            <span class="hk-search-prompt" aria-hidden="true">$</span>
-            <input
-              id="hk-search-input"
-              type="search"
-              class="hk-search-input"
-              placeholder="Buscar... (/)"
-              data-search-input
-              data-search-url="{{ '/search.json' | relative_url }}"
-              autocomplete="off"
-              role="combobox"
-              aria-expanded="false"
-              aria-controls="hk-search-results"
-              aria-autocomplete="list"
-              aria-haspopup="listbox"
-            >
-          </div>
-          <div id="hk-search-results" class="hk-search-results" role="listbox" aria-label="Resultados de búsqueda" data-search-results hidden></div>
-          <div class="sr-only" aria-live="polite" data-search-live></div>
-        </div>
-      {% endif %}
-
-      <nav class="hk-nav" aria-label="Navegación principal">
-        <div class="hk-section-title">// NAVEGACIÓN</div>
-        <a href="{{ '/' | relative_url }}" class="hk-nav-item" data-nav="home"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[INICIO]</span><kbd class="hk-kbd" aria-hidden="true">1</kbd></a>
-        <a href="{{ '/posts/' | relative_url }}" class="hk-nav-item" data-nav="posts"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[ARTÍCULOS]</span><kbd class="hk-kbd" aria-hidden="true">2</kbd></a>
-        <a href="{{ '/activities/' | relative_url }}" class="hk-nav-item" data-nav="activities"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[ACTIVIDADES]</span><kbd class="hk-kbd" aria-hidden="true">3</kbd></a>
-        <a href="{{ '/about/' | relative_url }}" class="hk-nav-item" data-nav="about"><span class="hk-nav-icon" aria-hidden="true">▸</span><span>[SOBRE MÍ]</span><kbd class="hk-kbd" aria-hidden="true">4</kbd></a>
+      <nav class="hk-topnav" aria-label="Navegación principal">
+        <a href="{{ '/' | relative_url }}" class="hk-nav-item" data-nav="home">Inicio</a>
+        <a href="{{ '/posts/' | relative_url }}" class="hk-nav-item" data-nav="posts">Artículos</a>
+        <a href="{{ '/activities/' | relative_url }}" class="hk-nav-item" data-nav="activities">Actividades</a>
+        <a href="{{ '/about/' | relative_url }}" class="hk-nav-item" data-nav="about">Sobre mí</a>
       </nav>
 
-      <div class="hk-status" aria-label="Información del sitio">
-        <div class="hk-section-title">// METADATOS DEL BUILD</div>
-        <div class="hk-status-row">
-          <span class="hk-status-label">Build:</span>
-          <time class="hk-status-value" datetime="{{ site.time | date: '%Y-%m-%d' }}">{{ site.time | date: "%Y-%m-%d" }}</time>
-        </div>
-        {% if latest_post %}
-          <div class="hk-status-row">
-            <span class="hk-status-label">Último post:</span>
-            <time class="hk-status-value" datetime="{{ latest_post.date | date: '%Y-%m-%d' }}">{{ latest_post.date | date: "%Y-%m-%d" }}</time>
-          </div>
+      <div class="hk-topbar-actions">
+        {% if site.search_enabled %}
+          <button type="button" class="hk-search-trigger" data-open-cmdk aria-label="Abrir buscador rápido (atajo / o Ctrl+K)" aria-haspopup="dialog" aria-controls="hk-cmdk">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+            <span class="hk-search-trigger-text">Buscar...</span>
+            <kbd class="hk-kbd" aria-hidden="true">⌘K</kbd>
+          </button>
         {% endif %}
-        <div class="hk-status-row">
-          <span class="hk-status-label">Archivo:</span>
-          <span class="hk-status-value">{{ site.posts | size }} posts · {{ site.data.activities | size }} act.</span>
-        </div>
-        <button type="button" class="hk-fx-toggle" data-fx-toggle aria-pressed="true">
+
+        <button type="button" class="hk-icon-btn hk-fx-btn" data-fx-toggle aria-pressed="true" aria-label="Alternar efecto CRT" title="Efecto CRT">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
           <span class="hk-fx-dot" aria-hidden="true"></span>
-          <span data-fx-label>Efectos CRT: ON</span>
+        </button>
+
+        <button type="button" class="hk-icon-btn hk-hamburger" data-hamburger aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="hk-drawer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
       </div>
-    </aside>
+    </div>
+  </header>
 
-    <main class="hk-main" id="contenido" tabindex="-1">
-      <div class="hk-content">
-        {{ content }}
+  <!-- Mobile Navigation Sheet -->
+  <div class="hk-drawer-backdrop" data-drawer-backdrop></div>
+  <aside class="hk-drawer" id="hk-drawer" aria-label="Menú móvil" aria-hidden="true">
+    <div class="hk-drawer-head">
+      <span class="hk-brand-mark"><span class="hk-brand-bracket">[</span>{{ profile.alias }}<span class="hk-brand-bracket">]</span></span>
+      <button type="button" class="hk-icon-btn" data-drawer-close aria-label="Cerrar menú">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <nav class="hk-drawer-nav" aria-label="Navegación móvil">
+      <a href="{{ '/' | relative_url }}" class="hk-nav-item" data-nav="home"><span>Inicio</span><kbd class="hk-kbd" aria-hidden="true">1</kbd></a>
+      <a href="{{ '/posts/' | relative_url }}" class="hk-nav-item" data-nav="posts"><span>Artículos</span><kbd class="hk-kbd" aria-hidden="true">2</kbd></a>
+      <a href="{{ '/activities/' | relative_url }}" class="hk-nav-item" data-nav="activities"><span>Actividades</span><kbd class="hk-kbd" aria-hidden="true">3</kbd></a>
+      <a href="{{ '/about/' | relative_url }}" class="hk-nav-item" data-nav="about"><span>Sobre mí</span><kbd class="hk-kbd" aria-hidden="true">4</kbd></a>
+    </nav>
+
+    <div class="hk-drawer-section">
+      <div class="hk-drawer-label">// Temas</div>
+      <div class="hk-drawer-tags">
+        {%- assign _tag_names = "" | split: "" -%}
+        {%- for _t in site.tags -%}
+          {%- assign _tag_names = _tag_names | push: _t[0] -%}
+        {%- endfor -%}
+        {%- assign _tag_names = _tag_names | sort_natural -%}
+        {%- for _tname in _tag_names -%}
+          {%- assign _tslug = _tname | downcase | strip -%}
+          {%- assign _tmeta = site.data.tags[_tslug] -%}
+          {%- assign _tlabel = _tmeta.label | default: _tname -%}
+          {%- assign _ttone = _tmeta.tone | default: "green" -%}
+          <a href="{{ '/tag/' | append: _tslug | append: '/' | relative_url }}" class="hk-tag" data-tone="{{ _ttone }}">#{{ _tlabel }}</a>
+        {%- endfor -%}
+      </div>
+    </div>
+
+    <div class="hk-drawer-footer">
+      <button type="button" class="hk-fx-toggle-wide" data-fx-toggle aria-pressed="true">
+        <span class="hk-fx-dot" aria-hidden="true"></span>
+        <span data-fx-label>Efectos CRT: ON</span>
+      </button>
+      <div class="hk-drawer-meta">
+        <span>Build {{ site.time | date: "%Y-%m-%d" }}</span>
+        <span>·</span>
+        <span>{{ site.posts | size }} posts</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Workspace -->
+  <main class="hk-main" id="contenido" tabindex="-1">
+    <div class="hk-shell">
+      {{ content }}
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="hk-footer">
+    <div class="hk-shell hk-footer-inner">
+      <div class="hk-footer-brand">
+        <span class="hk-footer-logo"><span class="hk-brand-bracket">[</span>{{ profile.copyright_holder }}<span class="hk-brand-bracket">]</span></span>
+        <p class="hk-footer-tagline">{{ profile.role }}</p>
       </div>
 
-      <footer class="hk-footer">
-        <div class="hk-footer-left">
-          <span class="hk-footer-bracket" aria-hidden="true">[</span>
-          <span>© {{ 'now' | date: "%Y" }} {{ profile.copyright_holder }} — Todos los derechos reservados</span>
-          <span class="hk-footer-bracket" aria-hidden="true">]</span>
+      <div class="hk-footer-links">
+        <div class="hk-footer-group">
+          <a href="{{ '/posts/' | relative_url }}">Artículos</a>
+          <a href="{{ '/activities/' | relative_url }}">Actividades</a>
+          <a href="{{ '/about/' | relative_url }}">Sobre mí</a>
+          <a href="{{ '/feed.xml' | relative_url }}">RSS</a>
         </div>
-        <div class="hk-footer-right">
-          <a href="{{ '/feed.xml' | relative_url }}" class="hk-footer-link">RSS</a>
-          <span aria-hidden="true">·</span>
-          <span>Theme: <span class="hk-footer-theme">{{ profile.theme_name }}</span></span>
+        <div class="hk-footer-group">
+          {%- for social in profile.socials -%}
+            <a href="{{ social.url }}" target="_blank" rel="noopener noreferrer">{{ social.label }}</a>
+          {%- endfor -%}
         </div>
-      </footer>
-    </main>
-  </div>
+      </div>
 
+      <div class="hk-footer-bottom">
+        <span>© {{ 'now' | date: "%Y" }} {{ profile.name }} ({{ profile.copyright_holder }})</span>
+        <span class="hk-footer-meta">Build <time datetime="{{ site.time | date: '%Y-%m-%d' }}">{{ site.time | date: "%Y-%m-%d" }}</time>{% if latest_post %} · Último post <time datetime="{{ latest_post.date | date: '%Y-%m-%d' }}">{{ latest_post.date | date: "%Y-%m-%d" }}</time>{% endif %}</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Command Palette (⌘K / /) -->
+  {% if site.search_enabled %}
+    <div id="hk-cmdk" class="hk-cmdk-backdrop" data-cmdk-backdrop hidden>
+      <div class="hk-cmdk-dialog" role="dialog" aria-modal="true" aria-labelledby="hk-cmdk-title">
+        <h2 id="hk-cmdk-title" class="sr-only">Buscador rápido y comandos</h2>
+        <div class="hk-cmdk-input-wrap">
+          <svg class="hk-cmdk-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input
+            id="hk-search-input"
+            type="search"
+            class="hk-cmdk-input"
+            placeholder="Buscar artículos, charlas, etiquetas o acciones..."
+            data-search-input
+            data-search-url="{{ '/search.json' | relative_url }}"
+            autocomplete="off"
+            role="combobox"
+            aria-expanded="true"
+            aria-controls="hk-search-results"
+            aria-autocomplete="list"
+          >
+          <button type="button" class="hk-cmdk-esc" data-close-cmdk aria-label="Cerrar buscador">ESC</button>
+        </div>
+
+        <div id="hk-search-results" class="hk-cmdk-results" role="listbox" aria-label="Resultados" data-search-results></div>
+        <div class="sr-only" aria-live="polite" data-search-live></div>
+
+        <div class="hk-cmdk-footer" aria-hidden="true">
+          <span><kbd>↑</kbd><kbd>↓</kbd> navegar</span>
+          <span><kbd>↵</kbd> abrir</span>
+          <span><kbd>esc</kbd> cerrar</span>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  {%- if page.layout == 'post' -%}
+    <!-- Image Lightbox for Technical Screenshots -->
+    <dialog id="hk-lightbox" class="hk-lightbox" aria-label="Vista ampliada de imagen">
+      <div class="hk-lightbox-bar">
+        <span class="hk-lightbox-caption" data-lightbox-caption></span>
+        <button type="button" class="hk-icon-btn hk-lightbox-close" data-lightbox-close aria-label="Cerrar imagen ampliada">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="hk-lightbox-stage" data-lightbox-stage></div>
+    </dialog>
+  {%- endif -%}
+
+  <!-- Toast notifications -->
+  <div class="hk-toast" data-toast role="status" aria-live="polite" hidden></div>
+
+  <!-- Back to top -->
   <button type="button" class="hk-to-top" data-to-top aria-label="Volver arriba">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-    <span>Volver arriba</span>
   </button>
 
   <script src="{{ '/assets/js/main.js' | relative_url }}" defer></script>

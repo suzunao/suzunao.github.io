@@ -4,16 +4,29 @@
 {%- assign _author_name = _post.author.name | default: _profile.name -%}
 {%- assign _author_avatar = _post.author.avatar | default: _profile.avatar -%}
 {%- assign _summary = _post.description | default: _post.excerpt | strip_html | strip_newlines | strip -%}
-<article class="hk-post-card" data-bg="{{ include.bg | default: 'matrix' }}"{% if include.featured %} data-featured{% endif %}>
+{%- assign _tag_slugs = _post.tags | join: "," | downcase -%}
+<article
+  class="hk-post-card{% if include.featured %} hk-post-card--featured{% endif %}"
+  data-post-card
+  data-tags="{{ _tag_slugs }}"
+  data-date="{{ _post.date | date: '%Y%m%d' }}"
+  data-title="{{ _post.title | downcase | escape }}"
+  data-desc="{{ _summary | downcase | escape }}"
+  {% if include.featured %}data-featured{% endif %}
+>
   <div class="hk-card-inner">
-    <div class="hk-card-header">
+    <div class="hk-card-top">
       <div class="hk-card-id-group">
         <span class="hk-post-id">{% include post-id.html post=_post %}</span>
         {%- if include.featured -%}
-          <span class="hk-featured-badge">DESTACADO</span>
+          <span class="hk-featured-badge">Última publicación</span>
         {%- endif -%}
       </div>
-      <time class="hk-post-date" datetime="{{ _post.date | date: '%Y-%m-%d' }}">{{ _post.date | date: "%d %b %Y" }}</time>
+      <div class="hk-card-date-group">
+        <time class="hk-card-date" datetime="{{ _post.date | date: '%Y-%m-%d' }}">{{ _post.date | date: "%d %b %Y" }}</time>
+        <span class="hk-meta-dot" aria-hidden="true">·</span>
+        <span class="hk-reading-time">{% include reading-time.html content=_post.content suffix=" min" %}</span>
+      </div>
     </div>
 
     <{{ _heading }} class="hk-post-title">
@@ -22,26 +35,16 @@
 
     <p class="hk-post-excerpt">{{ _summary }}</p>
 
-    <div class="hk-card-meta">
-      <div class="hk-card-author">
-        <span class="hk-card-avatar">
-          {%- if _author_avatar -%}
-            <img src="{{ _author_avatar | relative_url }}" alt="{{ _author_name }}" width="28" height="28" loading="lazy" decoding="async">
-          {%- else -%}
-            <span aria-hidden="true">&gt;_</span>
-          {%- endif -%}
-        </span>
-        <span class="hk-card-author-name">{{ _author_name }}</span>
-        <span class="hk-reading-time">
-          <svg class="hk-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-          {% include reading-time.html content=_post.content suffix=" min" %}
-        </span>
-      </div>
+    <div class="hk-card-footer">
       {%- if _post.tags.size > 0 -%}
         <div class="hk-card-tags">
           {% include tag-list.html tags=_post.tags %}
         </div>
       {%- endif -%}
+      <span class="hk-card-cta" aria-hidden="true">
+        <span>Leer</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </span>
     </div>
   </div>
 </article>

@@ -5,70 +5,150 @@ description: Blog personal sobre hacking, cybersecurity, penetration testing, CT
 ---
 {%- assign profile = site.data.profile -%}
 {%- assign all_posts = site.posts | sort: 'date' | reverse -%}
-{%- assign latest_post = all_posts | first -%}
+{%- assign featured_post = all_posts | first -%}
+{%- assign latest_activity = site.data.activities | sort: 'date' | reverse | first -%}
 
-<!-- ============ VISTA: HOME ============ -->
-<section class="hk-home">
-
+<div class="hk-home">
+  <!-- Hero -->
   <section class="hk-hero" aria-label="Presentación">
-    <div class="hk-hero-content">
-      <div class="hk-hero-avatar">
-        <img src="{{ profile.avatar | relative_url }}" alt="{{ profile.name }}" width="{{ profile.avatar_width }}" height="{{ profile.avatar_height }}" loading="eager" decoding="async">
-      </div>
-      <div class="hk-hero-text">
-        <h1 class="hk-hero-name">{{ profile.name }} <span class="hk-hero-alias">{{ profile.group_alias }}</span></h1>
-        <p class="hk-hero-role">{{ profile.role }}</p>
-        <p class="hk-hero-desc">{{ profile.hero_description }}</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="hk-posts-section" aria-labelledby="home-recent-posts">
-    <div class="hk-section-header">
-      <h2 id="home-recent-posts" class="hk-section-title"><span class="hk-bracket" aria-hidden="true">[</span> POSTS RECIENTES <span class="hk-bracket" aria-hidden="true">]</span></h2>
-      <div class="hk-section-line" aria-hidden="true"></div>
-      <a href="{{ '/posts/' | relative_url }}" class="hk-section-more">Ver todos →</a>
-    </div>
-    <div class="hk-posts-grid featured">
-      {%- assign limit = site.home_post_limit | default: 6 -%}
-      {%- assign bg_array = "matrix,glitch,scan,noise" | split: ',' -%}
-      {%- for post in all_posts limit: limit -%}
-        {%- assign bg_index = forloop.index0 | modulo: 4 -%}
-        {%- assign data_bg = bg_array[bg_index] -%}
-        {% include post-card.html post=post featured=forloop.first bg=data_bg heading_level="h3" %}
-      {%- endfor -%}
-    </div>
-  </section>
-
-  <section class="hk-stats-section" aria-labelledby="home-stats">
-    <div class="hk-section-header">
-      <h2 id="home-stats" class="hk-section-title"><span class="hk-bracket" aria-hidden="true">[</span> ESTADÍSTICAS <span class="hk-bracket" aria-hidden="true">]</span></h2>
-      <div class="hk-section-line" aria-hidden="true"></div>
-    </div>
-    <div class="hk-stats-grid">
-      <div class="hk-stat-card">
-        <div class="hk-stat-value">{{ site.posts | size }}</div>
-        <div class="hk-stat-label">Artículos</div>
-      </div>
-      <div class="hk-stat-card">
-        <div class="hk-stat-value">{{ site.tags | size }}</div>
-        <div class="hk-stat-label">Etiquetas únicas</div>
-      </div>
-      <div class="hk-stat-card">
-        <div class="hk-stat-value">{{ site.data.activities | size }}</div>
-        <div class="hk-stat-label">Actividades</div>
-      </div>
-      <div class="hk-stat-card">
-        <div class="hk-stat-value hk-stat-value--date">
-          {%- if latest_post -%}
-            <time datetime="{{ latest_post.date | date: '%Y-%m-%d' }}">{{ latest_post.date | date: "%d %b %Y" }}</time>
-          {%- else -%}
-            —
-          {%- endif -%}
+    <div class="hk-hero-grid">
+      <div class="hk-hero-copy">
+        <div class="hk-hero-eyebrow">
+          <span class="hk-pulse-dot" aria-hidden="true"></span>
+          <span>{{ profile.role }}</span>
         </div>
-        <div class="hk-stat-label">Último artículo</div>
+        <h1 class="hk-hero-title">
+          {{ profile.name }}
+          <span class="hk-hero-handle">// {{ profile.group_alias }}</span>
+        </h1>
+        <p class="hk-hero-desc">{{ profile.hero_description }}</p>
+
+        <div class="hk-hero-actions">
+          <a href="{{ '/posts/' | relative_url }}" class="hk-btn hk-btn-primary">
+            <span>Explorar artículos</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+          {% if site.search_enabled %}
+            <button type="button" class="hk-btn hk-btn-secondary" data-open-cmdk>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+              <span>Buscar en el archivo</span>
+              <kbd class="hk-kbd" aria-hidden="true">⌘K</kbd>
+            </button>
+          {% endif %}
+        </div>
+
+        <div class="hk-hero-meta-bar">
+          <div class="hk-telemetry" aria-label="Resumen del archivo">
+            <span><strong>{{ site.posts | size }}</strong> artículos</span>
+            <span class="hk-dot-sep" aria-hidden="true">·</span>
+            <span><strong>{{ site.tags | size }}</strong> etiquetas</span>
+            <span class="hk-dot-sep" aria-hidden="true">·</span>
+            <span><strong>{{ site.data.activities | size }}</strong> {% if site.data.activities.size == 1 %}actividad{% else %}actividades{% endif %}</span>
+            {% if featured_post %}
+              <span class="hk-dot-sep" aria-hidden="true">·</span>
+              <span>Último: <time datetime="{{ featured_post.date | date: '%Y-%m-%d' }}">{{ featured_post.date | date: "%d %b %Y" }}</time></span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="hk-hero-card">
+        <div class="hk-hero-avatar">
+          <img src="{{ profile.avatar | relative_url }}" alt="{{ profile.name }}" width="{{ profile.avatar_width }}" height="{{ profile.avatar_height }}" loading="eager" decoding="async">
+        </div>
+        <div class="hk-hero-socials" aria-label="Perfiles externos">
+          {%- for social in profile.socials -%}
+            <a href="{{ social.url }}" class="hk-chip-link" target="_blank" rel="noopener noreferrer">{{ social.label }}</a>
+          {%- endfor -%}
+        </div>
       </div>
     </div>
   </section>
 
-</section>
+  <!-- Featured & Recent Articles -->
+  <section class="hk-section" aria-labelledby="home-recent-posts">
+    <div class="hk-section-head">
+      <div>
+        <p class="hk-kicker">// INVESTIGACIONES Y WRITE-UPS</p>
+        <h2 id="home-recent-posts" class="hk-section-heading">Publicaciones recientes</h2>
+      </div>
+      <a href="{{ '/posts/' | relative_url }}" class="hk-link-arrow">Ver todos ({{ site.posts | size }}) →</a>
+    </div>
+
+    {%- assign limit = site.home_post_limit | default: 6 -%}
+    {%- if featured_post -%}
+      <div class="hk-featured-slot">
+        {% include post-card.html post=featured_post featured=true heading_level="h3" %}
+      </div>
+    {%- endif -%}
+
+    {%- if all_posts.size > 1 -%}
+      <div class="hk-posts-grid">
+        {%- for post in all_posts offset: 1 limit: limit -%}
+          {% include post-card.html post=post heading_level="h3" %}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </section>
+
+  <!-- Discovery Split: Topics + Latest Activity -->
+  <section class="hk-discovery-grid" aria-label="Explorar temas y actividades">
+    <div class="hk-panel-box">
+      <div class="hk-panel-head">
+        <div>
+          <p class="hk-kicker">// ÍNDICE TEMÁTICO</p>
+          <h2 class="hk-panel-title">Explorar por etiqueta</h2>
+        </div>
+        <span class="hk-mono-badge">{{ site.tags | size }} temas</span>
+      </div>
+      <div class="hk-tag-cloud">
+        {%- assign _tag_names = "" | split: "" -%}
+        {%- for _t in site.tags -%}
+          {%- assign _tag_names = _tag_names | push: _t[0] -%}
+        {%- endfor -%}
+        {%- assign _tag_names = _tag_names | sort_natural -%}
+        {%- for _tname in _tag_names -%}
+          {%- assign _tslug = _tname | downcase | strip -%}
+          {%- assign _tmeta = site.data.tags[_tslug] -%}
+          {%- assign _tlabel = _tmeta.label | default: _tname -%}
+          {%- assign _ttone = _tmeta.tone | default: "green" -%}
+          {%- assign _tcount = site.tags[_tname].size -%}
+          <a href="{{ '/tag/' | append: _tslug | append: '/' | relative_url }}" class="hk-tag hk-tag-pill" data-tone="{{ _ttone }}">
+            <span>#{{ _tlabel }}</span>
+            <span class="hk-tag-pill-count">{{ _tcount }}</span>
+          </a>
+        {%- endfor -%}
+      </div>
+    </div>
+
+    {%- if latest_activity -%}
+      <div class="hk-panel-box">
+        <div class="hk-panel-head">
+          <div>
+            <p class="hk-kicker">// CHARLAS Y COMUNIDAD</p>
+            <h2 class="hk-panel-title">Última actividad</h2>
+          </div>
+          <a href="{{ '/activities/' | relative_url }}" class="hk-link-arrow">Ver todo →</a>
+        </div>
+        <article class="hk-mini-activity">
+          <div class="hk-card-top">
+            <span class="hk-activity-type">{{ latest_activity.type }}</span>
+            <time class="hk-card-date" datetime="{{ latest_activity.date | date: '%Y-%m-%d' }}">{{ latest_activity.date | date: "%d %b %Y" }}</time>
+          </div>
+          <h3 class="hk-mini-activity-title">
+            <a href="{{ latest_activity.url | relative_url }}"{% if latest_activity.external %} target="_blank" rel="noopener noreferrer"{% endif %}>
+              {{ latest_activity.title }}
+            </a>
+          </h3>
+          <p class="hk-mini-activity-desc">{{ latest_activity.summary }}</p>
+          <div class="hk-mini-activity-cta">
+            <a href="{{ latest_activity.url | relative_url }}" class="hk-btn hk-btn-secondary hk-btn-sm"{% if latest_activity.external %} target="_blank" rel="noopener noreferrer"{% endif %}>
+              <span>Abrir presentación</span>
+              <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </article>
+      </div>
+    {%- endif -%}
+  </section>
+</div>

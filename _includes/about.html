@@ -1,9 +1,11 @@
 {%- assign profile = site.data.profile -%}
 <section class="hk-about">
-  <div class="hk-section-header">
-    <h1 class="hk-section-title"><span class="hk-bracket" aria-hidden="true">[</span> SOBRE MÍ <span class="hk-bracket" aria-hidden="true">]</span></h1>
-    <div class="hk-section-line" aria-hidden="true"></div>
-  </div>
+  <header class="hk-page-header">
+    <div>
+      <p class="hk-kicker">// PERFIL</p>
+      <h1 class="hk-page-title">Sobre mí</h1>
+    </div>
+  </header>
 
   <div class="hk-about-card">
     <div class="hk-about-profile">
@@ -20,34 +22,41 @@
 
     <div class="hk-about-socials" aria-label="Enlaces sociales">
       {%- for social in profile.socials -%}
-        <a href="{{ social.url }}" class="hk-social-link" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">[</span>{{ social.label }}<span aria-hidden="true">]</span></a>
+        <a href="{{ social.url }}" class="hk-btn hk-btn-secondary hk-btn-sm" target="_blank" rel="noopener noreferrer">
+          <span>{{ social.label }}</span>
+          <span aria-hidden="true">↗</span>
+        </a>
       {%- endfor -%}
     </div>
   </div>
 
   <div class="hk-about-section">
-    <div class="hk-section-header">
-      <h2 class="hk-section-title"><span class="hk-bracket" aria-hidden="true">[</span> HABILIDADES <span class="hk-bracket" aria-hidden="true">]</span></h2>
-      <div class="hk-section-line" aria-hidden="true"></div>
+    <div class="hk-section-head">
+      <div>
+        <p class="hk-kicker">// CAPACIDADES</p>
+        <h2 class="hk-section-heading">Áreas y herramientas</h2>
+      </div>
     </div>
     <div class="hk-skills-grid">
       {%- for group in profile.skill_groups -%}
         <div class="hk-skill-group">
           <h3 class="hk-skill-group-title">{{ group.title }}</h3>
-          <div class="hk-about-skills">
+          <ul class="hk-about-skills">
             {%- for item in group.items -%}
-              <div class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">◆</span><span class="hk-skill-name">{{ item }}</span></div>
+              <li class="hk-skill-item"><span class="hk-skill-icon" aria-hidden="true">▸</span><span>{{ item }}</span></li>
             {%- endfor -%}
-          </div>
+          </ul>
         </div>
       {%- endfor -%}
     </div>
   </div>
 
   <div class="hk-about-section">
-    <div class="hk-section-header">
-      <h2 class="hk-section-title"><span class="hk-bracket" aria-hidden="true">[</span> CERTIFICACIONES <span class="hk-bracket" aria-hidden="true">]</span></h2>
-      <div class="hk-section-line" aria-hidden="true"></div>
+    <div class="hk-section-head">
+      <div>
+        <p class="hk-kicker">// FORMACIÓN</p>
+        <h2 class="hk-section-heading">Certificaciones</h2>
+      </div>
     </div>
     {%- if profile.certifications and profile.certifications.size > 0 -%}
       <div class="hk-certs-grid">
@@ -83,9 +92,11 @@
   </div>
 
   <div class="hk-about-section">
-    <div class="hk-section-header">
-      <h2 class="hk-section-title"><span class="hk-bracket" aria-hidden="true">[</span> CONTACTO <span class="hk-bracket" aria-hidden="true">]</span></h2>
-      <div class="hk-section-line" aria-hidden="true"></div>
+    <div class="hk-section-head">
+      <div>
+        <p class="hk-kicker">// CONVERSAR</p>
+        <h2 class="hk-section-heading">Contacto</h2>
+      </div>
     </div>
     <p class="hk-contact-text">
       Si quieres contactarme para colaboraciones, preguntas o compartir conocimientos, puedes encontrarme en cualquiera de mis redes sociales o enviarme un mensaje directo por <a href="{{ profile.x_url }}" target="_blank" rel="noopener noreferrer">X</a> o <a href="{{ profile.linkedin_url }}" target="_blank" rel="noopener noreferrer">LinkedIn</a>.
@@ -93,6 +104,6 @@
   </div>
 
   <div class="hk-about-disclaimer" role="note">
-    <span class="hk-disclaimer-text">{{ profile.disclaimer }}</span>
+    {{ profile.disclaimer }}
   </div>
 </section>
