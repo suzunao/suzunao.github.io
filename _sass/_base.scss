@@ -480,6 +480,55 @@ html[data-fx="off"] .hk-cursor {
   color: var(--accent-purple);
 }
 
+/* Migas de pan y enlaces sociales reutilizables */
+.hk-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.hk-breadcrumb a {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.hk-breadcrumb a:hover,
+.hk-breadcrumb .hk-current {
+  color: var(--accent-green);
+}
+
+.hk-social-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--accent-green-border);
+  border-radius: var(--radius-sm);
+  color: var(--accent-green);
+  font-size: var(--text-xs);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.hk-social-link:hover {
+  border-color: var(--accent-green);
+  background: var(--accent-green-soft);
+  color: var(--accent-green);
+}
+
+.hk-social-link:active {
+  transform: scale(0.97);
+}
+
 /* Botones y estados vacíos reutilizables */
 .hk-btn-outline {
   display: inline-flex;

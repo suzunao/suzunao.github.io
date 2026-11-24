@@ -15,10 +15,14 @@
 
   <link rel="icon" href="{{ '/assets/img/optimized/favicon.png' | relative_url }}" type="image/png">
   <link rel="apple-touch-icon" href="{{ '/assets/img/optimized/brand-512.webp' | relative_url }}">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" href="{{ '/assets/fonts/fira-code-latin-wght.woff2' | relative_url }}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
+  {%- if page.layout == 'post' -%}
+    <link rel="stylesheet" href="{{ '/assets/css/page-post.css' | relative_url }}">
+  {%- endif -%}
+  {%- if page.extra_css -%}
+    <link rel="stylesheet" href="{{ page.extra_css | relative_url }}">
+  {%- endif -%}
   <script>
     (function () {
       try {

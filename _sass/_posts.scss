@@ -3,29 +3,6 @@
   margin: 0 auto;
 }
 
-.hk-breadcrumb {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-5);
-  color: var(--text-muted);
-  font-size: var(--text-xs);
-}
-
-.hk-breadcrumb a {
-  display: inline-flex;
-  min-height: 36px;
-  align-items: center;
-  color: var(--text-secondary);
-  text-decoration: none;
-}
-
-.hk-breadcrumb a:hover,
-.hk-breadcrumb .hk-current {
-  color: var(--accent-green);
-}
-
 .hk-post-header {
   max-width: var(--prose-max);
   margin-bottom: var(--space-6);
